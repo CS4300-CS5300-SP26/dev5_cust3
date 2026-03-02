@@ -1,3 +1,5 @@
 from django.shortcuts import render
 
-# Create your views here.
+# Landing page view
+def index(request):
+    return render(request, "index.html")

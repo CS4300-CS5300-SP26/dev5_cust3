@@ -1,0 +1,70 @@
+/* Universal style */
+* {
+    color: black;
+    text-align: center;
+
+}
+
+header {
+    font-size: 25px;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+body {
+    background-image: url('../images/landing_photo.webp');
+    background-size: cover;       /* Makes image cover entire screen */
+    background-repeat: no-repeat; /* Prevents tiling */
+    background-position: center;  /* Centers the image */
+    background-attachment: fixed; /* Optional: keeps image fixed on scroll */
+    font-size: 30px;
+    font-family: 'Inter', sans-serif;
+}
+
+ul {
+    list-style-type: none;
+}
+
+.text-border {
+    text-shadow: 
+    -2px -2px 0 #00ffff,  
+    2px -2px 0 #00ffff,
+    -2px 2px 0 #00ffff,
+    2px 2px 0 #00ffff;
+}
+
+.box-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+
+    list-style: none;
+    padding: 0;
+    margin: 3rem auto;
+    max-width: 1200px;
+}
+
+.box-item {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+
+    padding: 2rem;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 500;
+
+    color: #e2e8f0;
+    border-radius: 12px;
+
+    transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.box-item:hover {
+    transform: translateY(-6px);
+    border-color: #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+nav {
+    padding: 1rem;
+}

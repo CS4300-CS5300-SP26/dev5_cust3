@@ -1,44 +1,57 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en"
 <head>
     <meta charset="UTF-8">
     <title>KnowledgeMap</title>
 
+    <!-- Link to external font website-->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
     <!-- Link external css file styles.css -->
-    <link rel="stylesheet" href="% static 'css/styles.css' %">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 
-<body>
-    <!--Navigation bar at top (not yet functional)-->
-    <header class="navbar">
-        <h1 class="logo">KnowledgeMap</h1>
-        <nav>
-            <a href="#">Home</a>
-            <a href="#">About</a>
-        </nav>
-    </header>
+<!--Navigation bar at top (not yet functional)-->
+<header class="navbar text-border">
+    <h1 class="logo">KnowledgeMap</h1>
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+    </nav>
+</header>
 
+<body>
     <section class="landingpage">
         <div class="landing-text">
 
             <!--Headline-->
-            <h2>Turn your notes into visual knowledge maps</h2>
+            <h2 class="text-border">
+                Turn your notes into visual knowledge maps
+            </h2>
 
             <!--Brief description-->
-            <p>
-                Upload lectures, notes, or study materials and instantly generate 
-                interactive cluster and nodes of connected concepts. Study smarter 
-                with AI-generated quizzes tailored to your content.
-            </p>
+            <ul class="box-list">
+                <li class="box-item">
+                    Upload lectures, notes, or study materials to instantly generate 
+                    interactive clusters and nodes of connected concepts.
+                </li>
+
+                <li class="box-item">
+                    Study smarter with AI-generated quizzes tailored to your content.
+                </li>
+
+                <li class="box-item">
+                    Make connections between different ideas you never thought possible.
+                </li>
+            </ul>
 
             <!--Non-functional button, more for decoration right now-->
-            <button class="cta-button">Get Started Today</button>
+            <button class="cta-button box-item">Get Started Today</button>
 
         </div>
 
-        <div class="landing-image">
-            <img src="{% static 'images/landing_photo' %}">
-        </div>
+
 
     </section>
 
