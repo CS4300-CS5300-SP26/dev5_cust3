@@ -1,36 +1,74 @@
 /* Universal style */
-* {
-    color: black;
-    text-align: center;
 
+
+* {
+    text-align: center;
+}
+
+/* menu items (home and about) are white */
+nav a {
+    display: inline-block;
+    color: #ffffff;
+    text-decoration: none;
+    margin: 0 20px;
+    font-weight: 600;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+/* menu items are blue when hovered over */
+nav a:hover {
+    color: #38bdf8;
+    transform: translateY(-3px);
 }
 
 header {
     font-size: 25px;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Orbitron', sans-serif;
+}
+
+h1, h2 {
+    color: #ffffff;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+h1 {
+  font-family: 'Sora', sans-serif;
 }
 
 body {
-    background-image: url('../images/landing_photo.webp');
+    background-image: url('../images/Image\ option\ 2.png');
     background-size: cover;       /* Makes image cover entire screen */
     background-repeat: no-repeat; /* Prevents tiling */
     background-position: center;  /* Centers the image */
     background-attachment: fixed; /* Optional: keeps image fixed on scroll */
     font-size: 30px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Sora', sans-serif;
+    color: #ffffff;
+}
+body {
+    position: relative;
+    background-image: url('../images/Image\ option\ 2.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* Dark overlay */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.30);  /* 45% darkness */
+    z-index: -1;
 }
 
 ul {
     list-style-type: none;
 }
 
-.text-border {
-    text-shadow: 
-    -2px -2px 0 #00ffff,  
-    2px -2px 0 #00ffff,
-    -2px 2px 0 #00ffff,
-    2px 2px 0 #00ffff;
-}
+
 
 .box-list {
     display: grid;
@@ -61,10 +99,22 @@ ul {
 /* Hover effect */
 .box-item:hover {
     transform: translateY(-6px);
-    border-color: #00ffff;
+    border-color: #38bdf8;
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
 }
 
 nav {
     padding: 1rem;
+}
+
+.cursor-glow {
+    position: fixed;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(56,189,248,0.35) 0%, rgba(56,189,248,0.15) 40%, transparent 70%);
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    mix-blend-mode: screen;
 }
