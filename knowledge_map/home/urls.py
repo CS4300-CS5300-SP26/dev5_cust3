@@ -7,5 +7,5 @@ urlpatterns = [
     path('new_map/', views.create_map, name='create_map'),
     path('quiz/', views.quiz, name='quiz'),
     path('progress/', views.progress, name='progress'),
-    path('logout/', views.logout_view, name='logout'),
+    # path('logout/', views.logout_view, name='logout'),
 ]
