@@ -35,3 +35,5 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         with: 
           review_simple_changes: false
+
+          openai_model: gpt-5.1-codex-mini
