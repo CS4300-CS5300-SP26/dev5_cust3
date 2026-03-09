@@ -2,11 +2,11 @@ from django.shortcuts import render
 
 # Landing page view
 def index(request):
-    return render(request, "index.html")
+    return render(request, "knowledge_map/index.html")
 
 # Home page view
-def home(request):
-    return render(request, "knowledge_map/home.html")
+def homepage(request):
+    return render(request, "knowledge_map/homepage.html")
 
 # Upload content view 
 def create_map(request):
