@@ -26,31 +26,31 @@
             <!-- Navigation bar items -->
             <ul class="sidebar-nav">
                 <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
+                    <a href="{% url 'home' %}" class="sidebar-link">
                         <i class="lni lni-home-2"></i>
                         <span>Home</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
+                    <a href="{% url 'create_map' %}" class="sidebar-link">
                         <i class="lni lnis-plus"></i>
                         <span>Create Map</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
+                    <a href="{% url 'quiz' %}" class="sidebar-link">
                         <i class="lni lnis-book-1"></i>
                         <span>Quiz</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
+                    <a href="{% url 'progress' %}" class="sidebar-link">
                         <i class="lni lni-trend-up-1"></i>
                         <span>Progress</span>
                     </a>
                 </li>
                 <li class="sidebar-footer">
-                    <a href="#" class="sidebar-link">
+                    <a href="{% url 'logout' %}" class="sidebar-link">
                         <i class="lni lni-exit"></i>
                         <span>Logout</span>
                     </a>
@@ -64,19 +64,3 @@
 </body>
 
 </html>
-
-
-
-
-<nav class="navbar">
-    <h2 class="logo">KnowledgeMap</h2>
-
-    # Will update and use named routes later
-    <ul class="nav-links">
-        <li><a href="/home/">Homepage</a></li>
-        <li><a href="/new_map/">Create Map</a></li>
-        <li><a href="/quiz/">Quiz</a></li>
-        <li><a href="/progress/">Progress</a></li>
-        <li><a href="/logout/">Logout</a></li>
-    </ul>
-</nav>
