@@ -1,0 +1,59 @@
+{% load static %}
+
+<aside id="sidebar">
+    <div class="d-flex">
+        <button id="toggle-btn" type="button">
+            <i class="lni lni-layout-9"></i>
+        </button>
+        <div class="sidebar-logo">
+            <a href="#">KnowledgeMap</a>
+        </div>
+    </div>
+
+    <!-- Navigation bar items -->
+    <ul class="sidebar-nav">
+        <li class="sidebar-item">
+            <a href="{% url 'homepage' %}" class="sidebar-link">
+                <i class="lni lni-home-2"></i>
+                <span>Home</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{% url 'upload' %}" class="sidebar-link">
+                <i class="lni lni-file-plus-circle"></i>
+                <span>Upload Content</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{% url 'maps' %}" class="sidebar-link">
+                <i class="lni lni-vector-nodes-7"></i>
+                <span>Maps</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{% url 'quiz' %}" class="sidebar-link">
+                <i class="lni lni-book-1"></i>
+                <span>Quiz</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{% url 'progress' %}" class="sidebar-link">
+                <i class="lni lni-trend-up-1"></i>
+                <span>Progress</span>
+            </a>
+        </li>
+        <!--
+        Implement later as there is no log in function right now
+        <li class="sidebar-footer">
+            <a href="" class="sidebar-link">
+                <i class="lni lni-exit"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+        -->
+            
+    </ul>
+
+</aside>
+
+    
