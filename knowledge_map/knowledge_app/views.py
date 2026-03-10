@@ -4,6 +4,10 @@ from django.shortcuts import render
 def index(request):
     return render(request, "knowledge_app/index.html")
 
+# Upload view
+def upload(request):
+    return render(request, "knowledge_app/upload.html")
+
 # Home page view
 def homepage(request):
     return render(request, "knowledge_app/homepage.html")
