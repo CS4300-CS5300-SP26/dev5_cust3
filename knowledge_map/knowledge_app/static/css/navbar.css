@@ -34,7 +34,7 @@ body {
     width: 100%;
     overflow: hidden;
     transition: all 0.35s ease-in-out;
-    background-color: #aafdfe;
+    background-color: #fafdfe;
 }
 
 #sidebar{
@@ -45,4 +45,9 @@ body {
     display: flex;
     flex-direction: column;
     background-color: #0e223e;
+}
+
+#sidebar.expand{
+    width: 260px;
+    min-width: 260px;
 }

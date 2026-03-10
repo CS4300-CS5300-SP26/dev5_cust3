@@ -1,70 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bootstrap Sidebar</title>
-    <link rel="stylesheet" href="https://cdn.lineicons.com/5.1/line/lineicons.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="style.css">
-</head>
 
-<body>
-    <div class="wrapper">
-        <aside id="sidebar">
-            <div class="d-flex">
-                <button id="toggle-btn" type="button">
-                    <i class="lni lni-layout-9"></i>
-                </button>
-                <div class="sidebar-logo">
-                    <a href="#">KnowledgeMap</a>
-                </div>
-            </div>
-
-            <!-- Navigation bar items -->
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="{% url 'homepage' %}" class="sidebar-link">
-                        <i class="lni lni-home-2"></i>
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'create_map' %}" class="sidebar-link">
-                        <i class="lni lnis-plus"></i>
-                        <span>Create Map</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'quiz' %}" class="sidebar-link">
-                        <i class="lni lnis-book-1"></i>
-                        <span>Quiz</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="{% url 'progress' %}" class="sidebar-link">
-                        <i class="lni lni-trend-up-1"></i>
-                        <span>Progress</span>
-                    </a>
-                </li>
-                <!--
-                Implement later as there is no log in function right now
-                <li class="sidebar-footer">
-                    <a href="" class="sidebar-link">
-                        <i class="lni lni-exit"></i>
-                        <span>Logout</span>
-                    </a>
-                </li>
-                -->
-                
-            </ul>
-
-        </aside>
+<aside id="sidebar">
+    <div class="d-flex">
+        <button id="toggle-btn" type="button">
+            <i class="lni lni-layout-9"></i>
+        </button>
+        <div class="sidebar-logo">
+            <a href="#">KnowledgeMap</a>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    <script src="navbar.js"></script>
-</body>
 
-</html>
+    <!-- Navigation bar items -->
+    <ul class="sidebar-nav">
+        <li class="sidebar-item">
+            <a href="{% url 'homepage' %}" class="sidebar-link">
+                <i class="lni lni-home-2"></i>
+                <span>Home</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{% url 'create_map' %}" class="sidebar-link">
+                <i class="lni lnis-plus"></i>
+                <span>Create Map</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{% url 'quiz' %}" class="sidebar-link">
+                <i class="lni lnis-book-1"></i>
+                <span>Quiz</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{% url 'progress' %}" class="sidebar-link">
+                <i class="lni lni-trend-up-1"></i>
+                <span>Progress</span>
+            </a>
+        </li>
+        <!--
+        Implement later as there is no log in function right now
+        <li class="sidebar-footer">
+            <a href="" class="sidebar-link">
+                <i class="lni lni-exit"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+        -->
+            
+    </ul>
+
+</aside>
+
+    
