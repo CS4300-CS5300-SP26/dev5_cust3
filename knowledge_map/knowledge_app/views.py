@@ -13,8 +13,8 @@ def homepage(request):
     return render(request, "knowledge_app/homepage.html")
 
 # Upload content view 
-def create_map(request):
-    return render(request, "knowledge_app/create_map.html")
+def maps(request):
+    return render(request, "knowledge_app/maps.html")
 
 # Quiz view
 def quiz(request):
