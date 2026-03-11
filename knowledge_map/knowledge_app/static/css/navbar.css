@@ -106,3 +106,10 @@ a.sidebar-link:hover{
 .sidebar-item {
     position: relative;
 }
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+

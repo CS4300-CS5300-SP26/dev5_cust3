@@ -11,7 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap"
+        rel="stylesheet">
 
     <!-- Link external css file styles.css -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
@@ -23,6 +25,16 @@
     <nav>
         <a href="#">Home</a>
         <a href="#">About</a>
+        {% if user.is_authenticated %}
+        <a>{{ user.username }}</a>
+        <a>
+        <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+        {% else %}
+        <a href="{% url 'login' %}">Login</a></li>
+        {% endif %}
     </nav>
 </header>
 
@@ -30,12 +42,12 @@
 <div class="cursor-glow"></div>
 
 <script>
-const glow = document.querySelector('.cursor-glow');
+    const glow = document.querySelector('.cursor-glow');
 
-document.addEventListener('mousemove', (e) => {
-    glow.style.left = e.clientX + 'px';
-    glow.style.top = e.clientY + 'px';
-});
+    document.addEventListener('mousemove', (e) => {
+        glow.style.left = e.clientX + 'px';
+        glow.style.top = e.clientY + 'px';
+    });
 </script>
 
 <body>
@@ -50,7 +62,7 @@ document.addEventListener('mousemove', (e) => {
             <!--Brief description-->
             <ul class="box-list">
                 <li class="box-item">
-                    Upload lectures, notes, or study materials to instantly generate 
+                    Upload lectures, notes, or study materials to instantly generate
                     interactive clusters and nodes of connected concepts.
                 </li>
 
