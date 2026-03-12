@@ -50,8 +50,8 @@ class NavbarTest(TestCase):
 
     # Test navbar is on every page
     def test_sidebar_present_on_all_pages(self):
-    pages = ['homepage', 'maps', 'quiz', 'progress']
-    for page in pages:
-        response = self.client.get(reverse(page))
-        self.assertContains(response, 'id="sidebar"', msg_prefix=f"Sidebar missing on {page}")
-        self.assertContains(response, 'id="toggle-btn"', msg_prefix=f"Toggle button missing on {page}")
+        pages = ['homepage', 'maps', 'quiz', 'progress']
+        for page in pages:
+            response = self.client.get(reverse(page))
+            self.assertContains(response, 'id="sidebar"', msg_prefix=f"Sidebar missing on {page}")
+            self.assertContains(response, 'id="toggle-btn"', msg_prefix=f"Toggle button missing on {page}")
