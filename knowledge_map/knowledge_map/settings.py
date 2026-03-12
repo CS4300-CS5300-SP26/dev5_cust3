@@ -55,7 +55,7 @@ ROOT_URLCONF = 'knowledge_map.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR/'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -100,6 +100,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#user redirection paths
+
+
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/homepage/'       
+LOGOUT_REDIRECT_URL = '/'  
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://app-aoa-21.devedu.io',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
