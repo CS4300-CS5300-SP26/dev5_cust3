@@ -42,18 +42,17 @@
                 <span>Progress</span>
             </a>
         </li>
-        <!--
-        Implement later as there is no log in function right now
+        {% if user.is_authenticated %}
         <li class="sidebar-footer">
-            <a href="" class="sidebar-link">
-                <i class="lni lni-exit"></i>
-                <span>Logout</span>
-            </a>
-        </li>
-        -->
-            
+            <a>
+                <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Logout</button>
+                </form>
+        </li> 
+        {% else %}
+        {% endif %}
     </ul>
-
 </aside>
 
     
