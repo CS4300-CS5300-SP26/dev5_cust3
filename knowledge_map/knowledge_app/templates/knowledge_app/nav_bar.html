@@ -44,13 +44,21 @@
         </li>
         {% if user.is_authenticated %}
         <li class="sidebar-footer">
-            <a>
-                <form method="POST" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="logout-btn">Logout</button>
-                </form>
-        </li> 
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="sidebar-link logout-btn">
+                    <i class="lni lni-exit"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+        </li>
         {% else %}
+        <li class="sidebar-footer">
+            <a href="{% url 'login' %}" class="sidebar-link">
+                <i class="lni lni-enter"></i>
+                <span>Login</span>
+            </a>
+        </li>
         {% endif %}
     </ul>
 </aside>
