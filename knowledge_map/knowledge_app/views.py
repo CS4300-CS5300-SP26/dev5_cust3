@@ -5,6 +5,7 @@ from django.contrib.auth.forms import UserCreationForm
 def index(request):
     return render(request, "knowledge_app/index.html")
 
+# us @login_required to force login before accessing a view
 # Upload view
 def upload(request):
     return render(request, "knowledge_app/upload.html")
