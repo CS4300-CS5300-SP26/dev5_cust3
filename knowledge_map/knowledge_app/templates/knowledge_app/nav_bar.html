@@ -42,6 +42,10 @@
                 <span>Progress</span>
             </a>
         </li>
+        
+    </ul>
+
+    <ul class="sidebar-nav" style="padding: 0; flex: 0;">
         {% if user.is_authenticated %}
         <li class="sidebar-footer">
             <form method="POST" action="{% url 'logout' %}">
