@@ -1,0 +1,50 @@
+.homepage-wrapper {
+    display: flex;
+    height: 100vh;
+}
+
+.homepage-main {
+    flex: 1;
+    padding: 2rem;
+}
+
+.notepad-panel {
+    width: 350px;
+    min-width: 300px;
+    background-color: #fcffe0;
+    border-left: 2px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+.notepad-header {
+    padding: 1rem 1rem;
+    border-bottom: 2px solid #e0e0e0;
+    background-color: #9db8dd;
+    color: white;
+    font-family: "Caveat", cursive;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.notepad-header h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.notepad-body {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border: none;
+    resize: none;
+    font-family: "Caveat", cursive;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1.5rem;
+    outline: none;
+    background-color: #fcffe0;
+    color: #333;
+}
