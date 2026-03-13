@@ -2,5 +2,18 @@
 {% load static %}
 
 {% block content %}
-<h1 style="text-align: center;">Welcome to the Homepage {{ user.username }}!</h1>
+<div class="homepage-wrapper">
+    <div class="homepage-main">
+        <h1 style="text-align: center;">Welcome to the Homepage</h1>
+    </div>
+
+    <!--Notepad Panel-->
+    <div class="notepad-panel">
+        <div class="notepad-header">
+            <h2>Notes</h2>
+        </div>
+        <textarea class="notepad-body" placeholder="Write your notes here..."></textarea>
+    </div>
+</div>
+
 {% endblock %}
