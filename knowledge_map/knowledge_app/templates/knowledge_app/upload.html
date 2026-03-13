@@ -15,7 +15,13 @@
     {% if files %}
         <ul>
             {% for f in files %}
-                <li><a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a> — {{ f.uploaded_at|date:"M d, Y H:i" }}</li>
+                <li>
+                    <a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a> — {{ f.uploaded_at|date:"M d, Y H:i" }}
+                    <form method="POST" action="{% url 'delete_file' f.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Delete</button>
+                    </form>
+                </li>
             {% endfor %}
         </ul>
     {% else %}

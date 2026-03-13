@@ -95,6 +95,7 @@ class NavbarTest(TestCase):
             response = self.client.get(reverse(page))
             self.assertContains(response, 'id="sidebar"', msg_prefix=f"Sidebar missing on {page}")
             self.assertContains(response, 'id="toggle-btn"', msg_prefix=f"Toggle button missing on {page}")
+
 # ----------------Tests for Upload Feature---------------------
 class UploadPageTest(TestCase):
 
@@ -144,6 +145,31 @@ class UploadPageTest(TestCase):
         self.assertIn("myfile.pdf", uploaded.file.name)
 
     # Clean up uploaded test files after tests run
+    def tearDown(self):
+        for f in UploadedFile.objects.all():
+            if os.path.exists(f.file.path):
+                os.remove(f.file.path)
+
+# ----------------Tests for Delete Feature---------------------
+class DeleteFileTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()  # set up fake browser before each test
+
+    # Test deleting a file removes it from the database
+    def test_delete_removes_file_from_database(self):
+        pdf = SimpleUploadedFile("delete_me.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
+        self.client.post(reverse('upload'), {'pdf_file': pdf})  # upload a file
+        uploaded = UploadedFile.objects.first()  # grab it from the database
+        self.client.post(reverse('delete_file', args=[uploaded.id]))  # delete it
+        self.assertEqual(UploadedFile.objects.count(), 0)  # confirm it's gone
+
+    # Test deleting a file that doesn't exist returns 404
+    def test_delete_nonexistent_file_returns_404(self):
+        response = self.client.post(reverse('delete_file', args=[999]))  # try to delete something that doesn't exist
+        self.assertEqual(response.status_code, 404)  # confirm we get a 404 instead of a crash
+
+    # Clean up any leftover files after tests run
     def tearDown(self):
         for f in UploadedFile.objects.all():
             if os.path.exists(f.file.path):
