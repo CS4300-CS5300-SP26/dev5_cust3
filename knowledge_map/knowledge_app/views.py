@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect
 from .models import UploadedFile
 import pdfplumber
+from django.contrib.auth.forms import UserCreationForm
 
 # Landing page view
 def index(request):
     return render(request, "knowledge_app/index.html")
 
+# us @login_required to force login before accessing a view
+# Upload view
 def upload(request):
 
     # Handle form submission
@@ -53,3 +56,18 @@ def quiz(request):
 # Progress view
 def progress(request):
     return render(request, "knowledge_app/progress.html")
+
+# Login view
+def Login(request):
+    return render(request, "knowledge_app/login.html")
+
+# Register view
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})

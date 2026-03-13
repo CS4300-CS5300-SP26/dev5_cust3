@@ -1,0 +1,45 @@
+{% extends "knowledge_app/base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow border-0">
+            <div class="card-header text-white text-center py-3" style="background-color: #001f5b;">
+                <h4 class="mb-0 fw-bold">Create an Account</h4>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+                        <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}"
+                            id="{{ field.id_for_label }}"
+                            class="form-control {% if field.errors %}is-invalid{% endif %}" />
+                        {% for error in field.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn text-white fw-bold"
+                            style="background-color: #001f5b;">Register</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-footer text-center text-muted py-3">
+                Already have an account?
+                <a href="{% url 'login' %}" class="fw-semibold" style="color: #001f5b;">Login here</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
