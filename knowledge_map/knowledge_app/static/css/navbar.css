@@ -45,6 +45,7 @@ body {
     display: flex;
     flex-direction: column;
     background-color: #0e223e;
+    padding-bottom: 2.5rem;
 }
 
 #sidebar.expand{
@@ -124,7 +125,7 @@ a.sidebar-link:hover{
     display: block;
     padding: .625rem 1.625rem;
     white-space: nowrap;
-    padding: 3px solid transparent;
+    border-left: 3px solid transparent;
 }
 
 #sidebar:not(.expand) .logout-btn span {
@@ -135,6 +136,7 @@ a.sidebar-link:hover{
     background-color: rgba(255, 255, 255, .075);
     border-left: 3px solid #3b7ddd;
 }
+
 .bottom-bar {
     position: fixed;
     bottom: 0;
@@ -147,5 +149,5 @@ a.sidebar-link:hover{
     font-size: 0.85rem;
     font-weight: 600;
     letter-spacing: 0.05em;
-    z-index: 999;
+    z-index: 9999;
 }
