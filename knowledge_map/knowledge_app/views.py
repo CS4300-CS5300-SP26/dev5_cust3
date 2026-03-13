@@ -8,6 +8,7 @@ def index(request):
     return render(request, "knowledge_app/index.html")
 
 # us @login_required to force login before accessing a view
+
 # Upload view
 def upload(request):
 
@@ -25,9 +26,12 @@ def upload(request):
 
             # Extract text from each page of the PDF
             text = ""
-            with pdfplumber.open(uploaded.file.path) as pdf:
-                for page in pdf.pages:
-                    text += page.extract_text() or ""
+            try: 
+                with pdfplumber.open(uploaded.file.path) as pdf:
+                    for page in pdf.pages:
+                        text += page.extract_text() or ""
+            except Exception as e:
+                pass
 
             # Temporary - print extracted text to terminal to confirm it works
             print(text)

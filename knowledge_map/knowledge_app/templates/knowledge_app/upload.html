@@ -15,7 +15,7 @@
     {% if files %}
         <ul>
             {% for f in files %}
-                <li>{{ f.file.name }} — {{ f.uploaded_at|date:"M d, Y H:i" }}</li>
+                <li><a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a> — {{ f.uploaded_at|date:"M d, Y H:i" }}</li>
             {% endfor %}
         </ul>
     {% else %}
