@@ -1,1 +1,35 @@
 {% extends "knowledge_app/base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm mt-5 border border-primary rounded-1 p-5">
+            <h2>Upload Content</h2>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label for="pdf_file">Select a PDF file:</label>
+                <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" required>
+                <button type="submit">Upload</button>
+            </form>
+
+            <h3>Uploaded Files</h3>
+            {% if files %}
+            <ul>
+                {% for f in files %}
+                <li>
+                    <a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a> — {{ f.uploaded_at|date:"M d, Y H:i" }}
+                    <form method="POST" action="{% url 'delete_file' f.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Delete</button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No files uploaded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

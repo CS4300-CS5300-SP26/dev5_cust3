@@ -132,3 +132,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Location where uploaded files are saved on disk and accessed via URL
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Trusted domains allowed to submit forms (fixed 403 error)
+CSRF_TRUSTED_ORIGINS = ['https://*.devedu.io', 'http://localhost:3000']

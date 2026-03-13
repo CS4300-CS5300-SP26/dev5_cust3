@@ -1,14 +1,56 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import UploadedFile
+import pdfplumber
 from django.contrib.auth.forms import UserCreationForm
+import os
 
 # Landing page view
 def index(request):
     return render(request, "knowledge_app/index.html")
 
 # us @login_required to force login before accessing a view
+
 # Upload view
 def upload(request):
-    return render(request, "knowledge_app/upload.html")
+    if request.method == 'POST':
+        # Get the file from the form
+        file = request.FILES.get('pdf_file')
+        
+        if file and file.name.endswith('.pdf'):
+            # Save file to database and disk
+            uploaded = UploadedFile.objects.create(file=file)
+            # Extract text from each page of the PDF
+            text = ""
+            try: 
+                with pdfplumber.open(uploaded.file.path) as pdf:
+                    for page in pdf.pages:
+                        text += page.extract_text() or ""
+            except Exception as e:
+                pass
+
+        # Redirect back to upload page after submission
+        return redirect('upload')
+
+    # Get all uploaded files from the database, newest first
+    files = UploadedFile.objects.all().order_by('-uploaded_at')
+
+    # Send files to the template so they appear in the list
+    return render(request, "knowledge_app/upload.html", {'files': files})
+
+def delete_file(request, file_id):
+
+    # Get the file or return 404 if it doesn't exist
+    uploaded = get_object_or_404(UploadedFile, id=file_id)
+
+    # Delete the actual file from disk
+    if os.path.exists(uploaded.file.path):
+        os.remove(uploaded.file.path)
+
+    # Delete the record from the database
+    uploaded.delete()
+
+    # Redirect back to upload page
+    return redirect('upload')
 
 # Home page view
 def homepage(request):
