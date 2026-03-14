@@ -28,6 +28,10 @@ def upload(request):
             except Exception as e:
                 pass
 
+            # Save extracted text
+            uploaded.extract_text = text
+            uploaded.save()
+
         # Redirect back to upload page after submission
         return redirect('upload')
 
