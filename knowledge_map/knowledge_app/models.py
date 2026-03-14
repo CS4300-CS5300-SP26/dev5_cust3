@@ -13,3 +13,19 @@ class UploadedFile(models.Model):
 
     def __str__(self):
         return self.file.name
+
+# Stores a map generated from an uploaded PDF
+class KnowledgeMap(models.Model):
+
+
+# Topic cluster
+class TopicNode(models.Model):
+
+
+# Subtopic under a topic node
+class SubtopicNode(models.Model):
+
+
+# Relationship/edge between two topic nodes on the map
+class NodeRelationship(models.Model):
+    
