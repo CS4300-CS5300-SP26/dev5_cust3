@@ -16,11 +16,24 @@ class UploadedFile(models.Model):
 
 # Stores a map generated from an uploaded PDF
 class KnowledgeMap(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    uploaded_file = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
+    title = models = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.title
 
 # Topic cluster
 class TopicNode(models.Model):
+    knowledge_map = models.ForeignKey(KnowledgeMap, on_delete=models.CASCADE, related_name='topics')
+    label = models.CharField(max_length=255)        #to be given from OpenAI
+    summary = models.TextField()                    # summary from OpenAI
+    x_position = models.FloatField(default=0)       # map position
+    y_position = models.FloatField(default=0)
 
+    def __str__(self):
+        return self.label
 
 # Subtopic under a topic node
 class SubtopicNode(models.Model):
