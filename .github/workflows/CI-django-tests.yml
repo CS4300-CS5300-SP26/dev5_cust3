@@ -34,5 +34,17 @@ jobs:
         run: |
           cd knowledge_map
           coverage run --source='.' manage.py test
-          coverage report -m
-    
+
+      - name: Enforce 80% coverage
+        run: |
+          cd knowledge_map
+          coverage report --fail-under=80
+
+      - name: Generate XML report
+       run: |
+         cd knowledge_map
+         coverage xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+
