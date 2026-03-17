@@ -11,3 +11,4 @@ env/
 .env
 media/
 .coverage
+staticfiles/
