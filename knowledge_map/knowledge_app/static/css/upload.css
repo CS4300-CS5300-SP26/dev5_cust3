@@ -1,0 +1,133 @@
+/* Universal style */
+
+
+* {
+    text-align: center;
+}
+
+/* menu items (home and about) are white */
+nav a {
+    display: inline-block;
+    color: #ffffff;
+    text-decoration: none;
+    margin: 0 20px;
+    font-weight: 600;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+/* menu items are blue when hovered over */
+nav a:hover {
+    color: #38bdf8;
+    transform: translateY(-3px);
+}
+
+header {
+    font-size: 25px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+h1, h2 {
+    color: #ffffff;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+h1 {
+  font-family: 'Sora', sans-serif;
+}
+
+body {
+    background-image: url('../images/Image\ option\ 2.png');
+    background-size: cover;       /* Makes image cover entire screen */
+    background-repeat: no-repeat; /* Prevents tiling */
+    background-position: center;  /* Centers the image */
+    background-attachment: fixed; /* Optional: keeps image fixed on scroll */
+    font-size: 30px;
+    font-family: 'Sora', sans-serif;
+    color: #ffffff;
+}
+body {
+    position: relative;
+    background-image: url('../images/Image\ option\ 2.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* Dark overlay */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.30);  /* 45% darkness */
+    z-index: -1;
+}
+
+ul {
+    list-style-type: none;
+}
+
+.box-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+
+    list-style: none;
+    padding: 0;
+    margin: 3rem auto;
+    max-width: 1200px;
+}
+
+.box-item {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+
+    padding: 2rem;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 500;
+
+    color: #e2e8f0;
+    border-radius: 12px;
+
+    transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.box-item:hover {
+    transform: translateY(-6px);
+    border-color: #38bdf8;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+nav {
+    padding: 1rem;
+}
+
+.cursor-glow {
+    position: fixed;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(56,189,248,0.35) 0%, rgba(56,189,248,0.15) 40%, transparent 70%);
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    mix-blend-mode: screen;
+}
+
+/* Selection Color */
+::selection { background: #3459ff; color: #0f172a; }
+
+/* Glow Animation */
+@keyframes glowPulse {
+    0%, 100% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #38bdf8; }  /* Start and end - low glow */
+    50% { text-shadow: 0 0 10px #38bdf8, 0 0 20px #38bdf8; }      /* Halfway - bright glow */
+}
+
+/* Logo */
+.logo {
+    animation: glowPulse 4s ease-in-out infinite;  /* Cycle time */
+    font-family: 'Orbitron', sans-serif;           /* Font for logo only */
+}

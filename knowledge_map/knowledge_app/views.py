@@ -10,6 +10,24 @@ def index(request):
 
 # us @login_required to force login before accessing a view
 
+# delete file button view
+def delete_selected_files(request):
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("selected_files")
+
+        if selected_ids:
+            files_to_delete = UploadedFile.objects.filter(id__in=selected_ids)
+
+            for f in files_to_delete:
+                # delete the actual file from storage first
+                if f.file:
+                    f.file.delete(save=False)
+
+                # delete the database row
+                f.delete()
+
+    return redirect("upload")
+
 # Upload view
 def upload(request):
     if request.method == 'POST':
