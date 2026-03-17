@@ -11,4 +11,4 @@ Knowledge Map is a learning website powered by AI to find connections between id
 ### Sprint 1
 We used AI to help troubleshoot some errors with the development server: https://claude.ai/share/a9005f00-2f88-4d50-954f-7479b75384b3
 
-AI was also used to help debug the homepage https://chatgpt.com/c/69af37c5-c110-8328-b930-90787bdb6faa https://teams.microsoft.com/l/message/19:5d12d6ba-6adb-4421-a4e2-881e1efec1af_62343346-7f5d-4d44-a56a-6258299f8710@unq.gbl.spaces/1773712791692?context=%7B%22contextType%22%3A%22chat%22%7D
+AI was also used to help debug the homepage and update the upload html https://chatgpt.com/c/69af37c5-c110-8328-b930-90787bdb6faa https://teams.microsoft.com/l/message/19:5d12d6ba-6adb-4421-a4e2-881e1efec1af_62343346-7f5d-4d44-a56a-6258299f8710@unq.gbl.spaces/1773712791692?context=%7B%22contextType%22%3A%22chat%22%7D
