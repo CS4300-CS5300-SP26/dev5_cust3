@@ -1,5 +1,5 @@
 {% extends "knowledge_app/base.html" %}
-
+{% load static %}
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
@@ -13,23 +13,58 @@
                 <button type="submit">Upload</button>
             </form>
 
-            <h3>Uploaded Files</h3>
+            <h3 class="mt-4">Uploaded Files</h3>
+
             {% if files %}
-            <ul>
-                {% for f in files %}
-                <li>
-                    <a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a> — {{ f.uploaded_at|date:"M d, Y H:i" }}
-                    <form method="POST" action="{% url 'delete_file' f.id %}">
-                        {% csrf_token %}
-                        <button type="submit">Delete</button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
+            <form method="POST" action="{% url 'delete_selected_files' %}">
+                {% csrf_token %}
+
+                <ul class="list-unstyled">
+                    {% for f in files %}
+                    <li class="border rounded p-2 mb-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <input
+                                type="checkbox"
+                                name="selected_files"
+                                value="{{ f.id }}"
+                                class="file-checkbox me-2"
+                            >
+                            <a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a>
+                            <span class="text-muted">— {{ f.uploaded_at|date:"M d, Y H:i" }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button id="create-map-btn" type="button" class="btn btn-primary" disabled>
+                        Create Knowledge Map
+                    </button>
+
+                    <button id="delete-files-btn" type="submit" class="btn btn-danger" disabled>
+                        Delete Selected Files
+                    </button>
+                </div>
+            </form>
             {% else %}
             <p>No files uploaded yet.</p>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+const checkboxes = document.querySelectorAll('.file-checkbox');
+const createBtn = document.getElementById('create-map-btn');
+const deleteBtn = document.getElementById('delete-files-btn');
+
+function updateButtonState() {
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+    if (createBtn) createBtn.disabled = !anyChecked;
+    if (deleteBtn) deleteBtn.disabled = !anyChecked;
+}
+
+checkboxes.forEach(cb => cb.addEventListener('change', updateButtonState));
+</script>
 {% endblock %}
