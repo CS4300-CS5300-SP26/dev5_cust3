@@ -41,7 +41,7 @@ jobs:
           coverage report --fail-under=80
 
       - name: Generate XML report
-       run: |
+        run: |
          cd knowledge_map
          coverage xml
 
