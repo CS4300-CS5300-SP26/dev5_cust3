@@ -57,25 +57,17 @@ jobs:
 
           # Send to OpenAI
           client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-          response = client.chat.completions.create(
+          response = client.response.create(
               model="gpt-5.1-codex-mini",
-              messages=[
-                  {
-                      "role": "system",
-                      "content": (
-                          "You are an expert code reviewer. Review the following git diff "
-                          "and provide clear, constructive feedback. Highlight bugs, security "
-                          "issues, performance problems, and style improvements. Be concise."
-                      )
-                  },
-                  {
-                      "role": "user",
-                      "content": f"Please review this pull request diff:\n\n{diff}"
-                  }
-              ]
+              instructions=(
+                  "You are an expert code reviewer. Review the following git diff "
+                  "and provide clear, constructive feedback. Highlight bugs, security "
+                  "issues, performance problems, and style improvements. Be concise."
+              ),
+              input=f"Please review this pull request diff:\n\n{diff}"
           )
 
-          feedback = response.choices[0].message.content
+          feedback = response.output_text
 
           # Post feedback as a PR comment
           comment_url = f"https://api.github.com/repos/{repo}/issues/{pr}/comments"
