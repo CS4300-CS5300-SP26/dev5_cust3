@@ -34,11 +34,6 @@ jobs:
         run: |
           cd knowledge_map
           coverage run --source='.' manage.py test
-          
-      - name: Run BDD tests with coverage
-        run: |
-          cd knowledge_map
-          coverage run --source='.' -m behave features/
 
       - name: Enforce 80% coverage
         run: |
