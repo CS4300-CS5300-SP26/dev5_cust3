@@ -1,39 +1,90 @@
-# This GitHub Actions workflow automatically performs AI-assisted code reviews on pull requests
-# by sending code changes to OpenAI and posting feedback directly on the pull request
-
 name: AI Code Review
 
-# Defines when the workflow should run
+# Run workflow when pull request is opened, a new commit is made, or reopened
 on:
   pull_request:
-    # runs when pull request is opened, updated with new commits, or reopened
     types: [opened, synchronized, reopened]
 
-permissions: 
-  contents: read          # Allows workflow to read repository code
-  pull-requests: write    # Allows workflow to post comments on pull-requests
+# Allows workflow to read the code repo and post AI feedback
+permissions:
+  contents: read
+  pull-requests: write
 
-# workflow can contain multiple jobs
 jobs:
   ai-review:
-    # VM job will run on
     runs-on: ubuntu-latest
-
     steps:
-        # dowload repository cde into runner
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout code              # Download repo code on Github VM
+        uses: actions/checkout@v4        
         with:
-          fetch-depth: 0    # downloads entire git history (helps AI analyze change more accurately)
-        
-        # run AI code review action
-      - name: AI Code Review
-        # performs AI review on pull request
-        uses: coderabbitai/ai-pr-reviewer@latest
-        env: 
+          fetch-depth: 0                 # Pulls git history
+
+      - name: Set up Python                # install python on VM
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install openai requests
+
+      - name: Run AI Code Review
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        with: 
-          review_simple_changes: false
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python - <<'EOF'
+          import os
+          import requests
+          from openai import OpenAI
 
-          openai_model: gpt-5.1-codex-mini
+          token = os.environ["GITHUB_TOKEN"]
+          repo  = os.environ["REPO"]
+          pr    = os.environ["PR_NUMBER"]
+
+          # Fetch the diff from GitHub
+          headers = {
+              "Authorization": f"Bearer {token}",
+              "Accept": "application/vnd.github.v3.diff"
+          }
+          diff_url = f"https://api.github.com/repos/{repo}/pulls/{pr}"
+          diff = requests.get(diff_url, headers=headers).text
+
+          # Truncate diff file so API call doesn't fail
+          if len(diff) > 15000:
+              diff = diff[:15000] + "\n... (truncated)"
+
+          # Send to OpenAI
+          client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+          response = client.chat.completions.create(
+              model="gpt-4.1-mini",
+              messages=[
+                  {
+                      "role": "system",
+                      "content": (
+                          "You are an expert code reviewer. Review the following git diff "
+                          "and provide clear, constructive feedback. Highlight bugs, security "
+                          "issues, performance problems, and style improvements. Be concise."
+                      )
+                  },
+                  {
+                      "role": "user",
+                      "content": f"Please review this pull request diff:\n\n{diff}"
+                  }
+              ]
+          )
+
+          feedback = response.choices[0].message.content
+
+          # Post feedback as a PR comment
+          comment_url = f"https://api.github.com/repos/{repo}/issues/{pr}/comments"
+          comment_headers = {
+              "Authorization": f"Bearer {token}",
+              "Accept": "application/vnd.github+json"
+          }
+          body = f"## 🤖 AI Code Review\n\n{feedback}"
+          requests.post(comment_url, json={"body": body}, headers=comment_headers)
+
+          print("Review posted successfully!")
+          EOF
