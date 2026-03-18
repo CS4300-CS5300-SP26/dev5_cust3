@@ -30,10 +30,15 @@ jobs:
           pip install -r requirements.txt
           pip install coverage
 
-      - name: Run tests with coverage
+      - name: Run Django tests with coverage
         run: |
           cd knowledge_map
           coverage run --source='.' manage.py test
+          
+      - name: Run BDD tests with coverage
+        run: |
+          cd knowledge_map
+          coverage run --source='.' behave features/
 
       - name: Enforce 80% coverage
         run: |
