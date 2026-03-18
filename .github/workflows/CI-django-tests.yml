@@ -35,6 +35,11 @@ jobs:
           cd knowledge_map
           coverage run --source='.' manage.py test
 
+      - name: Run Behave tests with coverage
+        run: |
+          cd knowledge_map
+          coverage run --source='.' --append -m behave features
+
       - name: Enforce 80% coverage
         run: |
           cd knowledge_map
