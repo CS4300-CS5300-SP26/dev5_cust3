@@ -85,7 +85,7 @@ jobs:
                   ),
                   input=f"Please review this pull request diff:\n\n{diff}"
               )
-              if has attr(response, "output_text") and response.output_text:
+              if hasattr(response, "output_text") and response.output_text:
                   feedback = response.output_text
               else:
                   print(f"Unexpected response structure: {response}")
