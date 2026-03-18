@@ -57,7 +57,7 @@ jobs:
 
           # Send to OpenAI
           client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-          response = client.response.create(
+          response = client.responses.create(
               model="gpt-5.1-codex-mini",
               instructions=(
                   "You are an expert code reviewer. Review the following git diff "
