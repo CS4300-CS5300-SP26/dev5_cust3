@@ -52,12 +52,12 @@ def step_logout(context):
     context.response = context.client.post(reverse('logout'), follow=True)
 
 
-@then('I should be redirected to the movies page')
-def step_redirected_to_movies(context):
+@then('I should be redirected to the home page')
+def step_redirected_to_home(context):
     assert context.response.status_code == 200
-    # Check we landed on the movies page by looking for known content
-    assert 'MovieWatch' in context.response.content.decode(), \
-        f'Expected to be on movies page but got: {context.response.content.decode()[:200]}'
+    # Check we landed on the home page by looking for known content
+    assert 'KnowledgeMap' in context.response.content.decode(), \
+        f'Expected to be on home page but got: {context.response.content.decode()[:200]}'
 
 
 @then('I should be redirected to the login page')

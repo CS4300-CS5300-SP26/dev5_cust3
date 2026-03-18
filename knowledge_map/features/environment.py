@@ -1,5 +1,10 @@
 import os
 import django
+from django.test import Client
+from django.test.utils import setup_test_environment
+from django.test.runner import DiscoverRunner
+
+
 
 # Tell Django which settings file to use
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'knowledge_map.settings')
@@ -9,13 +14,15 @@ django.setup()
 
 def before_all(context):
     # Set up test environment once before all scenarios
-    from django.test.utils import setup_test_environment
     setup_test_environment()
-
-def before_scenario(context, scenario):
-    # Set up a fake browser client before each scenario
-    from django.test import Client
+    context.test_runner = DiscoverRunner(verbosity=0)
+    # Create + migrate a test database
+    context.old_db_config = context.test_runner.setup_databases()
     context.client = Client()
+
+# Destroy the test database
+def after_all(context):
+    context.test_runner.teardown_databases(context.old_db_config)
 
 def after_scenario(context, scenario):
     # Clean up any uploaded test files after each scenario
@@ -25,3 +32,7 @@ def after_scenario(context, scenario):
         if os.path.exists(f.file.path):
             os.remove(f.file.path)
     UploadedFile.objects.all().delete()
+
+    # Clean up any users after each scenario
+    from django.contrib.auth.models import User
+    User.objects.all().delete()
