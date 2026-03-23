@@ -31,11 +31,15 @@ jobs:
           pip install coverage
 
       - name: Run Django tests with coverage
-        run: |
+        env:
+          DJANGO_SETTINGS_MODULE: knowledge_map.settings.dev
+        run: | 
           cd knowledge_map
           coverage run --source='.' manage.py test
 
       - name: Run Behave tests with coverage
+        env:
+          DJANGO_SETTINGS_MODULE: knowledge_map.settings.dev
         run: |
           cd knowledge_map
           coverage run --source='.' --append -m behave features
