@@ -2,7 +2,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['app-aoa-21.devedu.io','editor-aoa-21.devedu.io']
 
 # Use SQLite locally (what you already have)
 DATABASES = {

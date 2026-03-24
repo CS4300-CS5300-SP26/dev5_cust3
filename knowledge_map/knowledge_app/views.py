@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import UploadedFile
 import pdfplumber
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
 import os
 
 # Landing page view
@@ -11,6 +12,7 @@ def index(request):
 # us @login_required to force login before accessing a view
 
 # delete file button view
+@login_required
 def delete_selected_files(request):
     if request.method == "POST":
         selected_ids = request.POST.getlist("selected_files")
@@ -27,8 +29,8 @@ def delete_selected_files(request):
                 f.delete()
 
     return redirect("upload")
-
 # Upload view
+@login_required
 def upload(request):
     if request.method == 'POST':
         # Get the file from the form
@@ -54,7 +56,7 @@ def upload(request):
 
     # Send files to the template so they appear in the list
     return render(request, "knowledge_app/upload.html", {'files': files})
-
+@login_required
 def delete_file(request, file_id):
 
     # Get the file or return 404 if it doesn't exist
