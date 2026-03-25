@@ -16,6 +16,13 @@ class UploadedFile(models.Model):
 
 # Stores a map generated from an uploaded PDF
 class KnowledgeMap(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('complete', 'Complete'),
+        ('failed', 'Failed'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     uploaded_file = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
     title = models = models.CharField(max_length=255)
