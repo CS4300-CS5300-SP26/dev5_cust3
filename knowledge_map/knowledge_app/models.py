@@ -37,8 +37,21 @@ class TopicNode(models.Model):
 
 # Subtopic under a topic node
 class SubtopicNode(models.Model):
+    topic = models.ForeignKey(TopicNode, on_delete=models.CASCADE, related_name='subtopics')
+    label = models.CharField(max_length=255)
+    summary = models.TextField()
+    x_position = models.FloatField(default=0)
+    y_position = models.FloatField(default=0)
 
+    def __str__(self):
+        return self.label
 
 # Relationship/edge between two topic nodes on the map
 class NodeRelationship(models.Model):
-    
+    knowledge_map = models.ForeignKey(KnowledgeMap, on_delete=models.CASCADE, related_name='relationships')
+    source_topic = models.ForeignKey(TopicNode, on_delete=models.CASCADE, related_name='outgoing')
+    target_topic = models.ForeignKey(TopicNode, on_delete=models.CASCADE, related_name='incoming')
+    relationship_label = models.CharField(max_length=255)   # e.g. "relates to", "leads to"
+
+    def __str__(self):
+        return f"{self.source_topic} → {self.target_topic}"
