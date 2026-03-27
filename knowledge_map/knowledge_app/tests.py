@@ -98,7 +98,12 @@ class NavbarTest(TestCase):
 
 # ----------------Tests for Upload Feature---------------------
 class UploadPageTest(TestCase):
-
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass123'
+        )
+        self.client.login(username='testuser', password='testpass123')
+        
     def setUp(self):
         self.client = Client()
 
@@ -149,10 +154,14 @@ class UploadPageTest(TestCase):
         for f in UploadedFile.objects.all():
             if os.path.exists(f.file.path):
                 os.remove(f.file.path)
-
 # ----------------Tests for Delete Feature---------------------
 class DeleteFileTest(TestCase):
-
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass123'
+        )
+        self.client.login(username='testuser', password='testpass123')
+    
     def setUp(self):
         self.client = Client()  # set up fake browser before each test
 
