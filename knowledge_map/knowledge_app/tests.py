@@ -99,6 +99,7 @@ class NavbarTest(TestCase):
 # ----------------Tests for Upload Feature---------------------
 class UploadPageTest(TestCase):
     def setUp(self):
+        self.client = Client()
         self.user = User.objects.create_user(
             username='testuser', password='testpass123'
         )
@@ -157,6 +158,7 @@ class UploadPageTest(TestCase):
 # ----------------Tests for Delete Feature---------------------
 class DeleteFileTest(TestCase):
     def setUp(self):
+        self.client = Client()
         self.user = User.objects.create_user(
             username='testuser', password='testpass123'
         )
