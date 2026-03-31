@@ -1,22 +1,54 @@
+## Stage 1: Base build
 # Define the parent image. Use an official Python runtime image
 FROM python:3.9-slim As builder
 
-# Set the working directory
-WORKDIR /usr/src/knowledge_map
+# Create and Set the working directory
+RUN mkdir /app
+WORKDIR /app
 
-# Install dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends gcc python3-dev && apt-get
+# Set environment variables to optimize python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 
+
+# Updgrade pip
+RUN pip install --upgrade pip 
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends gcc python3-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements from requirements.txt
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application contents
-COPY . . 
+## Stage 2: Production
+FROM python:3.13-slim As production
+
+# Create the dev user
+RUN useradd -m -r knowledgeUser && mkdir /app && chown -R knowledgeUser /app
+
+# Copy the Python dependencies from the builder stage
+COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+
+# Set the working directory
+WORKDIR /app
+ 
+# Copy application code
+COPY --chown=appuser:appuser . .
+
+# Set environment variables to optimize Python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 
+ 
+# Switch to non-root user
+USER knowledgeUser
 
 # Open the public port
 EXPOSE 8000
 
-# Command to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "django_app.wsgi:application"]
+# collectstatic runs at build time; migrations should run at deploy time
+RUN python manage.py collectstatic --noinput
+
+# Start the application using Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "knowledge_map.wsgi:application"]
 
