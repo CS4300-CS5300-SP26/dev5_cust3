@@ -8,7 +8,7 @@ urlpatterns = [
     path('delete/<int:file_id>/', views.delete_file, name='delete_file'),
     path("delete-selected-files/", views.delete_selected_files, name="delete_selected_files"),
     path('maps/', views.maps, name='maps'),
-    path('quiz/', views.quiz, name='quiz'),
+    path('quiz/', views.quiz_view, name='quiz'),
     path('progress/', views.progress, name='progress'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', views.register, name='register'),

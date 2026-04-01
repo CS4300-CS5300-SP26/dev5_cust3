@@ -3,7 +3,7 @@ from .models import UploadedFile
 import pdfplumber
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
-from .services import quiz_generator
+from .services.quiz_generator import generate_quiz
 from django.views import View
 import os
 
@@ -105,8 +105,44 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
+def quiz_view(request):
+    # mock topics till we get some real data 
+    topics = [
+        {
+            "topic_id": 1,
+            "keywords": ["CPU", "processing", "instructions", "register", "ALU"],
+            "sentences": [
+                "The CPU processes instructions in a computer system.",
+                "It uses registers to store temporary data.",
+                "The ALU performs arithmetic operations."
+            ]
+        },
+        {
+            "topic_id": 2,
+            "keywords": ["memory", "RAM", "storage", "data", "cache"],
+            "sentences": [
+                "Memory stores data for quick access.",
+                "RAM is volatile memory used during execution.",
+                "Cache improves performance by storing frequently used data."
+            ]
+        }
+    ]
 
-#generate quizes
-# views.py
-from django.views import View
-from .services import quiz_generator  # import the module
+    score = None
+
+    if request.method == "POST":
+        score = 0
+
+        for q in quiz:
+            user_answer = request.POST.get(q['id'])
+
+            if q['type'] == "true_false":
+                user_answer = user_answer == "True"
+
+            if user_answer == q.get("answer"):
+                score += 1
+
+    return render(request, "quiz/quiz.html", {
+        "quiz": quiz,
+        "score": score
+    })
