@@ -185,3 +185,25 @@ class DeleteFileTest(TestCase):
         for f in UploadedFile.objects.all():
             if os.path.exists(f.file.path):
                 os.remove(f.file.path)
+
+# ----------------Tests for Quiz Feature---------------------
+class QuizViewTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_quiz_url_loads(self):
+        response = self.client.get(reverse('quiz'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_quiz_uses_correct_template(self):
+        response = self.client.get(reverse('quiz'))
+        self.assertTemplateUsed(response, 'knowledge_app/quiz.html')
+
+    def test_quiz_contains_questions(self):
+        response = self.client.get(reverse('quiz'))
+        self.assertIn('quiz', response.context)
+        self.assertGreater(len(response.context['quiz']), 0)
+
+    def test_quiz_post_returns_score(self):
+        response = self.client.post(reverse('quiz'), {})
+        self.assertIn('score', response.context)

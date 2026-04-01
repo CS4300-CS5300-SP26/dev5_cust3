@@ -128,6 +128,7 @@ def quiz_view(request):
         }
     ]
 
+    quiz = generate_quiz(topics)
     score = None
 
     if request.method == "POST":
@@ -142,7 +143,7 @@ def quiz_view(request):
             if user_answer == q.get("answer"):
                 score += 1
 
-    return render(request, "quiz/quiz.html", {
+    return render(request, "knowledge_app/quiz.html", {
         "quiz": quiz,
         "score": score
     })
