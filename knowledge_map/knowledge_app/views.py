@@ -3,6 +3,8 @@ from .models import UploadedFile
 import pdfplumber
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+from .services import quiz_generator
+from django.views import View
 import os
 
 # Landing page view
@@ -102,3 +104,9 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+
+#generate quizes
+# views.py
+from django.views import View
+from .services import quiz_generator  # import the module
