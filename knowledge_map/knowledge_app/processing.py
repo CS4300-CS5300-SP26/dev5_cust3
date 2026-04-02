@@ -27,7 +27,7 @@ def extract_topics(text):
     topics, probs = topic_model.fit_transform(docs)
 
     # Get topic info (id, count, keywords)
-    topic_info = topic_model.get_topic.info()
+    topic_info = topic_model.get_topic_info()
 
     #Build result - skip topic -1 (outliers)
     result = []
