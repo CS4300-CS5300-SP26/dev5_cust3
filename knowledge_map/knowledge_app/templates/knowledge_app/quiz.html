@@ -1,61 +1,55 @@
+{% extends "knowledge_app/base.html" %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Quiz</title>
-    <style>
-        body { font-family: Arial; margin: 20px; }
-        .question { margin-bottom: 25px; padding: 15px; border: 1px solid #ccc; }
-    </style>
-</head>
-<body>
+{% block content %}
+<div style="margin: 20px;">
+    <h1>Generated Quiz</h1>
 
-<h1>Generated Quiz</h1>
+    <form method="post">
+        {% csrf_token %}
 
-<form method="post">
-    {% csrf_token %}
+        {% for q in quiz %}
+            <div style="margin-bottom: 25px; padding: 15px; border: 1px solid #ccc;">
+                <p><strong>Q{{ forloop.counter }}:</strong> {{ q.question }}</p>
 
-    {% for q in quiz %}
-        <div class="question">
-            <p><strong>Q{{ forloop.counter }}:</strong> {{ q.question }}</p>
+                {% if q.type == "multiple_choice" or q.type == "fill_in_blank" %}
+                    {% for choice in q.choices %}
+                        <label>
+                            <input type="radio" name="{{ q.id }}" value="{{ choice }}">
+                            {{ choice }}
+                        </label><br>
+                    {% endfor %}
 
-            {% if q.type == "multiple_choice" or q.type == "fill_in_blank" %}
-                {% for choice in q.choices %}
+                {% elif q.type == "true_false" %}
                     <label>
-                        <input type="radio" name="{{ q.id }}" value="{{ choice }}">
-                        {{ choice }}
+                        <input type="radio" name="{{ q.id }}" value="True"> True
                     </label><br>
-                {% endfor %}
+                    <label>
+                        <input type="radio" name="{{ q.id }}" value="False"> False
+                    </label>
 
-            {% elif q.type == "true_false" %}
-                <label>
-                    <input type="radio" name="{{ q.id }}" value="True"> True
-                </label><br>
-                <label>
-                    <input type="radio" name="{{ q.id }}" value="False"> False
-                </label>
+                {% elif q.type == "matching" %}
+                    <p><em>Match each term:</em></p>
+                    {% for pair in q.pairs %}
+                        <div>
+                            <strong>{{ pair.premise }}</strong>
+                            <select name="{{ q.id }}_{{ forloop.counter }}">
+                                {% for option in q.pairs %}
+                                    <option value="{{ option.response }}">
+                                        {{ option.response|truncatechars:60 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endfor %}
 
-            {% elif q.type == "matching" %}
-                <p><em>Match each term:</em></p>
-                {% for pair in q.pairs %}
-                    <div>
-                        <strong>{{ pair.premise }}</strong>
-                        <select name="{{ q.id }}_{{ forloop.counter }}">
-                            {% for option in q.pairs %}
-                                <option value="{{ option.response }}">
-                                    {{ option.response|truncatechars:60 }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                {% endfor %}
-            {% endif %}
+        <button type="submit" class="btn btn-primary">Submit Quiz</button>
+    </form>
 
-        </div>
-    {% endfor %}
-
-    <button type="submit">Submit Quiz</button>
-</form>
-
-</body>
-</html>
+    {% if score is not None %}
+        <h3 class="mt-4">Your score: {{ score }}</h3>
+    {% endif %}
+</div>
+{% endblock %}
