@@ -1,9 +1,8 @@
 ## Stage 1: Base build
 # Define the parent image. Use an official Python runtime image
-FROM python:3.9-slim As builder
+FROM python:3.13-slim As builder
 
 # Create and Set the working directory
-RUN mkdir /app
 WORKDIR /app
 
 # Set environment variables to optimize python
@@ -34,20 +33,24 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 WORKDIR /app
  
 # Copy application code
-COPY --chown=appuser:appuser . .
+COPY --chown=knowledgeUser:knowledgeUser . .
 
 # Set environment variables to optimize Python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1 
- 
+
+# Need to figure out what this is
+ARG SECRET_KEY=build-time-placeholder
+ENV SECRET_KEY=$SECRET_KEY
+
+# collectstatic runs at build time; migrations should run at deploy time
+RUN python manage.py collectstatic --noinput
+
 # Switch to non-root user
 USER knowledgeUser
 
 # Open the public port
 EXPOSE 8000
-
-# collectstatic runs at build time; migrations should run at deploy time
-RUN python manage.py collectstatic --noinput
 
 # Start the application using Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "knowledge_map.wsgi:application"]
