@@ -2,7 +2,7 @@ from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['yourknowledgemap.me', '24.144.92.128']
+ALLOWED_HOSTS = ['yourknowledgemap.me', '157.230.89.215']
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
