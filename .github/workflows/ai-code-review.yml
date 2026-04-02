@@ -1,39 +1,107 @@
-# This GitHub Actions workflow automatically performs AI-assisted code reviews on pull requests
-# by sending code changes to OpenAI and posting feedback directly on the pull request
-
 name: AI Code Review
 
-# Defines when the workflow should run
+# Run workflow when pull request is opened, a new commit is made, or reopened
 on:
   pull_request:
-    # runs when pull request is opened, updated with new commits, or reopened
     types: [opened, synchronized, reopened]
 
-permissions: 
-  contents: read          # Allows workflow to read repository code
-  pull-requests: write    # Allows workflow to post comments on pull-requests
+# Allows workflow to read the code repo and post AI feedback
+permissions:
+  contents: read
+  pull-requests: write
 
-# workflow can contain multiple jobs
 jobs:
   ai-review:
-    # VM job will run on
     runs-on: ubuntu-latest
-
     steps:
-        # dowload repository cde into runner
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout code              # Download repo code on Github VM
+        uses: actions/checkout@v4        
         with:
-          fetch-depth: 0    # downloads entire git history (helps AI analyze change more accurately)
-        
-        # run AI code review action
-      - name: AI Code Review
-        # performs AI review on pull request
-        uses: coderabbitai/ai-pr-reviewer@latest
-        env: 
+          fetch-depth: 0                 # Pulls git history
+
+      - name: Set up Python                # install python on VM
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install openai requests
+
+      - name: Run AI Code Review
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        with: 
-          review_simple_changes: false
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python - <<'EOF'
+          import os
+          import requests
+          from openai import OpenAI
 
-          openai_model: gpt-5.1-codex-mini
+          # Guard against missing secrets
+          openai_api_key = os.environ.get("OPENAI_API_KEY")
+          if not openai_api_key:
+              print("OPENAI_API_KEY is not available (likely a forked PR). Skipping AI review.")
+              exit(0)
+          
+          token = os.environ["GITHUB_TOKEN"]
+          repo  = os.environ["REPO"]
+          pr    = os.environ["PR_NUMBER"]
+
+          # Fetch the diff from GitHub
+          headers = {
+              "Authorization": f"Bearer {token}",
+              "Accept": "application/vnd.github.v3.diff"
+          }
+          diff_url = f"https://api.github.com/repos/{repo}/pulls/{pr}"
+
+          # Validate GitHub API responses
+          diff_response = requests.get(diff_url, headers=headers)
+          try: 
+              diff_response.raise_for_status()
+          except requests.exceptions.HTTPError as e:
+              print(f"Failed to fetch PR diff: {e}")
+              print(f"Response: {diff_response.text[:500]}")
+              exit(1)
+              
+          diff = diff_response.text
+
+          # Truncate diff file so API call doesn't fail
+          if len(diff) > 15000:
+              diff = diff[:15000] + "\n... (truncated)"
+
+          # Send to OpenAI
+          client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+          # Handle unexpected OpenAI response structure
+          try:
+              response = client.responses.create(
+                  model="gpt-5.1-codex-mini",
+                  instructions=(
+                      "You are an expert code reviewer. Review the following git diff "
+                      "and provide clear, constructive feedback. Highlight bugs, security "
+                      "issues, performance problems, and style improvements. Be concise."
+                  ),
+                  input=f"Please review this pull request diff:\n\n{diff}"
+              )
+              if hasattr(response, "output_text") and response.output_text:
+                  feedback = response.output_text
+              else:
+                  print(f"Unexpected response structure: {response}")
+                  exit(1)
+          except Exception as e:
+              print(f"OpenAI API call failed: {e}")
+              exit(1)
+
+          # Post feedback as a PR comment
+          comment_url = f"https://api.github.com/repos/{repo}/issues/{pr}/comments"
+          comment_headers = {
+              "Authorization": f"Bearer {token}",
+              "Accept": "application/vnd.github+json"
+          }
+          body = f"## 🤖 AI Code Review\n\n{feedback}"
+          requests.post(comment_url, json={"body": body}, headers=comment_headers)
+
+          print("Review posted successfully!")
+          EOF

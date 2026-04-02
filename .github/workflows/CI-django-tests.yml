@@ -30,9 +30,30 @@ jobs:
           pip install -r requirements.txt
           pip install coverage
 
-      - name: Run tests with coverage
-        run: |
+      - name: Run Django tests with coverage
+        env:
+          DJANGO_SETTINGS_MODULE: knowledge_map.settings.dev
+        run: | 
           cd knowledge_map
           coverage run --source='.' manage.py test
-          coverage report -m
-    
+
+      - name: Run Behave tests with coverage
+        env:
+          DJANGO_SETTINGS_MODULE: knowledge_map.settings.dev
+        run: |
+          cd knowledge_map
+          coverage run --source='.' --append -m behave features
+
+      - name: Enforce 80% coverage
+        run: |
+          cd knowledge_map
+          coverage report --fail-under=80
+
+      - name: Generate XML report
+        run: |
+         cd knowledge_map
+         coverage xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+
