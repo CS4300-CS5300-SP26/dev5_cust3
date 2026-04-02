@@ -33,7 +33,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Only exists at build time, never stored in the image
 ARG SECRET_KEY=build-time-placeholder
-RUN SECRET_KEY=${SECRET_KEY} python manage.py collectstatic --noinput
+RUN SECRET_KEY=${SECRET_KEY} python ./knowledge_map/manage.py collectstatic --noinput
 
 USER knowledgeUser
 
