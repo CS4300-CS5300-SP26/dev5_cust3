@@ -23,7 +23,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest
+          tags: nschlues/knowledge_map:latest
+          build-args: |
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
 
       - name: Deploy to Droplet via SSH
         uses: appleboy/ssh-action@v1
@@ -32,9 +34,10 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
-            cd /opt/myapp
+            cd /opt/knowledge_map
             docker compose pull
             docker compose up -d --remove-orphans
+            docker compose exec web python manage.py migrate --noinput
             docker image prune -f
 
       
