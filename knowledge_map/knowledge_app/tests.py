@@ -280,9 +280,7 @@ class ExtractTopicsUnitTests(TestCase):
         """Topic id -1 (BERTopic outlier bucket) must never appear in results."""
         mock_model = MagicMock()
         mock_model.fit_transform.return_value = ([-1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], None)
-        import pandas as pd
-        df = pd.DataFrame({"Topic": [-1, 0], "Count": [2, 10]})
-        mock_model.get_topic_info.return_value = df
+        mock_model.get_topic_info.return_value = _fake_topic_info(topic_ids=[-1, 0])
         mock_model.get_topic.return_value = [("word", 0.9)]
         MockBERTopic.return_value = mock_model
  
