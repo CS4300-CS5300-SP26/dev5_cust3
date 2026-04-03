@@ -39,4 +39,4 @@ USER knowledgeUser
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "knowledge_map.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--chdir", "/app/knowledge_map", "knowledge_map.wsgi:application"]
