@@ -1,0 +1,449 @@
+{% extends "knowledge_app/base.html" %}
+ 
+{% block content %}
+<div class="quiz-detail-container">
+    <!-- Quiz Header -->
+    <header class="quiz-header">
+        <div class="header-content">
+            <a href="{% url 'quizzes' %}" class="back-link">← Back to Quizzes</a>
+            <h1>{{ quiz.title }}</h1>
+            <div class="quiz-info">
+                <span class="info-item">{{ quiz.question_count }} questions</span>
+                <span class="info-item">{{ quiz.difficulty|upper }}</span>
+                <span class="info-item">Created {{ quiz.created_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+    </header>
+ 
+    <!-- Previous Results Section -->
+    {% if attempts %}
+        <section class="previous-results">
+            <h2>Previous Attempts</h2>
+            <div class="results-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Score</th>
+                            <th>Result</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attempt in attempts %}
+                            <tr class="{% if attempt.score >= 80 %}passing{% elif attempt.score >= 60 %}partial{% else %}failing{% endif %}">
+                                <td>{{ attempt.created_at|date:"M d, Y H:i" }}</td>
+                                <td class="score-cell">{{ attempt.score }}%</td>
+                                <td>
+                                    <span class="result-badge">
+                                        {{ attempt.correct_count }}/{{ attempt.total_questions }} correct
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'quiz_results' attempt.id %}" class="btn-small">
+                                        Review
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+ 
+    <!-- Take Quiz Form -->
+    <section class="quiz-form">
+        <h2>Take Quiz</h2>
+        <form method="post" class="quiz-questions-form">
+            {% csrf_token %}
+ 
+            {% for question in quiz.questions.all %}
+                <div class="question-card">
+                    <div class="question-header">
+                        <h3 class="question-number">Q{{ forloop.counter }}</h3>
+                        <span class="question-text">{{ question.question_text }}</span>
+                        <span class="question-type">{{ question.get_question_type_display }}</span>
+                    </div>
+ 
+                    <div class="question-content">
+                        {% if question.question_type == "multiple_choice" or question.question_type == "fill_in_blank" %}
+                            <div class="choices">
+                                {% for choice in question.choices %}
+                                    <label class="choice-label">
+                                        <input type="radio" name="q_{{ question.id }}" value="{{ choice }}" required>
+                                        <span>{{ choice }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+ 
+                        {% elif question.question_type == "true_false" %}
+                            <div class="choices">
+                                <label class="choice-label">
+                                    <input type="radio" name="q_{{ question.id }}" value="True" required>
+                                    <span>True</span>
+                                </label>
+                                <label class="choice-label">
+                                    <input type="radio" name="q_{{ question.id }}" value="False" required>
+                                    <span>False</span>
+                                </label>
+                            </div>
+ 
+                        {% elif question.question_type == "matching" %}
+                            <div class="matching-section">
+                                <p class="matching-instruction">Match each term to its definition:</p>
+                                {% for pair in question.pairs %}
+                                    <div class="matching-pair">
+                                        <span class="premise">{{ pair.premise }}</span>
+                                        <select name="q_{{ question.id }}_{{ forloop.counter }}" required>
+                                            <option value="">-- Select --</option>
+                                            {% for option in question.pairs %}
+                                                <option value="{{ option.response }}">
+                                                    {{ option.response|truncatechars:50 }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% endfor %}
+                            </div>
+ 
+                        {% elif question.question_type == "short_answer" %}
+                            <input type="text" name="q_{{ question.id }}" placeholder="Type your answer..." required class="short-answer-input">
+                        
+                        {% endif %}
+                    </div>
+ 
+                    {% if question.explanation %}
+                        <details class="explanation">
+                            <summary>Explanation</summary>
+                            <p>{{ question.explanation }}</p>
+                        </details>
+                    {% endif %}
+                </div>
+            {% endfor %}
+ 
+            <div class="form-actions">
+                <a href="{% url 'quizzes' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary btn-submit">Submit Quiz</button>
+            </div>
+        </form>
+    </section>
+</div>
+ 
+<style>
+    .quiz-detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+ 
+    .quiz-header {
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+    }
+ 
+    .back-link {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: inline-block;
+        transition: color 0.3s ease;
+    }
+ 
+    .back-link:hover {
+        color: white;
+    }
+ 
+    .header-content h1 {
+        margin: 0 0 15px 0;
+        font-size: 2em;
+    }
+ 
+    .quiz-info {
+        display: flex;
+        gap: 20px;
+        font-size: 0.95em;
+    }
+ 
+    .info-item {
+        display: flex;
+        align-items: center;
+        opacity: 0.95;
+    }
+ 
+    .previous-results {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 40px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+ 
+    .results-table {
+        overflow-x: auto;
+    }
+ 
+    .results-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+ 
+    .results-table th {
+        background: #f5f5f5;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #ddd;
+        color: #333;
+    }
+ 
+    .results-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+    }
+ 
+    .results-table tr:hover {
+        background: #f9f9f9;
+    }
+ 
+    .score-cell {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+ 
+    .results-table tr.passing .score-cell {
+        color: #28a745;
+    }
+ 
+    .results-table tr.partial .score-cell {
+        color: #ffc107;
+    }
+ 
+    .results-table tr.failing .score-cell {
+        color: #dc3545;
+    }
+ 
+    .result-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+ 
+    .btn-small {
+        padding: 6px 12px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+    }
+ 
+    .btn-small:hover {
+        background: #5568d3;
+    }
+ 
+    .quiz-form {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+ 
+    .quiz-questions-form {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+ 
+    .question-card {
+        padding: 20px;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        background: #f9f9f9;
+        transition: all 0.3s ease;
+    }
+ 
+    .question-card:hover {
+        background: white;
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+    }
+ 
+    .question-header {
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+        margin-bottom: 15px;
+    }
+ 
+    .question-number {
+        flex-shrink: 0;
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #667eea;
+        margin: 0;
+    }
+ 
+    .question-text {
+        flex-grow: 1;
+        font-size: 1em;
+        font-weight: 600;
+    }
+ 
+    .question-type {
+        flex-shrink: 0;
+        padding: 4px 8px;
+        background: #667eea;
+        color: white;
+        border-radius: 4px;
+        font-size: 0.8em;
+        font-weight: 600;
+    }
+ 
+    .question-content {
+        margin: 15px 0;
+    }
+ 
+    .choices {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+ 
+    .choice-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+ 
+    .choice-label:hover {
+        background: white;
+    }
+ 
+    .choice-label input[type="radio"] {
+        cursor: pointer;
+    }
+ 
+    .choice-label span {
+        font-size: 0.95em;
+    }
+ 
+    .matching-section {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+ 
+    .matching-instruction {
+        font-style: italic;
+        color: #666;
+        margin: 0 0 10px 0;
+    }
+ 
+    .matching-pair {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 15px;
+        align-items: center;
+        padding: 10px;
+        background: white;
+        border-radius: 4px;
+    }
+ 
+    .premise {
+        font-weight: 600;
+        color: #333;
+    }
+ 
+    .matching-pair select {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+ 
+    .short-answer-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.95em;
+    }
+ 
+    .explanation {
+        margin-top: 15px;
+        padding: 10px;
+        background: white;
+        border-left: 3px solid #667eea;
+        cursor: pointer;
+    }
+ 
+    .explanation summary {
+        font-weight: 600;
+        color: #667eea;
+        cursor: pointer;
+    }
+ 
+    .explanation p {
+        margin: 10px 0 0 0;
+        color: #555;
+        font-size: 0.9em;
+    }
+ 
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+        justify-content: flex-end;
+    }
+ 
+    .btn-primary, .btn-secondary {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 1em;
+    }
+ 
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+ 
+    .btn-primary:hover {
+        background: #5568d3;
+    }
+ 
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+ 
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+ 
+    .btn-submit {
+        min-width: 150px;
+    }
+</style>
+{% endblock %}

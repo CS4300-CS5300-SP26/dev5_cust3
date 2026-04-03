@@ -1,11 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import UploadedFile
-import pdfplumber
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
-from .services.quiz_generator import generate_quiz
 from django.views import View
+from django.db.models import Prefetch
+
+from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
+from .forms import QuizGenerationForm
+from .services.quiz_generator import generate_quiz
+
+import pdfplumber
 import os
+import json
 
 # Landing page view
 def index(request):
@@ -104,46 +110,157 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
-
-def quiz_view(request):
-    # mock topics till we get some real data 
-    topics = [
-        {
-            "topic_id": 1,
-            "keywords": ["CPU", "processing", "instructions", "register", "ALU"],
-            "sentences": [
-                "The CPU processes instructions in a computer system.",
-                "It uses registers to store temporary data.",
-                "The ALU performs arithmetic operations."
-            ]
-        },
-        {
-            "topic_id": 2,
-            "keywords": ["memory", "RAM", "storage", "data", "cache"],
-            "sentences": [
-                "Memory stores data for quick access.",
-                "RAM is volatile memory used during execution.",
-                "Cache improves performance by storing frequently used data."
-            ]
-        }
-    ]
-
-    quiz = generate_quiz(topics)
-    score = None
-
-    if request.method == "POST":
-        score = 0
-
-        for q in quiz:
-            user_answer = request.POST.get(q['id'])
-
-            if q['type'] == "true_false":
-                user_answer = user_answer == "True"
-
-            if user_answer == q.get("answer"):
-                score += 1
-
-    return render(request, "knowledge_app/quiz.html", {
-        "quiz": quiz,
-        "score": score
+# Quiz logic
+@login_required
+def quizzes_hub(request):
+    """
+    Main quiz hub - displays all quizzes and generation form
+    """
+    if request.method == 'POST':
+        form = QuizGenerationForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            # Generate quiz from PDF or text
+            quiz = form.save(commit=False)
+            quiz.user = request.user
+            
+            # Handle different source types
+            source_choice = form.cleaned_data['source_choice']
+            if source_choice == 'existing':
+                quiz.source_file = form.cleaned_data['existing_pdf']
+            elif source_choice == 'upload':
+                # Create new UploadedFile for the uploaded PDF
+                uploaded_file = UploadedFile.objects.create(
+                    user=request.user,
+                    file=form.cleaned_data['pdf_file']
+                )
+                quiz.source_file = uploaded_file
+            elif source_choice == 'text':
+                quiz.source_text = form.cleaned_data['text_input']
+            
+            quiz.save()
+            
+            # Generate questions (you'll implement this based on your LLM integration)
+            # generate_quiz_questions(quiz, form.cleaned_data)
+            
+            return redirect('quiz_detail', pk=quiz.id)
+    else:
+        form = QuizGenerationForm(user=request.user)
+    
+    # Get all user's quizzes with their latest attempt
+    quizzes = Quiz.objects.filter(user=request.user).prefetch_related(
+        'questions',
+        Prefetch('attempts', queryset=QuizAttempt.objects.order_by('-created_at'))
+    ).order_by('-created_at')
+    
+    return render(request, 'knowledge_app/quizzes.html', {
+        'quizzes': quizzes,
+        'form': form,
     })
+ 
+ 
+@login_required
+def quiz_detail(request, pk):
+    """
+    Display quiz details, previous attempts, and quiz form
+    """
+    quiz = get_object_or_404(Quiz, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        # Process quiz submission
+        attempt = QuizAttempt.objects.create(
+            quiz=quiz,
+            user=request.user,
+            correct_count=0,
+            total_questions=quiz.questions.count()
+        )
+        
+        correct_count = 0
+        total_questions = quiz.questions.count()
+        
+        # Process each question's answer
+        for question in quiz.questions.all():
+            user_answer = request.POST.get(f'q_{question.id}', '').strip()
+            
+            # Determine if answer is correct
+            is_correct = check_answer(question, user_answer)
+            if is_correct:
+                correct_count += 1
+            
+            # Save the answer
+            Answer.objects.create(
+                attempt=attempt,
+                question=question,
+                user_answer=user_answer,
+                correct_answer=question.correct_answer,
+                is_correct=is_correct
+            )
+        
+        # Update attempt with final score
+        score = round((correct_count / total_questions * 100)) if total_questions > 0 else 0
+        attempt.score = score
+        attempt.correct_count = correct_count
+        attempt.total_questions = total_questions
+        attempt.save()
+        
+        return redirect('quiz_results', attempt_id=attempt.id)
+    
+    # Get all previous attempts
+    attempts = quiz.attempts.order_by('-created_at')
+    
+    return render(request, 'knowledge_app/quiz_detail.html', {
+        'quiz': quiz,
+        'attempts': attempts,
+    })
+ 
+ 
+@login_required
+def quiz_results(request, attempt_id):
+    """
+    Display results of a completed quiz attempt
+    """
+    attempt = get_object_or_404(QuizAttempt, pk=attempt_id, user=request.user)
+    quiz = attempt.quiz
+    
+    # Get all answers for this attempt with related questions
+    answers = attempt.answers.select_related('question').order_by('question__order')
+    
+    return render(request, 'knowledge_app/quiz_results.html', {
+        'attempt': attempt,
+        'quiz': quiz,
+        'answers': answers,
+    })
+ 
+ 
+def check_answer(question, user_answer):
+    """
+    Check if user's answer is correct based on question type
+    """
+    if not user_answer:
+        return False
+    
+    user_answer = user_answer.strip().lower()
+    correct = question.correct_answer.strip().lower()
+    
+    if question.question_type in ['multiple_choice', 'fill_in_blank', 'true_false']:
+        # Exact match for these types
+        return user_answer == correct
+    
+    elif question.question_type == 'short_answer':
+        # Fuzzy matching for short answers (you might want to improve this)
+        return similar_enough(user_answer, correct)
+    
+    elif question.question_type == 'matching':
+        # For matching, this would be handled differently (multiple answers per question)
+        return user_answer == correct
+    
+    return False
+ 
+ 
+def similar_enough(str1, str2, threshold=0.8):
+    """
+    Check if two strings are similar enough (for short answer tolerance)
+    You can use difflib.SequenceMatcher for more sophisticated matching
+    """
+    from difflib import SequenceMatcher
+    ratio = SequenceMatcher(None, str1, str2).ratio()
+    return ratio >= threshold
