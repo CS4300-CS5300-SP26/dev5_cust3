@@ -37,7 +37,7 @@ jobs:
             cd /opt/knowledge_map
             docker compose pull
             docker compose up -d --remove-orphans
-            docker compose exec web python manage.py migrate --noinput
+            docker compose exec web python knowledge_map/manage.py migrate --noinput
             docker image prune -f
 
       
