@@ -632,12 +632,21 @@ def _long_text(n_sentences):
  
  
 def _fake_topic_info(topic_ids=None):
-    """Return a DataFrame that mimics BERTopic's get_topic_info() output."""
-    import pandas as pd
+    """Return a list of dicts that mimics BERTopic's get_topic_info() output."""
     if topic_ids is None:
         topic_ids = [0]
-    return pd.DataFrame({"Topic": topic_ids, "Count": [10] * len(topic_ids)})
- 
+    
+    # Create a simple object that mimics pandas DataFrame's iterrows()
+    class FakeDataFrame:
+        def __init__(self, data):
+            self.data = data
+        
+        def iterrows(self):
+            for i, row in enumerate(self.data):
+                yield i, row
+
+    rows = [{"Topic": tid, "Count": 10} for tid in topic_ids]
+    return FakeDataFrame(rows)
  
 def _fake_topics(n):
     """Return n minimal topic dicts as produced by extract_topics."""
