@@ -45,6 +45,7 @@ class AuthenticationTests(TestCase):
 class NavbarTest(TestCase):
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpass123')
 
     # Test all navbar links return 200
     def test_homepage_link(self):
@@ -77,7 +78,7 @@ class NavbarTest(TestCase):
         response = self.client.get(reverse('homepage'))
         self.assertContains(response, reverse('homepage'))
         self.assertContains(response, reverse('maps'))
-        self.assertContains(response, reverse('quiz'))
+        self.assertContains(response, reverse('quizzes'))
         self.assertContains(response, reverse('progress'))
 
     # Test navbar labels are present
@@ -90,7 +91,8 @@ class NavbarTest(TestCase):
 
     # Test navbar is on every page
     def test_sidebar_present_on_all_pages(self):
-        pages = ['homepage', 'maps', 'quiz', 'progress']
+        self.client.login(username='testuser', password='testpass123')
+        pages = ['homepage', 'maps', 'quizzes', 'progress']
         for page in pages:
             response = self.client.get(reverse(page))
             self.assertContains(response, 'id="sidebar"', msg_prefix=f"Sidebar missing on {page}")
@@ -190,20 +192,26 @@ class DeleteFileTest(TestCase):
 class QuizViewTest(TestCase):
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpass123')
+        self.client.login(username='testuser', password='testpass123')
 
+    # Test that the quizzes hub page loads successfully for a logged in user
     def test_quiz_url_loads(self):
-        response = self.client.get(reverse('quiz'))
+        response = self.client.get(reverse('quizzes'))
         self.assertEqual(response.status_code, 200)
 
+    # Test that the quizzes hub uses the correct template
     def test_quiz_uses_correct_template(self):
-        response = self.client.get(reverse('quiz'))
-        self.assertTemplateUsed(response, 'knowledge_app/quiz.html')
+        response = self.client.get(reverse('quizzes'))
+        self.assertTemplateUsed(response, 'knowledge_app/quizzes.html')
 
-    def test_quiz_contains_questions(self):
-        response = self.client.get(reverse('quiz'))
-        self.assertIn('quiz', response.context)
-        self.assertGreater(len(response.context['quiz']), 0)
+    # Test that the quiz generation form is present in the page context
+    def test_quiz_contains_form(self):
+        response = self.client.get(reverse('quizzes'))
+        self.assertIn('form', response.context)
 
-    def test_quiz_post_returns_score(self):
-        response = self.client.post(reverse('quiz'), {})
-        self.assertIn('score', response.context)
+    # Test that logged out users are redirected away from the quizzes page
+    def test_quiz_redirects_if_not_logged_in(self):
+        self.client.logout()
+        response = self.client.get(reverse('quizzes'))
+        self.assertEqual(response.status_code, 302)
