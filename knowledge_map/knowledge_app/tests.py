@@ -4,8 +4,15 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .models import UploadedFile
 from unittest.mock import patch, MagicMock
-from knowledge_app.processing import extract_topics, generate_labels, generate_relationships
 import os
+import sys
+
+# Mock heavy dependencies so they don't need to be installed in CI
+sys.modules['bertopic'] = MagicMock()
+sys.modules['sentence_transformers'] = MagicMock()
+
+from knowledge_app.processing import extract_topics, generate_labels, generate_relationships
+
 
 #----------------Tests for Authentication---------------------
 class AuthenticationTests(TestCase):
