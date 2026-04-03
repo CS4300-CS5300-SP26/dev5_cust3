@@ -85,7 +85,7 @@ def generate_labels(topics):
 
         # Send prompt to OpenAI & get response
         response = client.chat.completions.create(
-            model="gpt-5.1-codex-mini"
+            model="gpt-5.1-codex-mini",
             messages=[{"role": "user", "content": prompt}]
         )
 
