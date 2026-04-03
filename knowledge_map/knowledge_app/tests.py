@@ -10,6 +10,9 @@ import sys
 # Mock heavy dependencies so they don't need to be installed in CI
 sys.modules['bertopic'] = MagicMock()
 sys.modules['sentence_transformers'] = MagicMock()
+sys.modules['sklearn'] = MagicMock()
+sys.modules['sklearn.feature_extraction'] = MagicMock()
+sys.modules['sklearn.feature_extraction.text'] = MagicMock()
 
 from knowledge_app.processing import extract_topics, generate_labels, generate_relationships
 
