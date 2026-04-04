@@ -1,5 +1,11 @@
 from .base import *
 
+#make sure that the env variables are in place for each developer. If not, raise an error
+required_env_vars = ["DB_NAME", "DB_USER", "DB_PASSWORD", "DB_HOST", "DB_PORT"]
+missing = [var for var in required_env_vars if not os.getenv(var)]
+if missing:
+    raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
+
 DEBUG = False
 
 ALLOWED_HOSTS = ['yourknowledgemap.me', '157.230.89.215']
