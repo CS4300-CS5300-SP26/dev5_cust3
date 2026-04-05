@@ -2,6 +2,7 @@ from behave import given, when, then
 from django.urls import reverse
 from django.contrib.auth.models import User
 from knowledge_app.models import Quiz
+from unittest.mock import patch
 
 @given('I am logged in')
 def step_logged_in(context):
@@ -29,18 +30,23 @@ def step_see_upload_option(context):
 def step_see_text_option(context):
     assert b'text' in context.response.content
 
+from unittest.mock import patch
+
 @when('I submit the quiz form with text input')
 def step_submit_text_quiz(context):
-    context.response = context.client.post(reverse('quizzes'), {
-        'title': 'Test Quiz',
-        'description': 'A test quiz',
-        'difficulty': 'medium',
-        'num_questions': 3,
-        'question_types': ['multiple_choice'],
-        'source_choice': 'text',
-        'text_input': 'The CPU processes instructions. RAM is volatile memory.'
-    })
+    # Mock the OpenAI call so tests don't need a real API key
+    with patch('knowledge_app.services.quiz_generator.generate_quiz_from_text'):
+        context.response = context.client.post(reverse('quizzes'), {
+            'title': 'Test Quiz',
+            'description': 'A test quiz',
+            'difficulty': 'medium',
+            'num_questions': 3,
+            'question_types': ['multiple_choice'],
+            'source_choice': 'text',
+            'text_input': 'The CPU processes instructions. RAM is volatile memory.'
+        })
 
 @then('a new quiz should be created')
 def step_quiz_created(context):
+    # Confirm a quiz record was created in the database
     assert Quiz.objects.filter(user=context.user).count() == 1
