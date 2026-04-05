@@ -257,6 +257,15 @@ For multiple_choice:
     "correct_answer": "choice1"
 }}
 
+For fill_in_blank:
+{{
+    "question_text": "RAM is volatile _____ used during execution.",
+    "question_type": "fill_in_blank",
+    "choices": ["memory", "storage", "data", "hardware"],
+    "correct_answer": "memory"
+}}
+IMPORTANT: fill_in_blank questions MUST always include exactly 4 choices including the correct answer.
+
 For true_false:
 {{
     "question_text": "...",
