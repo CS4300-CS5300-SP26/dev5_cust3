@@ -35,7 +35,7 @@ from unittest.mock import patch
 @when('I submit the quiz form with text input')
 def step_submit_text_quiz(context):
     # Mock the OpenAI call so tests don't need a real API key
-    with patch('knowledge_app.services.quiz_generator.generate_quiz_from_text'):
+    with patch('knowledge_app.views.generate_quiz_from_text'):
         context.response = context.client.post(reverse('quizzes'), {
             'title': 'Test Quiz',
             'description': 'A test quiz',
