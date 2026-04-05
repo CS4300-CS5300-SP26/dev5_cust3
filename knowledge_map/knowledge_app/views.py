@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.db.models import Prefetch
+from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 
 from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
 from .forms import QuizGenerationForm
@@ -139,8 +140,32 @@ def quizzes_hub(request):
             
             quiz.save()
             
-            # Generate questions (you'll implement this based on your LLM integration)
-            # generate_quiz_questions(quiz, form.cleaned_data)
+            # Extract text and generate questions using OpenAI
+            text = ""
+
+            # If the user selected an existing or newly uploaded PDF option then extract
+            if source_choice == 'existing' or source_choice == 'upload':
+                import pdfplumber
+                try:
+                    # Open the PDF and extract text from each page
+                    with pdfplumber.open(quiz.source_file.file.path) as pdf:
+                        for page in pdf.pages:
+                            text += page.extract_text() or ""
+                except Exception as e:
+                    print(f"PDF extraction error: {e}")
+
+            # If the user pasted text directly then use that
+            elif source_choice == 'text':
+                text = form.cleaned_data.get('text_input', '')
+
+            # Send the extracted text to OpenAI to generate quiz questions
+            generate_quiz_from_text(
+                quiz=quiz,
+                text=text,
+                num_questions=form.cleaned_data.get('num_questions', 5),
+                question_types=form.cleaned_data.get('question_types', ['multiple_choice', 'true_false']),
+                difficulty=form.cleaned_data.get('difficulty', 'medium')
+            )
             
             return redirect('quiz_detail', pk=quiz.id)
     else:
