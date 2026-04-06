@@ -109,6 +109,7 @@ class QuizAttempt(models.Model):
     
     # Scoring
     score = models.IntegerField(
+        default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)]
     )  # Percentage score
     correct_count = models.PositiveIntegerField()

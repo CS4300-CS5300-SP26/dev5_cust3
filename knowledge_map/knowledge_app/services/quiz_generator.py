@@ -1,8 +1,14 @@
 import re
 from typing import List, Dict, Any
 import random
- 
- 
+import os
+import json
+from openai import OpenAI
+from dotenv import load_dotenv
+from pathlib import Path
+
+load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+
 def generate_multiple_choice(topic: Dict[str, Any], topic_num: int) -> Dict[str, Any]:
     """
     Generate a multiple choice question from a topic.
@@ -216,3 +222,151 @@ def generate_quiz(topics: List[Dict[str, Any]], num_questions: int = None) -> Li
             quiz.append(matching)
     
     return quiz
+
+
+    # ------------------------- Raw PDF to OpenAi integration -----------------------------
+def generate_quiz_from_text(quiz, text, num_questions=5, question_types=None, difficulty="medium"):
+    """
+    Generate quiz questions from raw text using OpenAI.
+    Saves questions directly to the database.
+    """
+    # Don't generate if there is no text to work with
+    if not text:
+        return
+
+    # Default to multiple choice and true/false if no types specified
+    if question_types is None:
+        question_types = ["multiple_choice", "true_false"]
+
+    # Set up the OpenAI client using the API key from the environment
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+    # Define what each difficulty level means so OpenAI generates appropriate questions
+    difficulty_guide = {
+        "easy": (
+            "Easy difficulty: Ask simple recall questions directly from the text. "
+            "Questions should test basic facts and definitions. "
+            "Wrong answer choices should be clearly incorrect. "
+            "Example: 'What is the term for X?' or 'Which of these is Y?'"
+        ),
+        "medium": (
+            "Medium difficulty: Ask questions that require understanding concepts, not just memorizing facts. "
+            "Wrong answer choices should be plausible but clearly wrong on closer inspection. "
+            "Example: 'Why does X happen?' or 'What would occur if Y?'"
+        ),
+        "hard": (
+            "Hard difficulty: Ask questions that require applying, analyzing, or comparing concepts from the text. "
+            "Wrong answer choices should be very plausible and require careful thought to eliminate. "
+            "Example: 'Which best explains the relationship between X and Y?' or 'What can be inferred from Z?'"
+        )
+    }
+
+    # Get the difficulty instructions, defaulting to medium if not found
+    difficulty_instructions = difficulty_guide.get(difficulty, difficulty_guide["medium"])
+
+    # Build the prompt telling OpenAI how many questions to generate and what format to return
+    prompt = f"""
+You are an educational quiz generator designed to help students learn and retain knowledge.
+Your goal is to create questions that reinforce understanding of the material, not just test memorization.
+
+Generate exactly {num_questions} quiz questions from the following text.
+Question types to use: {', '.join(question_types)}
+
+{difficulty_instructions}
+
+General rules:
+- All questions must be directly based on the provided text
+- Questions should help a student learn and review the material
+- Do not ask trivial or irrelevant questions
+- Wrong answer choices should be educational (they should represent common misconceptions or related concepts)
+
+Return ONLY a JSON array with no extra text or markdown. Each question should follow this format:
+
+For multiple_choice:
+{{
+    "question_text": "...",
+    "question_type": "multiple_choice",
+    "choices": ["correct_answer", "plausible_wrong1", "plausible_wrong2", "plausible_wrong3"],
+    "correct_answer": "correct_answer"
+}}
+
+For fill_in_blank:
+{{
+    "question_text": "RAM is volatile _____ used during execution.",
+    "question_type": "fill_in_blank",
+    "choices": ["memory", "storage", "data", "hardware"],
+    "correct_answer": "memory"
+}}
+IMPORTANT: fill_in_blank questions MUST always include exactly 4 choices including the correct answer.
+
+For true_false:
+{{
+    "question_text": "...",
+    "question_type": "true_false",
+    "choices": ["True", "False"],
+    "correct_answer": "True"
+}}
+
+For short_answer:
+{{
+    "question_text": "...",
+    "question_type": "short_answer",
+    "choices": [],
+    "correct_answer": "expected answer"
+}}
+
+For matching:
+{{
+    "question_text": "Match each term with its correct description:",
+    "question_type": "matching",
+    "choices": [],
+    "correct_answer": "",
+    "pairs": [
+        {{"premise": "term1", "response": "description1"}},
+        {{"premise": "term2", "response": "description2"}},
+        {{"premise": "term3", "response": "description3"}}
+    ]
+}}
+
+Text to generate questions from:
+{text[:4000]}
+"""
+
+    try:
+        # Send the prompt to OpenAI and get the response
+        response = client.chat.completions.create(
+            model="gpt-5-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful educational quiz generator focused on helping students learn. Always respond with valid JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+        )
+
+        # Extract the raw text response from OpenAI
+        raw = response.choices[0].message.content.strip()
+
+        # Strip markdown code blocks if OpenAI wraps the JSON in them
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+
+        # Parse the JSON response into a list of question dictionaries
+        questions_data = json.loads(raw)
+
+        # Save each generated question to the database
+        from ..models import Question
+        for order, q_data in enumerate(questions_data, start=1):
+            Question.objects.create(
+                quiz=quiz,
+                question_text=q_data["question_text"],
+                question_type=q_data["question_type"],
+                choices=q_data.get("choices", []),
+                correct_answer=q_data.get("correct_answer", ""),
+                pairs=q_data.get("pairs", []),
+                order=order,
+            )
+
+    except Exception as e:
+        # Log any errors without crashing the app
+        print(f"Quiz generation error: {e}")

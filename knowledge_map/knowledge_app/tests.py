@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .models import UploadedFile
+from knowledge_app.models import Quiz, Question, QuizAttempt, Answer
 import os
 
 #----------------Tests for Authentication---------------------
@@ -45,6 +46,7 @@ class AuthenticationTests(TestCase):
 class NavbarTest(TestCase):
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpass123')
 
     # Test all navbar links return 200
     def test_homepage_link(self):
@@ -77,7 +79,7 @@ class NavbarTest(TestCase):
         response = self.client.get(reverse('homepage'))
         self.assertContains(response, reverse('homepage'))
         self.assertContains(response, reverse('maps'))
-        self.assertContains(response, reverse('quiz'))
+        self.assertContains(response, reverse('quizzes'))
         self.assertContains(response, reverse('progress'))
 
     # Test navbar labels are present
@@ -90,7 +92,8 @@ class NavbarTest(TestCase):
 
     # Test navbar is on every page
     def test_sidebar_present_on_all_pages(self):
-        pages = ['homepage', 'maps', 'quiz', 'progress']
+        self.client.login(username='testuser', password='testpass123')
+        pages = ['homepage', 'maps', 'quizzes', 'progress']
         for page in pages:
             response = self.client.get(reverse(page))
             self.assertContains(response, 'id="sidebar"', msg_prefix=f"Sidebar missing on {page}")
@@ -190,20 +193,134 @@ class DeleteFileTest(TestCase):
 class QuizViewTest(TestCase):
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpass123')
+        self.client.login(username='testuser', password='testpass123')
 
+    # Test that the quizzes hub page loads successfully for a logged in user
     def test_quiz_url_loads(self):
-        response = self.client.get(reverse('quiz'))
+        response = self.client.get(reverse('quizzes'))
         self.assertEqual(response.status_code, 200)
 
+    # Test that the quizzes hub uses the correct template
     def test_quiz_uses_correct_template(self):
-        response = self.client.get(reverse('quiz'))
-        self.assertTemplateUsed(response, 'knowledge_app/quiz.html')
+        response = self.client.get(reverse('quizzes'))
+        self.assertTemplateUsed(response, 'knowledge_app/quizzes.html')
 
-    def test_quiz_contains_questions(self):
-        response = self.client.get(reverse('quiz'))
-        self.assertIn('quiz', response.context)
-        self.assertGreater(len(response.context['quiz']), 0)
+    # Test that the quiz generation form is present in the page context
+    def test_quiz_contains_form(self):
+        response = self.client.get(reverse('quizzes'))
+        self.assertIn('form', response.context)
 
-    def test_quiz_post_returns_score(self):
-        response = self.client.post(reverse('quiz'), {})
-        self.assertIn('score', response.context)
+    # Test that logged out users are redirected away from the quizzes page
+    def test_quiz_redirects_if_not_logged_in(self):
+        self.client.logout()
+        response = self.client.get(reverse('quizzes'))
+        self.assertEqual(response.status_code, 302)
+
+# ----------------Tests for Quiz Detail View---------------------
+class QuizDetailViewTests(TestCase):
+
+    def setUp(self):
+        # Create two users, a quiz, and a question before each test
+        self.owner = User.objects.create_user(username="owner", password="pass")
+        self.other = User.objects.create_user(username="other", password="pass")
+        self.quiz = Quiz.objects.create(user=self.owner, title="Test Quiz")
+        self.question = Question.objects.create(
+            quiz=self.quiz,
+            question_text="What is 2+2?",
+            question_type="multiple_choice",
+            correct_answer="4",
+            order=1,
+        )
+        self.url = reverse("quiz_detail", kwargs={"pk": self.quiz.pk})
+        self.client.login(username="owner", password="pass")
+
+    # Test that the quiz detail page loads successfully
+    def test_page_loads(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    # Test that the quiz detail page uses the correct template
+    def test_correct_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "knowledge_app/quiz_detail.html")
+
+    # Test that submitting answers creates a quiz attempt in the database
+    def test_submit_creates_attempt(self):
+        self.client.post(self.url, {f"q_{self.question.id}": "4"})
+        self.assertEqual(QuizAttempt.objects.filter(quiz=self.quiz).count(), 1)
+
+    # Test that a correct answer results in a score of 100
+    def test_correct_answer_scores_100(self):
+        self.client.post(self.url, {f"q_{self.question.id}": "4"})
+        attempt = QuizAttempt.objects.get(quiz=self.quiz)
+        self.assertEqual(attempt.score, 100)
+        self.assertEqual(attempt.correct_count, 1)
+
+    # Test that a wrong answer results in a score of 0
+    def test_wrong_answer_scores_0(self):
+        self.client.post(self.url, {f"q_{self.question.id}": "99"})
+        attempt = QuizAttempt.objects.get(quiz=self.quiz)
+        self.assertEqual(attempt.score, 0)
+        self.assertEqual(attempt.correct_count, 0)
+
+    # Test that submitting a quiz redirects to the results page
+    def test_submit_redirects_to_results(self):
+        response = self.client.post(self.url, {f"q_{self.question.id}": "4"})
+        attempt = QuizAttempt.objects.get(quiz=self.quiz)
+        self.assertRedirects(response, reverse("quiz_results", kwargs={"attempt_id": attempt.id}))
+
+    # Test that another user cannot access someone else's quiz
+    def test_other_user_gets_404(self):
+        self.client.login(username="other", password="pass")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+
+# ----------------Tests for Quiz Results View---------------------
+class QuizResultsViewTests(TestCase):
+
+    def setUp(self):
+        # Create two users, a quiz, a question, an attempt, and an answer before each test
+        self.owner = User.objects.create_user(username="owner", password="pass")
+        self.other = User.objects.create_user(username="other", password="pass")
+        self.quiz = Quiz.objects.create(user=self.owner, title="Test Quiz")
+        self.question = Question.objects.create(
+            quiz=self.quiz,
+            question_text="What is 2+2?",
+            question_type="multiple_choice",
+            correct_answer="4",
+            order=1,
+        )
+        self.attempt = QuizAttempt.objects.create(
+            quiz=self.quiz, user=self.owner,
+            score=100, correct_count=1, total_questions=1,
+        )
+        Answer.objects.create(
+            attempt=self.attempt, question=self.question,
+            user_answer="4", correct_answer="4", is_correct=True,
+        )
+        self.url = reverse("quiz_results", kwargs={"attempt_id": self.attempt.pk})
+        self.client.login(username="owner", password="pass")
+
+    # Test that the results page loads successfully
+    def test_page_loads(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    # Test that the results page uses the correct template
+    def test_correct_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "knowledge_app/quiz_results.html")
+
+    # Test that the results page contains the attempt and answers in context
+    def test_context_contains_attempt_and_answers(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["attempt"], self.attempt)
+        self.assertEqual(response.context["answers"].count(), 1)
+
+    # Test that another user cannot view someone else's results
+    def test_other_user_gets_404(self):
+        self.client.login(username="other", password="pass")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)
