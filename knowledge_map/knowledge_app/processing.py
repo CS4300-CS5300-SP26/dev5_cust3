@@ -141,14 +141,17 @@ def generate_relationships(labeled_topics):
     # Parse each line of response to extract source, target, and label
     relationships = []
     for line in content.split('\n'):
-        if '->' in line and ':' in line:
-            parts = line.split(':')
-            rel_label = parts[1].strip()
-            source, target = [t.strip() for t in parts[0].split('->')]
-            relationships.append({
-                'source': source,
-                'target': target,
-                'label': rel_label
-            })
+    if '->' in line and ':' in line:
+        arrow_parts = line.split('->')
+        source = arrow_parts[0].strip()
+        rest = arrow_parts[1]  # "Topic B: causes"
+        colon_idx = rest.index(':')
+        target = rest[:colon_idx].strip()
+        rel_label = rest[colon_idx + 1:].strip()
+        relationships.append({
+            'source': source,
+            'target': target,
+            'label': rel_label
+        })
 
     return relationships
