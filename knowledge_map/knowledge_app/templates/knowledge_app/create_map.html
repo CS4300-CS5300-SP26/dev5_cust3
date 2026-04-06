@@ -1,0 +1,38 @@
+{% extends "knowledge_app/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/create_map.css' %}?v=1">
+
+<div class="create-map-wrapper">
+    <div class="create-map-form">
+        <h1>Create Knowledge Map</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Map title input -->
+            <div class="form-group">
+                <label for="title">Map Title</label>
+                <input type="text" id="title" name="title" placeholder="Enter a title for your map" required>
+            </div>
+
+            <!-- PDF selection -->
+            <div class="form-group">
+                <label for="file_id">Select a PDF</label>
+                <select id="file_id" name="file_id" required>
+                    <option value="">-- Select a PDF --</option>
+                    {% for file in files %}
+                    <option value="{{ file.id }}">{{ file.file.name }} ({{ file.uploaded_at|date:"d M Y" }})</option>
+                    {% empty %}
+                    <option disabled>No PDFs uploaded yet</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">Generate Map</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
