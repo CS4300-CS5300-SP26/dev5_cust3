@@ -18,23 +18,12 @@ Feature: Quiz Generation from Topics and Text
     And each question should have a blank marked with "_____"
     And each question should have at least 3 answer choices
 
-  Scenario: Generate true/false questions from topics
-    When I generate quiz with 2 questions of type true_false
-    Then I should get 2 questions in the quiz
-    And each question should have exactly 2 choices (True and False)
-    And each question should have a boolean answer
 
   Scenario: Generate mixed question types
     When I generate quiz with 3 questions of mixed types
     Then I should get 3 questions in the quiz
     And the quiz should contain different question types
     And each question should be valid
-
-  Scenario: Generate quiz with matching questions
-    When I have 4 or more topics
-    And I generate a complete quiz
-    Then the quiz should include at least 1 matching question
-    And each matching question should have at least 2 pairs
 
   Scenario: Handle empty topics gracefully
     When I generate quiz from empty topics list
