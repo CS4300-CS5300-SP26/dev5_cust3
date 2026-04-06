@@ -49,7 +49,7 @@ jobs:
       - name: Enforce 80% coverage
         run: |
           cd knowledge_map
-          coverage report --fail-under=80
+          coverage report -m --fail-under=80
 
       - name: Generate XML report
         run: |
