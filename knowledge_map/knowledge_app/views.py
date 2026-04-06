@@ -80,7 +80,8 @@ def delete_file(request, file_id):
 
 # Home page view
 def homepage(request):
-    return render(request, "knowledge_app/homepage.html")
+    files = UploadedFile.objects.all().order_by('-uploaded_at')
+    return render(request, "knowledge_app/homepage.html", {'files': files})
 
 # Stored maps view 
 def maps(request):
