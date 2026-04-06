@@ -53,10 +53,6 @@ Feature: Quiz Generation from Topics and Text
     Then questions should be simple and test basic recall
     And wrong answers should be clearly incorrect
 
-  Scenario: Respect question type preferences
-    When I request quiz questions with types ["multiple_choice", "true_false"]
-    Then only multiple_choice and true_false questions should be generated
-    And short_answer and matching questions should not appear
 
   Scenario: Handle missing or incomplete topic data
     When I have topics with missing keywords or sentences

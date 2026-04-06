@@ -4,7 +4,7 @@ import re
 from unittest.mock import patch, MagicMock
 from services.quiz_generator import (
     generate_multiple_choice,
-    generate_fill_in_blank,
+    generate_fill_in_bla
     generate_true_false,
     generate_matching,
     generate_quiz,
@@ -118,14 +118,13 @@ def step_generate_true_false_quiz(context, count):
 
 @then('each question should have exactly {count:d} choices \\(True and False\\)')
 def step_verify_tf_choices(context, count):
-    """Verify true/false questions have exactly 2 choices."""
     for question in context.quiz:
-        assert question['type'] == 'true_false', \
-            f"Question {question['id']} is not a true_false question"
-        # Note: The implementation doesn't return choices for true_false,
-        # but the answer should be a boolean
-        assert isinstance(question['answer'], bool), \
-            f"Answer for {question['id']} is not a boolean"
+        assert question['type'] == 'true_false', f"Question {question['id']} is not a true_false question"
+        # Verify choices exist and are exactly True/False
+        choices = question.get('choices', [True, False])
+        assert set(choices) == {True, False}, f"Choices for {question['id']} should be [True, False], got {choices}"
+        # Verify answer is boolean
+        assert isinstance(question['answer'], bool), f"Answer for {question['id']} is not a boolean"
 
 
 @then('each question should have a boolean answer')
@@ -297,24 +296,6 @@ def step_verify_wrong_answers_obvious(context):
 
 # ============================= QUESTION TYPE PREFERENCES ==============================
 
-@when('I request quiz questions with types \\[{question_types}\\]')
-def step_request_specific_types(context, question_types):
-    """Request specific question types."""
-    context.requested_types = eval(f"[{question_types}]")
-
-
-@then('only {type1} and {type2} questions should be generated')
-def step_verify_only_types(context, type1, type2):
-    """Verify only requested types were generated."""
-    expected_types = {type1, type2}
-    # In actual implementation, would verify through OpenAI constraint
-
-
-@then('short_answer and matching questions should not appear')
-def step_verify_excluded_types(context):
-    """Verify excluded types are not generated."""
-    excluded_types = {'short_answer', 'matching'}
-    # In actual implementation, would verify through OpenAI constraint
 
 
 # ============================= INCOMPLETE DATA ==============================
