@@ -133,7 +133,7 @@ def generate_relationships(labeled_topics):
     # send prompt, get response
     response = client.responses.create(
         model="gpt-5.1-codex-mini",
-        input=prompt  # ← was messages=[{"role": "user", "content": prompt}]
+        input=prompt
     )
 
     content = response.output_text.strip()
@@ -141,17 +141,35 @@ def generate_relationships(labeled_topics):
     # Parse each line of response to extract source, target, and label
     relationships = []
     for line in content.split('\n'):
-        if '->' in line and ':' in line:
+        # Skip empty lines
+        if not line.strip():
+            continue
+
+        if '->' not in line or ':' not in line:
+            continue
+
+        try:
             arrow_parts = line.split('->')
             source = arrow_parts[0].strip()
-            rest = arrow_parts[1]  # "Topic B: causes"
-            colon_idx = rest.index(':')
-            target = rest[:colon_idx].strip()
-            rel_label = rest[colon_idx + 1:].strip()
-            relationships.append({
-                'source': source,
-                'target': target,
-                'label': rel_label
-            })
+            rest = arrow_parts[1]
+
+            # Use split(':', 1) to safely handle lines with missing colon
+            colon_parts = rest.split(':', 1)
+            if len(colon_parts) < 2:
+                continue
+
+            target = colon_parts[0].strip()
+            rel_label = colon_parts[1].strip()
+
+            # Only append if all three parts are present
+            if source and target and rel_label:
+                relationships.append({
+                    'source': source,
+                    'target': target,
+                    'label': rel_label
+                })
+        except (IndexError, ValueError):
+            # Skip malformed lines without crashing the whole job
+            continue
 
     return relationships
