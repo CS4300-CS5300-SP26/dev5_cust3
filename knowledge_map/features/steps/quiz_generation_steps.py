@@ -174,7 +174,11 @@ def step_verify_topic_count(context, count):
 @when('I generate a complete quiz')
 def step_generate_complete_quiz(context):
     """Generate a complete quiz including matching."""
-    context.quiz = generate_quiz(context.topics, num_questions=len(context.topics) * 2)
+    context.quiz = generate_quiz(
+        context.topics, 
+        num_questions=len(context.topics) * 2,
+        include_matching=True
+    )
 
 
 @then('the quiz should include at least {count:d} matching question')
