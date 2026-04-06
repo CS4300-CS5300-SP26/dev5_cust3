@@ -329,14 +329,14 @@ class GenerateLabelsUnitTests(TestCase):
     def _fake_openai_response(self, label="Test Label", summary="Test summary sentence."):
         """Helper: build a minimal mock that looks like an OpenAI chat response."""
         mock_response = MagicMock()
-        mock_response.choices[0].message.content = f"Label: {label}\nSummary: {summary}"
+        mock_response.output_text = f"Label: {label}\nSummary: {summary}"
         return mock_response
  
     @patch("knowledge_app.processing.OpenAI")
     def test_returns_same_number_of_topics(self, MockOpenAI):
         """Output list length must equal input list length."""
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = self._fake_openai_response()
+        mock_client.responses.create.return_value = self._fake_openai_response()
         MockOpenAI.return_value = mock_client
  
         topics = _fake_topics(3)
@@ -347,7 +347,7 @@ class GenerateLabelsUnitTests(TestCase):
     def test_label_and_summary_keys_added(self, MockOpenAI):
         """Each output topic must have 'label' and 'summary' keys."""
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = self._fake_openai_response(
+        mock_client.responses.create.return_value = self._fake_openai_response(
             "Climate Change Risks", "This topic covers extreme weather events."
         )
         MockOpenAI.return_value = mock_client
@@ -362,7 +362,7 @@ class GenerateLabelsUnitTests(TestCase):
     def test_label_is_correctly_parsed(self, MockOpenAI):
         """The label extracted from the API response should match the mock value."""
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = self._fake_openai_response(
+        mock_client.responses.create.return_value = self._fake_openai_response(
             label="Machine Learning Basics"
         )
         MockOpenAI.return_value = mock_client
@@ -374,7 +374,7 @@ class GenerateLabelsUnitTests(TestCase):
     def test_summary_is_correctly_parsed(self, MockOpenAI):
         """The summary extracted from the API response should match the mock value."""
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = self._fake_openai_response(
+        mock_client.responses.create.return_value = self._fake_openai_response(
             summary="Neural networks learn from large datasets."
         )
         MockOpenAI.return_value = mock_client
@@ -386,7 +386,7 @@ class GenerateLabelsUnitTests(TestCase):
     def test_existing_topic_data_is_preserved(self, MockOpenAI):
         """Original topic keys (topic_id, keywords, sentences) must survive the merge."""
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = self._fake_openai_response()
+        mock_client.responses.create.return_value = self._fake_openai_response()
         MockOpenAI.return_value = mock_client
  
         topics = _fake_topics(1)
@@ -405,31 +405,31 @@ class GenerateLabelsUnitTests(TestCase):
         result = generate_labels([])
  
         self.assertEqual(result, [])
-        mock_client.chat.completions.create.assert_not_called()
+        mock_client.responses.create.assert_not_called()
  
     @patch("knowledge_app.processing.OpenAI")
     def test_api_called_once_per_topic(self, MockOpenAI):
         """The OpenAI API should be called exactly once for each topic."""
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = self._fake_openai_response()
+        mock_client.responses.create.return_value = self._fake_openai_response()
         MockOpenAI.return_value = mock_client
  
         n = 4
         generate_labels(_fake_topics(n))
-        self.assertEqual(mock_client.chat.completions.create.call_count, n)
+        self.assertEqual(mock_client.responses.create.call_count, n)
  
     @patch("knowledge_app.processing.OpenAI")
     def test_prompt_contains_keywords(self, MockOpenAI):
         """The prompt sent to OpenAI should include the topic's keywords."""
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = self._fake_openai_response()
+        mock_client.responses.create.return_value = self._fake_openai_response()
         MockOpenAI.return_value = mock_client
  
         topics = [{"topic_id": 0, "keywords": ["neural", "network"], "sentences": ["Networks learn."]}]
         generate_labels(topics)
  
-        call_args = mock_client.chat.completions.create.call_args
-        prompt_content = call_args[1]["messages"][0]["content"]
+        call_args = mock_client.responses.create.call_args
+        prompt_content = call_args[1]["input"][0]["content"]
         self.assertIn("neural", prompt_content)
         self.assertIn("network", prompt_content)
  
@@ -444,7 +444,7 @@ class GenerateRelationshipsUnitTests(TestCase):
         mock_client = MagicMock()
         mock_response = MagicMock()
         mock_response.choices[0].message.content = response_text
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.responses.create.return_value = mock_response
         return mock_client
  
     @patch("knowledge_app.processing.OpenAI")
@@ -517,8 +517,8 @@ class GenerateRelationshipsUnitTests(TestCase):
         topics = _labeled_topics(3)
         generate_relationships(topics)
  
-        call_args = mock_client.chat.completions.create.call_args
-        prompt_content = call_args[1]["messages"][0]["content"]
+        call_args = mock_client.responses.create.call_args
+        prompt_content = call_args[1]["input"][0]["content"]
         for topic in topics:
             self.assertIn(topic["label"], prompt_content)
  
@@ -529,7 +529,8 @@ class GenerateRelationshipsUnitTests(TestCase):
         MockOpenAI.return_value = mock_client
  
         generate_relationships(_labeled_topics(4))
-        mock_client.chat.completions.create.assert_called_once()
+        mock_client.responses.create.assert_called_once()
+
  
  
 # =============================================================================
@@ -559,10 +560,10 @@ class TopicsPipelineIntegrationTests(TestCase):
         # Mock OpenAI (2 label calls + 1 relationships call)
         mock_client = MagicMock()
         label_response = MagicMock()
-        label_response.choices[0].message.content = "Label: Climate Topics\nSummary: Topics about climate."
+        label_response.output_text = "Label: Climate Topics\nSummary: Topics about climate."
         rel_response = MagicMock()
-        rel_response.choices[0].message.content = "Climate Topics -> Migration: drives"
-        mock_client.chat.completions.create.side_effect = [
+        rel_response.output_text = "Climate Topics -> Migration: drives"
+        mock_client.responses.create.side_effect = [
             label_response, label_response, rel_response
         ]
         MockOpenAI.return_value = mock_client
@@ -591,10 +592,10 @@ class TopicsPipelineIntegrationTests(TestCase):
  
         mock_client = MagicMock()
         label_resp = MagicMock()
-        label_resp.choices[0].message.content = "Label: Education\nSummary: About schooling."
+        label_resp.output_text = "Label: Education\nSummary: About schooling."
         rel_resp = MagicMock()
-        rel_resp.choices[0].message.content = "No relationships."
-        mock_client.chat.completions.create.side_effect = [label_resp, rel_resp]
+        rel_resp.output_text = "No relationships."
+        mock_client.responses.create.side_effect = [label_resp, rel_resp]
         MockOpenAI.return_value = mock_client
  
         topics, _ = extract_topics(_long_text(12))
