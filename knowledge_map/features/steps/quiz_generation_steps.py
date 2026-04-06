@@ -2,7 +2,7 @@ from behave import given, when, then
 import json
 import re
 from unittest.mock import patch, MagicMock
-from services.quiz_generator import (
+from knowledge_app.services.quiz_generator import (
     generate_multiple_choice,
     generate_fill_in_blank,
     generate_true_false,
