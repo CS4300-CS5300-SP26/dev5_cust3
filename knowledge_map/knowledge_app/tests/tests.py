@@ -188,6 +188,22 @@ class DeleteFileTest(TestCase):
         for f in UploadedFile.objects.all():
             if os.path.exists(f.file.path):
                 os.remove(f.file.path)
+    #test delte selected files
+    def test_delete_selected_files(self):
+    pdf1 = SimpleUploadedFile("a.pdf", b"data", content_type="application/pdf")
+    pdf2 = SimpleUploadedFile("b.pdf", b"data", content_type="application/pdf")
+
+    self.client.post(reverse('upload'), {'pdf_file': pdf1})
+    self.client.post(reverse('upload'), {'pdf_file': pdf2})
+
+    files = UploadedFile.objects.all()
+
+    response = self.client.post(reverse('delete_selected_files'), {
+        "selected_files": [f.id for f in files]
+    })
+
+    self.assertEqual(response.status_code, 302)
+    self.assertEqual(UploadedFile.objects.count(), 0)
 
 # ----------------Tests for Quiz Feature---------------------
 class QuizViewTest(TestCase):
@@ -324,3 +340,125 @@ class QuizResultsViewTests(TestCase):
         self.client.login(username="other", password="pass")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 404)
+
+
+
+
+class QuizDetailViewTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass"
+        )
+        self.other_user = User.objects.create_user(
+            username="otheruser", password="testpass"
+        )
+
+        self.client.login(username="testuser", password="testpass")
+
+        self.quiz = Quiz.objects.create(
+            user=self.user,
+            title="Test Quiz"
+        )
+
+        # Create questions
+        self.q1 = Question.objects.create(
+            quiz=self.quiz,
+            question_text="2+2?",
+            correct_answer="4"
+        )
+
+        self.q2 = Question.objects.create(
+            quiz=self.quiz,
+            question_text="Capital of France?",
+            correct_answer="Paris"
+        )
+
+    # ❌ Not logged in
+    def test_redirect_if_not_logged_in(self):
+        self.client.logout()
+        response = self.client.get(reverse('quiz_detail', args=[self.quiz.id]))
+        self.assertEqual(response.status_code, 302)
+
+    # ❌ Quiz belongs to another user
+    def test_quiz_not_owned_returns_404(self):
+        чужой_quiz = Quiz.objects.create(user=self.other_user, title="Other Quiz")
+
+        response = self.client.get(reverse('quiz_detail', args=[чужой_quiz.id]))
+        self.assertEqual(response.status_code, 404)
+
+    # ✅ GET request renders page
+    def test_get_quiz_detail(self):
+        response = self.client.get(reverse('quiz_detail', args=[self.quiz.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Quiz")
+
+    # ✅ POST submission (all correct)
+    def test_submit_quiz_all_correct(self):
+        response = self.client.post(
+            reverse('quiz_detail', args=[self.quiz.id]),
+            {
+                f"q_{self.q1.id}": "4",
+                f"q_{self.q2.id}": "Paris"
+            }
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        attempt = QuizAttempt.objects.first()
+        self.assertEqual(attempt.score, 100)
+        self.assertEqual(Answer.objects.count(), 2)
+
+    # ⚠️ Mixed correct/incorrect answers
+    def test_submit_quiz_partial_correct(self):
+        self.client.post(
+            reverse('quiz_detail', args=[self.quiz.id]),
+            {
+                f"q_{self.q1.id}": "4",
+                f"q_{self.q2.id}": "London"
+            }
+        )
+
+        attempt = QuizAttempt.objects.first()
+        self.assertEqual(attempt.correct_count, 1)
+        self.assertEqual(attempt.score, 50)
+
+    # ⚠️ Empty answers (edge case)
+    def test_submit_quiz_empty_answers(self):
+        self.client.post(
+            reverse('quiz_detail', args=[self.quiz.id]),
+            {}
+        )
+
+        attempt = QuizAttempt.objects.first()
+        self.assertEqual(attempt.correct_count, 0)
+        self.assertEqual(attempt.score, 0)
+
+    # ⚠️ Quiz with no questions
+    def test_quiz_with_no_questions(self):
+        empty_quiz = Quiz.objects.create(user=self.user, title="Empty Quiz")
+
+        response = self.client.post(
+            reverse('quiz_detail', args=[empty_quiz.id]),
+            {}
+        )
+
+        attempt = QuizAttempt.objects.first()
+        self.assertEqual(attempt.score, 0)
+
+    # 🔁 Previous attempts appear
+    def test_previous_attempts_in_context(self):
+        QuizAttempt.objects.create(
+            quiz=self.quiz,
+            user=self.user,
+            score=80,
+            correct_count=1,
+            total_questions=2
+        )
+
+        response = self.client.get(reverse('quiz_detail', args=[self.quiz.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("attempts", response.context)
