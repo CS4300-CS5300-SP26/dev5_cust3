@@ -1,0 +1,90 @@
+{% extends "knowledge_app/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/view_map.css' %}?v=1">
+
+<div class="view-map-wrapper">
+    <div class="map-header">
+        <h1>{{ knowledge_map.title }}</h1>
+        <span class="map-status" id="map-status">{{ knowledge_map.status }}</span>
+    </div>
+
+    <!-- Cytoscape.js renders the map here -->
+    <div id="cy"></div>
+</div>
+
+<!-- Cytoscape.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+
+<script>
+    // @ts-nocheck
+    // Map data from Django
+    const cyNodes = {{ nodes|safe }};
+    const cyEdges = {{ edges|safe }};
+    const mapStatus = "{{ knowledge_map.status }}";
+    const statusUrl = "{% url 'map_status' knowledge_map.id %}";
+
+    // Initialise Cytoscape
+    const cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: [...cyNodes, ...cyEdges],
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    'background-color': '#0e223e',
+                    'label': 'data(label)',
+                    'color': '#fff',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'font-size': '12px',
+                    'width': '120px',
+                    'height': '40px',
+                    'shape': 'roundrectangle',
+                    'text-wrap': 'wrap',
+                    'text-max-width': '110px',
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 2,
+                    'line-color': '#9db8dd',
+                    'target-arrow-color': '#9db8dd',
+                    'target-arrow-shape': 'triangle',
+                    'curve-style': 'bezier',
+                    'label': 'data(label)',
+                    'font-size': '10px',
+                    'color': '#333',
+                }
+            }
+        ],
+        layout: {
+            name: 'cose',         // force-directed layout
+            animate: true,
+            padding: 50
+        }
+    });
+
+    // If map is still processing, poll the status every 3 seconds
+    if (mapStatus === 'pending' || mapStatus === 'processing') {
+        const statusEl = document.getElementById('map-status');
+
+        const poll = setInterval(async () => {
+            const response = await fetch(statusUrl);
+            const data = await response.json();
+
+            statusEl.textContent = data.status;
+            statusEl.className = `map-status ${data.status}`;
+
+            // Reload page when complete to show the map
+            if (data.status === 'complete' || data.status === 'failed') {
+                clearInterval(poll);
+                location.reload();
+            }
+        }, 3000);
+    }
+</script>
+
+{% endblock %}
