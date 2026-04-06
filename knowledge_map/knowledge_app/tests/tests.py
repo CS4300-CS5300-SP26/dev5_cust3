@@ -190,20 +190,20 @@ class DeleteFileTest(TestCase):
                 os.remove(f.file.path)
     #test delte selected files
     def test_delete_selected_files(self):
-    pdf1 = SimpleUploadedFile("a.pdf", b"data", content_type="application/pdf")
-    pdf2 = SimpleUploadedFile("b.pdf", b"data", content_type="application/pdf")
+        pdf1 = SimpleUploadedFile("a.pdf", b"data", content_type="application/pdf")
+        pdf2 = SimpleUploadedFile("b.pdf", b"data", content_type="application/pdf")
 
-    self.client.post(reverse('upload'), {'pdf_file': pdf1})
-    self.client.post(reverse('upload'), {'pdf_file': pdf2})
+        self.client.post(reverse('upload'), {'pdf_file': pdf1})
+        self.client.post(reverse('upload'), {'pdf_file': pdf2})
 
-    files = UploadedFile.objects.all()
+        files = UploadedFile.objects.all()
 
-    response = self.client.post(reverse('delete_selected_files'), {
+        response = self.client.post(reverse('delete_selected_files'), {
         "selected_files": [f.id for f in files]
-    })
+        })
 
-    self.assertEqual(response.status_code, 302)
-    self.assertEqual(UploadedFile.objects.count(), 0)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(UploadedFile.objects.count(), 0)
 
 # ----------------Tests for Quiz Feature---------------------
 class QuizViewTest(TestCase):
