@@ -429,7 +429,7 @@ class GenerateLabelsUnitTests(TestCase):
         generate_labels(topics)
  
         call_args = mock_client.responses.create.call_args
-        prompt_content = call_args[1]["input"][0]["content"]
+        prompt_content = call_args[1]["input"]
         self.assertIn("neural", prompt_content)
         self.assertIn("network", prompt_content)
  
@@ -518,7 +518,7 @@ class GenerateRelationshipsUnitTests(TestCase):
         generate_relationships(topics)
  
         call_args = mock_client.responses.create.call_args
-        prompt_content = call_args[1]["input"][0]["content"]
+        prompt_content = call_args[1]["input"]
         for topic in topics:
             self.assertIn(topic["label"], prompt_content)
  
