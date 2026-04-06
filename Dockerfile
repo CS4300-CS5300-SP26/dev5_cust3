@@ -34,10 +34,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Only exists at build time, never stored in the image
 ARG SECRET_KEY=build-time-placeholder
 ARG DJANGO_SETTINGS_MODULE=knowledge_map.settings.prod
-RUN SECRET_KEY=${SECRET_KEY} DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} python ./knowledge_map/manage.py collectstatic --noinput
+# RUN SECRET_KEY=${SECRET_KEY} DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} python ./knowledge_map/manage.py collectstatic --noinput
 
+COPY --chown=knowledgeUser:knowledgeUser entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 USER knowledgeUser
-
 EXPOSE 8000
-
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--chdir", "/app/knowledge_map", "knowledge_map.wsgi:application"]
+ENTRYPOINT ["/app/entrypoint.sh"]
