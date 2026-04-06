@@ -105,8 +105,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 #user redirection paths
-
-
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/homepage/'       
 LOGOUT_REDIRECT_URL = '/' 
