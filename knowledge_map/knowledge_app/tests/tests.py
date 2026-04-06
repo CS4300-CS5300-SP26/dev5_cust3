@@ -375,27 +375,27 @@ class QuizDetailViewTests(TestCase):
             correct_answer="Paris"
         )
 
-    # ❌ Not logged in
+    # Not logged in
     def test_redirect_if_not_logged_in(self):
         self.client.logout()
         response = self.client.get(reverse('quiz_detail', args=[self.quiz.id]))
         self.assertEqual(response.status_code, 302)
 
-    # ❌ Quiz belongs to another user
+    #  Quiz belongs to another user
     def test_quiz_not_owned_returns_404(self):
-        чужой_quiz = Quiz.objects.create(user=self.other_user, title="Other Quiz")
+        чужой_quiq = Quiz.objects.create(user=self.other_user, title="Other Quiz")
 
         response = self.client.get(reverse('quiz_detail', args=[чужой_quiz.id]))
         self.assertEqual(response.status_code, 404)
 
-    # ✅ GET request renders page
+    # GET request renders page
     def test_get_quiz_detail(self):
         response = self.client.get(reverse('quiz_detail', args=[self.quiz.id]))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Quiz")
 
-    # ✅ POST submission (all correct)
+    # POST submission (all correct)
     def test_submit_quiz_all_correct(self):
         response = self.client.post(
             reverse('quiz_detail', args=[self.quiz.id]),
@@ -411,7 +411,7 @@ class QuizDetailViewTests(TestCase):
         self.assertEqual(attempt.score, 100)
         self.assertEqual(Answer.objects.count(), 2)
 
-    # ⚠️ Mixed correct/incorrect answers
+    #  Mixed correct/incorrect answers
     def test_submit_quiz_partial_correct(self):
         self.client.post(
             reverse('quiz_detail', args=[self.quiz.id]),
@@ -425,7 +425,7 @@ class QuizDetailViewTests(TestCase):
         self.assertEqual(attempt.correct_count, 1)
         self.assertEqual(attempt.score, 50)
 
-    # ⚠️ Empty answers (edge case)
+    #  Empty answers (edge case)
     def test_submit_quiz_empty_answers(self):
         self.client.post(
             reverse('quiz_detail', args=[self.quiz.id]),
@@ -436,7 +436,7 @@ class QuizDetailViewTests(TestCase):
         self.assertEqual(attempt.correct_count, 0)
         self.assertEqual(attempt.score, 0)
 
-    # ⚠️ Quiz with no questions
+    #  Quiz with no questions
     def test_quiz_with_no_questions(self):
         empty_quiz = Quiz.objects.create(user=self.user, title="Empty Quiz")
 
@@ -448,7 +448,7 @@ class QuizDetailViewTests(TestCase):
         attempt = QuizAttempt.objects.first()
         self.assertEqual(attempt.score, 0)
 
-    # 🔁 Previous attempts appear
+    # Previous attempts appear
     def test_previous_attempts_in_context(self):
         QuizAttempt.objects.create(
             quiz=self.quiz,
