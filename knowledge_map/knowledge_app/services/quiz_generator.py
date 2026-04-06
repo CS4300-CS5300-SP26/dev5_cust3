@@ -174,33 +174,22 @@ def generate_matching(topics: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
  
  
-def generate_quiz(topics: List[Dict[str, Any]], num_questions: int = None) -> List[Dict[str, Any]]:
-    """
-    Generate a complete quiz from BERTopic output.
-    
-    Args:
-        topics: Output from extract_topics()
-        num_questions: Number of questions to generate (default: 2 per topic)
-    
-    Returns:
-        List of quiz questions
-    """
+def generate_quiz(topics: list[dict], num_questions: int = None) -> list[dict]:
     if not topics:
         return []
-    
+
     if num_questions is None:
         num_questions = len(topics) * 2
-    
+
     quiz = []
     question_types = ['multiple_choice', 'fill_in_blank', 'true_false']
     topic_idx = 0
     q_count = 0
-    
-    # Generate questions cycling through types
-    while q_count < num_questions and topic_idx < len(topics):
+
+    while q_count < num_questions:
         topic = topics[topic_idx]
         question_type = question_types[q_count % len(question_types)]
-        
+
         question = None
         if question_type == 'multiple_choice':
             question = generate_multiple_choice(topic, q_count)
@@ -208,20 +197,22 @@ def generate_quiz(topics: List[Dict[str, Any]], num_questions: int = None) -> Li
             question = generate_fill_in_blank(topic, q_count)
         elif question_type == 'true_false':
             question = generate_true_false(topic, q_count)
-        
+
         if question:
+            question['topic_id'] = topic['topic_id']  # assign topic
             quiz.append(question)
             q_count += 1
-        
+
         topic_idx = (topic_idx + 1) % len(topics)
-    
-    # Add one matching question if we have enough topics
-    if len(topics) >= 2:
+
+    # Optionally add matching question if space allows
+    if len(topics) >= 2 and len(quiz) < num_questions:
         matching = generate_matching(topics)
         if matching:
+            matching['topic_id'] = None  # or assign a topic if meaningful
             quiz.append(matching)
-    
-    return quiz
+
+    return quiz[:num_questions]  # ensure exact count
 
 
     # ------------------------- Raw PDF to OpenAi integration -----------------------------
