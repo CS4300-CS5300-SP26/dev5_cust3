@@ -346,20 +346,28 @@
 </style>
  
 <script>
-    // Toggle between PDF and text input
-    document.querySelectorAll('input[name="source_choice"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            const pdfGroup = document.getElementById('pdf-input-group');
-            const textGroup = document.getElementById('text-input-group');
-            
-            if (this.value === 'pdf') {
-                pdfGroup.style.display = 'flex';
-                textGroup.style.display = 'none';
-            } else {
-                pdfGroup.style.display = 'none';
-                textGroup.style.display = 'flex';
-            }
-        });
-    });
+    function updateSourceInputVisibility() {
+    const selected = document.querySelector('input[name="source_choice"]:checked');
+    const pdfGroup = document.getElementById('pdf-input-group');
+    const textGroup = document.getElementById('text-input-group');
+
+    if (!selected || !pdfGroup || !textGroup) {
+        console.warn('Missing element — check IDs and radio name');
+        return;
+    }
+
+    if (selected.value === 'upload') {
+    pdfGroup.style.display = 'flex';
+    textGroup.style.display = 'none';
+} else if (selected.value === 'text') {
+    pdfGroup.style.display = 'none';
+    textGroup.style.display = 'flex';
+} else if (selected.value === 'existing') {
+    pdfGroup.style.display = 'none';
+    textGroup.style.display = 'none';
+    // show a third group here if needed
+}
+    }
+updateSourceInputVisibility() 
 </script>
 {% endblock %}

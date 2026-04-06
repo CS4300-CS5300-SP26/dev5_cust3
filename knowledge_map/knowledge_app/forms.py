@@ -11,6 +11,7 @@ class QuizGenerationForm(forms.ModelForm):
             ('upload', 'Upload New PDF'),
             ('text', 'Paste Text')
         ],
+        initial='pdf',
         widget=forms.RadioSelect,
         label='Quiz Source'
     )
