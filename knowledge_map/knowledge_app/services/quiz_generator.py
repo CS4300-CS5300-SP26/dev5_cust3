@@ -144,34 +144,40 @@ def generate_true_false(topic: Dict[str, Any], topic_num: int) -> Dict[str, Any]
         }
  
  
-def generate_matching(topics: List[Dict[str, Any]]) -> Dict[str, Any]:
+def generate_matching(topics: List[Dict[str, Any]], num_questions: int = 1) -> List[Dict[str, Any]]:
     """
-    Generate a matching question across multiple topics.
-    Match key terms to their topic descriptions.
+    Generate multiple matching questions across topics.
+    Each question matches key terms to their topic descriptions.
     """
     if len(topics) < 2:
-        return None
-    
-    selected_topics = random.sample(topics, min(4, len(topics)))
-    
-    # Create premise-response pairs
-    pairs = []
-    for topic in selected_topics:
-        keyword = topic['keywords'][0]
-        sentence = topic['sentences'][0][:100]
-        pairs.append({
-            'premise': keyword,
-            'response': sentence
-        })
-    
-    return {
-        'id': 'q_matching',
-        'type': 'matching',
-        'question': 'Match the key terms with their descriptions:',
-        'pairs': pairs,
-        'answer_map': {p['premise']: p['response'] for p in pairs},
-        'difficulty': 'hard'
-    }
+        return []
+
+    questions = []
+    for q_idx in range(num_questions):
+        # Randomly pick 2 to 4 topics per question
+        selected_topics = random.sample(topics, min(4, len(topics)))
+
+        # Create premise-response pairs
+        pairs = []
+        for topic in selected_topics:
+            keyword = topic['keywords'][0]
+            sentence = topic['sentences'][0][:100]
+            pairs.append({
+                'premise': keyword,
+                'response': sentence
+            })
+
+        question_data = {
+            'id': f'q_matching_{q_idx + 1}',
+            'type': 'matching',
+            'question': 'Match the key terms with their descriptions:',
+            'pairs': pairs,
+            'answer_map': {p['premise']: p['response'] for p in pairs},
+            'difficulty': 'hard'
+        }
+        questions.append(question_data)
+
+    return questions
  
  
 def generate_quiz(topics, num_questions=10, question_types=None, include_matching=False):
