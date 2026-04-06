@@ -241,11 +241,44 @@ def generate_quiz_from_text(quiz, text, num_questions=5, question_types=None, di
     # Set up the OpenAI client using the API key from the environment
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
+    # Define what each difficulty level means so OpenAI generates appropriate questions
+    difficulty_guide = {
+        "easy": (
+            "Easy difficulty: Ask simple recall questions directly from the text. "
+            "Questions should test basic facts and definitions. "
+            "Wrong answer choices should be clearly incorrect. "
+            "Example: 'What is the term for X?' or 'Which of these is Y?'"
+        ),
+        "medium": (
+            "Medium difficulty: Ask questions that require understanding concepts, not just memorizing facts. "
+            "Wrong answer choices should be plausible but clearly wrong on closer inspection. "
+            "Example: 'Why does X happen?' or 'What would occur if Y?'"
+        ),
+        "hard": (
+            "Hard difficulty: Ask questions that require applying, analyzing, or comparing concepts from the text. "
+            "Wrong answer choices should be very plausible and require careful thought to eliminate. "
+            "Example: 'Which best explains the relationship between X and Y?' or 'What can be inferred from Z?'"
+        )
+    }
+
+    # Get the difficulty instructions, defaulting to medium if not found
+    difficulty_instructions = difficulty_guide.get(difficulty, difficulty_guide["medium"])
+
     # Build the prompt telling OpenAI how many questions to generate and what format to return
     prompt = f"""
-You are a quiz generator. Generate {num_questions} quiz questions from the following text.
-Difficulty level: {difficulty}
+You are an educational quiz generator designed to help students learn and retain knowledge.
+Your goal is to create questions that reinforce understanding of the material, not just test memorization.
+
+Generate exactly {num_questions} quiz questions from the following text.
 Question types to use: {', '.join(question_types)}
+
+{difficulty_instructions}
+
+General rules:
+- All questions must be directly based on the provided text
+- Questions should help a student learn and review the material
+- Do not ask trivial or irrelevant questions
+- Wrong answer choices should be educational (they should represent common misconceptions or related concepts)
 
 Return ONLY a JSON array with no extra text or markdown. Each question should follow this format:
 
@@ -253,8 +286,8 @@ For multiple_choice:
 {{
     "question_text": "...",
     "question_type": "multiple_choice",
-    "choices": ["choice1", "choice2", "choice3", "choice4"],
-    "correct_answer": "choice1"
+    "choices": ["correct_answer", "plausible_wrong1", "plausible_wrong2", "plausible_wrong3"],
+    "correct_answer": "correct_answer"
 }}
 
 For fill_in_blank:
@@ -272,6 +305,14 @@ For true_false:
     "question_type": "true_false",
     "choices": ["True", "False"],
     "correct_answer": "True"
+}}
+
+For short_answer:
+{{
+    "question_text": "...",
+    "question_type": "short_answer",
+    "choices": [],
+    "correct_answer": "expected answer"
 }}
 
 For matching:
@@ -296,7 +337,7 @@ Text to generate questions from:
         response = client.chat.completions.create(
             model="gpt-5-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful quiz generator. Always respond with valid JSON only."},
+                {"role": "system", "content": "You are a helpful educational quiz generator focused on helping students learn. Always respond with valid JSON only."},
                 {"role": "user", "content": prompt}
             ],
         )
