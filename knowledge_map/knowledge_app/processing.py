@@ -84,13 +84,13 @@ def generate_labels(topics):
         """
 
         # Send prompt to OpenAI & get response
-        response = client.chat.completions.create(
+        response = client.responses.create(
             model="gpt-5.1-codex-mini",
-            messages=[{"role": "user", "content": prompt}]
+            input=prompt  # ← was messages=[{"role": "user", "content": prompt}]
         )
 
         # Extract text content from response
-        content = response.choices[0].message.content.strip()
+        content = response.output_text.strip()
 
         # Split response into lines to extract label and summary separately
         lines = content.split('\n')
@@ -131,12 +131,12 @@ def generate_relationships(labeled_topics):
     """
 
     # send prompt, get response
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}]
+    response = client.responses.create(
+        model="gpt-5.1-codex-mini",
+        input=prompt  # ← was messages=[{"role": "user", "content": prompt}]
     )
 
-    content = response.choices[0].message.content.strip()
+    content = response.output_text.strip()
 
     # Parse each line of response to extract source, target, and label
     relationships = []
