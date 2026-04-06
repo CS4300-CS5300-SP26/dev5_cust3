@@ -443,7 +443,7 @@ class GenerateRelationshipsUnitTests(TestCase):
     def _mock_openai(self, response_text):
         mock_client = MagicMock()
         mock_response = MagicMock()
-        mock_response.choices[0].message.content = response_text
+        mock_response.output_text = response_text  # ← was choices[0].message.content
         mock_client.responses.create.return_value = mock_response
         return mock_client
  
