@@ -7,3 +7,6 @@ omit =
     */asgi.py
     */wsgi.py
     */settings.py
+   base.py
+   dev.py
+   prod.py
