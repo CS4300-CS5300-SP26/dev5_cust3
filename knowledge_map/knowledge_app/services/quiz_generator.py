@@ -174,46 +174,52 @@ def generate_matching(topics: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
  
  
-def generate_quiz(topics: list[dict], num_questions: int = None) -> list[dict]:
+def generate_quiz(topics, num_questions=10, question_types=None, include_matching=False):
+    """
+    Generate a quiz with specified question types.
+    
+    Args:
+        topics: List of topic dictionaries
+        num_questions: Total number of individual questions to generate
+        question_types: List of question types to include (e.g., ['multiple_choice', 'fill_in_blank'])
+        include_matching: Boolean to include matching questions if 4+ topics available
+    
+    Returns:
+        List of questions
+    """
     if not topics:
         return []
-
-    if num_questions is None:
-        num_questions = len(topics) * 2
-
-    quiz = []
-    question_types = ['multiple_choice', 'fill_in_blank', 'true_false']
-    topic_idx = 0
-    q_count = 0
-
-    while q_count < num_questions:
-        topic = topics[topic_idx]
-        question_type = question_types[q_count % len(question_types)]
-
-        question = None
-        if question_type == 'multiple_choice':
-            question = generate_multiple_choice(topic, q_count)
-        elif question_type == 'fill_in_blank':
-            question = generate_fill_in_blank(topic, q_count)
-        elif question_type == 'true_false':
-            question = generate_true_false(topic, q_count)
-
+    
+    questions = []
+    
+    # Default question types if none specified
+    if question_types is None:
+        question_types = ['multiple_choice', 'fill_in_blank', 'true_false']
+    
+    # Generate individual questions cycling through types
+    type_index = 0
+    for i in range(num_questions):
+        topic = topics[i % len(topics)]
+        q_type = question_types[type_index % len(question_types)]
+        type_index += 1
+        
+        if q_type == 'multiple_choice':
+            question = generate_multiple_choice(topic, i)
+        elif q_type == 'fill_in_blank':
+            question = generate_fill_in_blank(topic, i)
+        elif q_type == 'true_false':
+            question = generate_true_false(topic, i)
+        
         if question:
-            question['topic_id'] = topic['topic_id']  # assign topic
-            quiz.append(question)
-            q_count += 1
-
-        topic_idx = (topic_idx + 1) % len(topics)
-
-    # Optionally add matching question if space allows
-    if len(topics) >= 2 and len(quiz) < num_questions:
-        matching = generate_matching(topics)
-        if matching:
-            matching['topic_id'] = None  # or assign a topic if meaningful
-            quiz.append(matching)
-
-    return quiz[:num_questions]  # ensure exact count
-
+            questions.append(question)
+    
+    # Add matching question if requested and possible
+    if include_matching and len(topics) >= 4:
+        matching_question = generate_matching(topics, len(questions))
+        if matching_question:
+            questions.append(matching_question)
+    
+    return questions
 
     # ------------------------- Raw PDF to OpenAi integration -----------------------------
 def generate_quiz_from_text(quiz, text, num_questions=5, question_types=None, difficulty="medium"):
