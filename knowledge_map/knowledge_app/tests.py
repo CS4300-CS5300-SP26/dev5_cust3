@@ -1228,5 +1228,3 @@ class GenerateKnowledgeMapUnitTests(TestCase):
                 "AttributeError raised — task tried to call .save() on None. "
                 "Check the 'if knowledge_map is not None' guard in the except block."
             )
-
-#===============views.py create_map and view_map and map_status=======================================
