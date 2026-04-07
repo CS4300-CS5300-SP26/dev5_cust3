@@ -23,7 +23,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest
+          tags: nschlues/knowledge_map:latest
+          build-args: |
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
 
       - name: Deploy to Droplet via SSH
         uses: appleboy/ssh-action@v1
@@ -32,9 +34,14 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
-            cd /opt/myapp
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+            cd /opt/knowledge_map
             docker compose pull
             docker compose up -d --remove-orphans
+            docker compose exec -T web python knowledge_map/manage.py migrate --noinput
+            mkdir -p /var/www/knowledge_map/static
+            cp -r /var/lib/docker/volumes/knowledge_map_static_files/_data/* /var/www/knowledge_map/static/
+            chown -R www-data:www-data /var/www/knowledge_map/static/
             docker image prune -f
 
-      
+            
