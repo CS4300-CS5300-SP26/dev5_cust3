@@ -7,5 +7,5 @@ omit =
     */asgi.py
     */wsgi.py
     */settings.py
-   prod.py
    base.py
+   prod.py
