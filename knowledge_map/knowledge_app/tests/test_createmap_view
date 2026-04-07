@@ -1,0 +1,179 @@
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth.models import User
+from unittest.mock import patch, MagicMock
+from knowledge_app.models import UploadedFile, KnowledgeMap
+from django.core.files.uploadedfile import SimpleUploadedFile
+import os
+
+
+class CreateMapViewTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass123'
+        )
+        self.client.login(username='testuser', password='testpass123')
+
+        # Create a fake uploaded file record in the database
+        pdf = SimpleUploadedFile("test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
+        self.uploaded_file = UploadedFile.objects.create(
+            file=pdf,
+            user=self.user
+        )
+
+    # -------------------------------------------------------------------------
+    # Authentication
+    # -------------------------------------------------------------------------
+
+    def test_redirects_to_login_if_not_logged_in(self):
+        """Unauthenticated users should be redirected to login."""
+        self.client.logout()
+        response = self.client.get(reverse('create_map'))
+        self.assertRedirects(response, f"/accounts/login/?next={reverse('create_map')}")
+
+    # -------------------------------------------------------------------------
+    # GET requests
+    # -------------------------------------------------------------------------
+
+    def test_get_returns_200(self):
+        """GET request to create_map should return 200."""
+        response = self.client.get(reverse('create_map'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_uses_correct_template(self):
+        """GET request should render the create_map template."""
+        response = self.client.get(reverse('create_map'))
+        self.assertTemplateUsed(response, 'knowledge_app/create_map.html')
+
+    def test_get_passes_files_to_context(self):
+        """GET request should pass uploaded files to the template context."""
+        response = self.client.get(reverse('create_map'))
+        self.assertIn('files', response.context)
+
+    def test_get_context_contains_uploaded_file(self):
+        """The files in context should include the user's uploaded file."""
+        response = self.client.get(reverse('create_map'))
+        self.assertIn(self.uploaded_file, response.context['files'])
+
+    # -------------------------------------------------------------------------
+    # POST requests - happy path
+    # -------------------------------------------------------------------------
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_creates_knowledge_map_record(self, mock_task):
+        """A valid POST should create a KnowledgeMap in the database."""
+        mock_task.delay = MagicMock()
+        response = self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'My Test Map'
+        })
+        self.assertEqual(KnowledgeMap.objects.count(), 1)
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_sets_correct_title(self, mock_task):
+        """The created KnowledgeMap should have the title from the POST data."""
+        mock_task.delay = MagicMock()
+        self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'My Test Map'
+        })
+        km = KnowledgeMap.objects.first()
+        self.assertEqual(km.title, 'My Test Map')
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_sets_status_to_pending(self, mock_task):
+        """The created KnowledgeMap should have status 'pending'."""
+        mock_task.delay = MagicMock()
+        self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'My Test Map'
+        })
+        km = KnowledgeMap.objects.first()
+        self.assertEqual(km.status, 'pending')
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_links_correct_user(self, mock_task):
+        """The created KnowledgeMap should be linked to the logged-in user."""
+        mock_task.delay = MagicMock()
+        self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'My Test Map'
+        })
+        km = KnowledgeMap.objects.first()
+        self.assertEqual(km.user, self.user)
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_links_correct_uploaded_file(self, mock_task):
+        """The created KnowledgeMap should be linked to the selected file."""
+        mock_task.delay = MagicMock()
+        self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'My Test Map'
+        })
+        km = KnowledgeMap.objects.first()
+        self.assertEqual(km.uploaded_file, self.uploaded_file)
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_triggers_celery_task(self, mock_task):
+        """A valid POST should trigger the generate_knowledge_map Celery task."""
+        mock_task.delay = MagicMock()
+        self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'My Test Map'
+        })
+        mock_task.delay.assert_called_once()
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_passes_map_id_to_celery_task(self, mock_task):
+        """The Celery task should be called with the new KnowledgeMap's id."""
+        mock_task.delay = MagicMock()
+        self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'My Test Map'
+        })
+        km = KnowledgeMap.objects.first()
+        mock_task.delay.assert_called_once_with(km.id)
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_redirects_to_view_map(self, mock_task):
+        """A valid POST should redirect to the view_map page."""
+        mock_task.delay = MagicMock()
+        response = self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'My Test Map'
+        })
+        km = KnowledgeMap.objects.first()
+        self.assertRedirects(response, reverse('view_map', args=[km.id]))
+
+    # -------------------------------------------------------------------------
+    # POST requests - failure paths
+    # -------------------------------------------------------------------------
+
+    def test_post_with_invalid_file_id_returns_404(self):
+        """A POST with a non-existent file_id should return 404."""
+        response = self.client.post(reverse('create_map'), {
+            'file_id': 9999,
+            'title': 'My Test Map'
+        })
+        self.assertEqual(response.status_code, 404)
+
+    @patch('knowledge_app.views.generate_knowledge_map')
+    def test_post_does_not_create_map_for_invalid_file(self, mock_task):
+        """No KnowledgeMap should be created when the file_id is invalid."""
+        mock_task.delay = MagicMock()
+        self.client.post(reverse('create_map'), {
+            'file_id': 9999,
+            'title': 'My Test Map'
+        })
+        self.assertEqual(KnowledgeMap.objects.count(), 0)
+
+    # -------------------------------------------------------------------------
+    # Cleanup
+    # -------------------------------------------------------------------------
+
+    def tearDown(self):
+        for f in UploadedFile.objects.all():
+            if f.file and os.path.exists(f.file.path):
+                os.remove(f.file.path)
