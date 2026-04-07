@@ -433,3 +433,40 @@ class QuizDetailViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("attempts", response.context)
+
+# ----------------Tests for Delete Quiz Feature---------------------
+class DeleteQuizTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpass123')
+        self.client.login(username='testuser', password='testpass123')
+        self.quiz = Quiz.objects.create(user=self.user, title='Test Quiz')
+        self.url = reverse('delete_quiz', args=[self.quiz.id])
+
+    # Test that deleting a quiz removes it from the database
+    def test_delete_quiz_removes_from_database(self):
+        self.client.post(self.url)
+        self.assertEqual(Quiz.objects.filter(id=self.quiz.id).count(), 0)
+
+    # Test that deleting redirects back to quizzes hub
+    def test_delete_quiz_redirects_to_quizzes(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('quizzes'))
+
+    # Test that another user cannot delete someone else's quiz
+    def test_other_user_cannot_delete_quiz(self):
+        other = User.objects.create_user(username='other', password='pass123')
+        c = Client()
+        c.login(username='other', password='pass123')
+        c.post(self.url)
+        self.assertEqual(Quiz.objects.filter(id=self.quiz.id).count(), 1)
+
+    # Test that deleting a nonexistent quiz does not crash
+    def test_delete_nonexistent_quiz_does_not_crash(self):
+        response = self.client.post(reverse('delete_quiz', args=[99999]))
+        self.assertRedirects(response, reverse('quizzes'))
+
+    # Test that GET request does not delete the quiz
+    def test_get_request_does_not_delete_quiz(self):
+        self.client.get(self.url)
+        self.assertEqual(Quiz.objects.filter(id=self.quiz.id).count(), 1)

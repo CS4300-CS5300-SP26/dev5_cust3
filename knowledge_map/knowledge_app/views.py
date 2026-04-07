@@ -314,12 +314,14 @@ def similar_enough(str1, str2, threshold=0.8):
 
 @login_required
 def delete_quiz(request, pk):
-    # Get the quiz or return 404 if it doesn't exist
-    quiz = get_object_or_404(Quiz, pk=pk, user=request.user)
-    
     # Only allow deletion via POST request for security
     if request.method == 'POST':
-        quiz.delete()
-    
+        # Try to get the quiz, if it doesn't exist just redirect
+        try:
+            quiz = Quiz.objects.get(pk=pk, user=request.user)
+            quiz.delete()
+        except Quiz.DoesNotExist:
+            pass
+
     # Redirect back to the quizzes hub
     return redirect('quizzes')
