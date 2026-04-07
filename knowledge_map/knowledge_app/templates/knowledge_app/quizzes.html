@@ -87,7 +87,7 @@
         {% if quizzes %}
             <div class="quizzes-grid">
                 {% for quiz in quizzes %}
-                    <div class="quiz-card">
+                    <div class="quiz-card" id="quiz-card-{{ quiz.id }}">
                         <div class="quiz-card-header">
                             <h3>{{ quiz.title }}</h3>
                             <span class="difficulty-badge difficulty-{{ quiz.difficulty }}">
@@ -118,10 +118,10 @@
                                 <p class="quiz-status">Not attempted yet</p>
                             {% endif %}
                         </div>
- 
                         <a href="{% url 'quiz_detail' quiz.id %}" class="btn-secondary btn-block">
                             View & Take Quiz
                         </a>
+                        <button class="btn-delete" data-quiz-id="{{ quiz.id }}" data-url="{% url 'delete_quiz' quiz.id %}">Delete quiz</button>
                     </div>
                 {% endfor %}
             </div>
@@ -357,9 +357,50 @@
     to { transform: rotate(360deg); }
     }
 
+        .btn-delete {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 0.85em;
+        cursor: pointer;
+        padding: 0;
+        text-align: center;
+        width: 100%;
+        transition: color 0.2s ease;
+    }
+
+    .btn-delete:hover {
+        color: #dc3545;
+    }
+
 </style>
  
 <script>
+
+    // Handle quiz deletion without page reload
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!confirm('Are you sure you want to delete this quiz?')) return;
+
+            const quizId = this.dataset.quizId;
+            const url = this.dataset.url;
+            const card = document.getElementById(`quiz-card-${quizId}`);
+
+            // Send delete request to server
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)[1]
+                },
+                redirect: 'manual'
+            }).then(() => {
+                // Smoothly remove the card without reloading
+                card.style.transition = 'opacity 0.3s ease';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            });
+        });
+    });
 
     // Gray out the generate button and show loading state when clicked
     document.querySelector('.generation-form').addEventListener('submit', function() {
