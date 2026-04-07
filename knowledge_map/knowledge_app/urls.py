@@ -16,4 +16,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('quiz/<int:pk>/delete/', views.delete_quiz, name='delete_quiz'),
     #path('logout/', views.logout, name='logout'),
+    path('create-map/', views.create_map, name='create_map'),
+    path('map/<int:map_id>/', views.view_map, name='view_map'),
+    path('map/<int:map_id>/status/', views.map_status, name='map_status'),
 ]
