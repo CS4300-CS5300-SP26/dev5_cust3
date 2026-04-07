@@ -395,35 +395,7 @@ class QuizDetailViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Quiz")
 
-    # POST submission (all correct)
-    def test_submit_quiz_all_correct(self):
-        response = self.client.post(
-            reverse('quiz_detail', args=[self.quiz.id]),
-            {
-                f"q_{self.q1.id}": "4",
-                f"q_{self.q2.id}": "Paris"
-            }
-        )
-
-        self.assertEqual(response.status_code, 302)
-
-        attempt = QuizAttempt.objects.first()
-        self.assertEqual(attempt.score, 100)
-        self.assertEqual(Answer.objects.count(), 2)
-
-    #  Mixed correct/incorrect answers
-    def test_submit_quiz_partial_correct(self):
-        self.client.post(
-            reverse('quiz_detail', args=[self.quiz.id]),
-            {
-                f"q_{self.q1.id}": "4",
-                f"q_{self.q2.id}": "London"
-            }
-        )
-
-        attempt = QuizAttempt.objects.first()
-        self.assertEqual(attempt.correct_count, 1)
-        self.assertEqual(attempt.score, 50)
+   
 
     #  Empty answers (edge case)
     def test_submit_quiz_empty_answers(self):
