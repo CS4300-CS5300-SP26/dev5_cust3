@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock, call
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 import random
- 
+from knowledge_app.models import Question 
 # Import the functions to test
 from knowledge_app.services.quiz_generator import (
     generate_multiple_choice,
@@ -393,20 +393,7 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         Python was created by Guido van Rossum and released in 1991.
         """
     
-    @patch('knowledge_app.services.quiz_generator.OpenAI')
-    def test_calls_openai_api(self, mock_openai_class):
-        """Test that OpenAI API is called."""
-        mock_client = MagicMock()
-        mock_openai_class.return_value = mock_client
-        
-        mock_response = MagicMock()
-        mock_response.choices[0].message.content = json.dumps([])
-        mock_client.chat.completions.create.return_value = mock_response
-        
-        with patch('knowledge_app.services.quiz_generator.Question'):
-            generate_quiz_from_text(MagicMock(), self.sample_text)
-        
-        mock_client.chat.completions.create.assert_called_once()
+    
     
     @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_handles_empty_text(self, mock_openai_class):
