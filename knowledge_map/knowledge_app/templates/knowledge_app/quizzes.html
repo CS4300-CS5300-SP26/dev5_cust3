@@ -1,0 +1,449 @@
+{% extends "knowledge_app/base.html" %}
+ 
+{% block content %}
+<div class="quiz-hub">
+    <!-- Hero Section -->
+    <section class="quiz-hero">
+        <h1>Quiz Generator</h1>
+        <p>Create custom quizzes from your learning materials</p>
+    </section>
+ 
+    <!-- Generation Form -->
+    <section class="quiz-generation">
+        <h2>Generate New Quiz</h2>
+        <form method="post" enctype="multipart/form-data" class="generation-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>{{ form.title.label }}</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="error">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+ 
+            <div class="form-group">
+                <label>{{ form.description.label }}</label>
+                {{ form.description }}
+            </div>
+ 
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.difficulty.label }}</label>
+                    {{ form.difficulty }}
+                </div>
+                
+                <div class="form-group">
+                    <label>{{ form.num_questions.label }}</label>
+                    {{ form.num_questions }}
+                </div>
+            </div>
+ 
+            <div class="form-group">
+                <label>{{ form.question_types.label }}</label>
+                <div class="checkbox-group">
+                    {{ form.question_types }}
+                </div>
+            </div>
+ 
+            <div class="form-group">
+                <label>{{ form.source_choice.label }}</label>
+                <div class="radio-group">
+                    {{ form.source_choice }}
+                </div>
+            </div>
+ 
+            <div class="form-group" id="existing-pdf-group">
+                <label>{{ form.existing_pdf.label }}</label>
+                {{ form.existing_pdf }}
+                {% if form.existing_pdf.errors %}
+                    <div class="error">{{ form.existing_pdf.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group" id="pdf-input-group" style="display: none;">
+                <label>{{ form.pdf_file.label }}</label>
+                {{ form.pdf_file }}
+                {% if form.pdf_file.errors %}
+                    <div class="error">{{ form.pdf_file.errors }}</div>
+                {% endif %}
+            </div>
+ 
+            <div class="form-group" id="text-input-group" style="display: none;">
+                <label>{{ form.text_input.label }}</label>
+                {{ form.text_input }}
+                {% if form.text_input.errors %}
+                    <div class="error">{{ form.text_input.errors }}</div>
+                {% endif %}
+            </div>
+ 
+            <button type="submit" class="btn-primary" id="generate-btn">Generate Quiz</button>
+        </form>
+    </section>
+ 
+    <!-- Quiz List -->
+    <section class="quiz-list">
+        <h2>Your Quizzes</h2>
+        {% if quizzes %}
+            <div class="quizzes-grid">
+                {% for quiz in quizzes %}
+                    <div class="quiz-card" id="quiz-card-{{ quiz.id }}">
+                        <div class="quiz-card-header">
+                            <h3>{{ quiz.title }}</h3>
+                            <span class="difficulty-badge difficulty-{{ quiz.difficulty }}">
+                                {{ quiz.get_difficulty_display }}
+                            </span>
+                        </div>
+                        
+                        <p class="quiz-meta">
+                            <span class="meta-item">{{ quiz.question_count }} questions</span>
+                            <span class="meta-item">{{ quiz.created_at|date:"M d, Y" }}</span>
+                        </p>
+                        
+                        {% if quiz.description %}
+                            <p class="quiz-description">{{ quiz.description }}</p>
+                        {% endif %}
+                        
+                        <div class="quiz-stats">
+                            {% if quiz.latest_attempt %}
+                                <div class="stat">
+                                    <span class="stat-label">Latest:</span>
+                                    <span class="stat-value">{{ quiz.latest_attempt.score }}%</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Attempts:</span>
+                                    <span class="stat-value">{{ quiz.total_attempts }}</span>
+                                </div>
+                            {% else %}
+                                <p class="quiz-status">Not attempted yet</p>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'quiz_detail' quiz.id %}" class="btn-secondary btn-block">
+                            View & Take Quiz
+                        </a>
+                        <button class="btn-delete" data-quiz-id="{{ quiz.id }}" data-url="{% url 'delete_quiz' quiz.id %}">Delete quiz</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No quizzes yet. Generate one above!</p>
+            </div>
+        {% endif %}
+    </section>
+</div>
+ 
+<style>
+    .quiz-hub {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+ 
+    .quiz-hero {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+    }
+ 
+    .quiz-hero h1 {
+        font-size: 2.5em;
+        margin: 0;
+    }
+ 
+    .quiz-generation {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 40px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+ 
+    .generation-form {
+        display: grid;
+        gap: 20px;
+    }
+ 
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+ 
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+    }
+ 
+    .form-group input[type="text"],
+    .form-group textarea,
+    .form-group select,
+    .form-group input[type="file"] {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+ 
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+ 
+    .checkbox-group,
+    .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+ 
+    .quizzes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+ 
+    .quiz-card {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+ 
+    .quiz-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+ 
+    .quiz-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 10px;
+    }
+ 
+    .quiz-card h3 {
+        margin: 0;
+        font-size: 1.2em;
+    }
+ 
+    .difficulty-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+ 
+    .difficulty-easy {
+        background: #d4edda;
+        color: #155724;
+    }
+ 
+    .difficulty-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+ 
+    .difficulty-hard {
+        background: #f8d7da;
+        color: #721c24;
+    }
+ 
+    .quiz-meta {
+        font-size: 0.9em;
+        color: #666;
+        display: flex;
+        gap: 15px;
+        margin: 0;
+    }
+ 
+    .quiz-description {
+        font-size: 0.9em;
+        color: #555;
+        margin: 5px 0 0 0;
+    }
+ 
+    .quiz-stats {
+        display: flex;
+        gap: 15px;
+        padding: 10px 0;
+        border-top: 1px solid #eee;
+    }
+ 
+    .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+ 
+    .stat-label {
+        font-size: 0.8em;
+        color: #999;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+ 
+    .stat-value {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #667eea;
+    }
+ 
+    .quiz-status {
+        color: #999;
+        font-style: italic;
+        margin: 0;
+    }
+ 
+    .btn-primary, .btn-secondary {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+ 
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+ 
+    .btn-primary:hover {
+        background: #5568d3;
+    }
+ 
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+ 
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+ 
+    .btn-block {
+        width: 100%;
+    }
+ 
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+ 
+    .error {
+        color: #dc3545;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+
+    @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+    }
+
+        .btn-delete {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 0.85em;
+        cursor: pointer;
+        padding: 0;
+        text-align: center;
+        width: 100%;
+        transition: color 0.2s ease;
+    }
+
+    .btn-delete:hover {
+        color: #dc3545;
+    }
+
+</style>
+ 
+<script>
+
+    // Handle quiz deletion without page reload
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!confirm('Are you sure you want to delete this quiz?')) return;
+
+            const quizId = this.dataset.quizId;
+            const url = this.dataset.url;
+            const card = document.getElementById(`quiz-card-${quizId}`);
+
+            // Send delete request to server
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)[1]
+                },
+                redirect: 'manual'
+            }).then(() => {
+                // Smoothly remove the card without reloading
+                card.style.transition = 'opacity 0.3s ease';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            });
+        });
+    });
+
+    // Gray out the generate button and show loading state when clicked
+    document.querySelector('.generation-form').addEventListener('submit', function() {
+        const btn = document.getElementById('generate-btn');
+        btn.disabled = true;
+        btn.innerHTML = `
+            <span style="display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                    stroke="currentColor" stroke-width="2" 
+                    style="animation: spin 1s linear infinite;">
+                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                Generating...
+            </span>
+        `;
+    });
+
+    function updateSourceFields() {
+        const selected = document.querySelector('input[name="source_choice"]:checked');
+        const existingGroup = document.getElementById('existing-pdf-group');
+        const pdfGroup = document.getElementById('pdf-input-group');
+        const textGroup = document.getElementById('text-input-group');
+
+        existingGroup.style.display = 'none';
+        pdfGroup.style.display = 'none';
+        textGroup.style.display = 'none';
+
+        if (selected) {
+            if (selected.value === 'existing') {
+                existingGroup.style.display = 'flex';
+            } else if (selected.value === 'upload') {
+                pdfGroup.style.display = 'flex';
+            } else if (selected.value === 'text') {
+                textGroup.style.display = 'flex';
+            }
+        }
+    }
+
+    document.querySelectorAll('input[name="source_choice"]').forEach(radio => {
+        radio.addEventListener('change', updateSourceFields);
+    });
+
+    // Run on page load
+    updateSourceFields();
+</script>
+{% endblock %}

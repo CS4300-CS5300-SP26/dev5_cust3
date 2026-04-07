@@ -34,6 +34,7 @@ jobs:
       - name: Run Django tests with coverage
         env:
           DJANGO_SETTINGS_MODULE: knowledge_map.settings.dev
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: | 
           cd knowledge_map
           coverage run --source='.' manage.py test
@@ -41,14 +42,15 @@ jobs:
       - name: Run Behave tests with coverage
         env:
           DJANGO_SETTINGS_MODULE: knowledge_map.settings.dev
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           cd knowledge_map
-          coverage run --source='.' --append -m behave features
+          coverage run --source='knowledge_app' --append -m behave features
 
       - name: Enforce 80% coverage
         run: |
           cd knowledge_map
-          coverage report --fail-under=80
+          coverage report -m --fail-under=80
 
       - name: Generate XML report
         run: |
