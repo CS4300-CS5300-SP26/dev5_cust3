@@ -1230,3 +1230,61 @@ class GenerateKnowledgeMapUnitTests(TestCase):
             )
 
 #===============views.py create_map and view_map and map_status testing=======================================
+from django.test import TestCase
+from django.urls import reverse
+from django.contrib.auth.models import User
+from unittest.mock import patch
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+from knowledge_app.models import UploadedFile, KnowledgeMap
+from knowledge_app.tasks import generate_knowledge_map
+
+
+class CreateMapViewTest(TestCase):
+
+    def setUp(self):
+        # Create a test user
+        self.user = User.objects.create_user(username='testuser', password='pass')
+        self.client.login(username='testuser', password='pass')
+
+        # Create a sample uploaded file
+        self.uploaded_file = UploadedFile.objects.create(
+            file=SimpleUploadedFile("test.pdf", b"Dummy content", content_type="application/pdf"),
+            uploaded_at="2024-01-01"
+        )
+
+    def test_create_map_get(self):
+        """GET request should return 200 and include uploaded files in context"""
+        response = self.client.get(reverse('create_map'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'knowledge_app/create_map.html')
+        self.assertIn('files', response.context)
+        self.assertIn(self.uploaded_file, response.context['files'])
+
+    @patch('knowledge_app.views.generate_knowledge_map.delay')
+    def test_create_map_post_creates_map_and_triggers_task(self, mock_delay):
+        """POST request should create a KnowledgeMap and call the Celery task"""
+        response = self.client.post(reverse('create_map'), {
+            'file_id': self.uploaded_file.id,
+            'title': 'Test Map'
+        })
+
+        # Check that the map was created
+        self.assertEqual(KnowledgeMap.objects.count(), 1)
+        km = KnowledgeMap.objects.first()
+        self.assertEqual(km.title, 'Test Map')
+        self.assertEqual(km.status, 'pending')
+        self.assertEqual(km.user, self.user)
+        self.assertEqual(km.uploaded_file, self.uploaded_file)
+
+        # Check that the Celery task was called with the correct map ID
+        mock_delay.assert_called_once_with(km.id)
+
+        # Check redirect to the view_map page
+        self.assertRedirects(response, reverse('view_map', args=[km.id]))
+
+    def test_create_map_requires_login(self):
+        """Anonymous users should be redirected to login page"""
+        self.client.logout()
+        response = self.client.get(reverse('create_map'))
+        self.assertRedirects(response, f'/accounts/login/?next={reverse("create_map")}')
