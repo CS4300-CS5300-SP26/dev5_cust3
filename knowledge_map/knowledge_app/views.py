@@ -311,3 +311,15 @@ def similar_enough(str1, str2, threshold=0.8):
     from difflib import SequenceMatcher
     ratio = SequenceMatcher(None, str1, str2).ratio()
     return ratio >= threshold
+
+@login_required
+def delete_quiz(request, pk):
+    # Get the quiz or return 404 if it doesn't exist
+    quiz = get_object_or_404(Quiz, pk=pk, user=request.user)
+    
+    # Only allow deletion via POST request for security
+    if request.method == 'POST':
+        quiz.delete()
+    
+    # Redirect back to the quizzes hub
+    return redirect('quizzes')
