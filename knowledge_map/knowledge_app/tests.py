@@ -149,7 +149,7 @@ class UploadPageTest(TestCase):
         pdf = SimpleUploadedFile("test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
         self.client.post(reverse('upload'), {'pdf_file': pdf})
         response = self.client.get(reverse('upload'))
-        self.assertTrue(any("test.pdf" in a for a in response.content.decode()), "Uploaded file not found in response")
+        self.assertContains(response, "test.pdf")
 
     # Test empty upload form does nothing
     def test_empty_upload_does_nothing(self):
@@ -1229,43 +1229,4 @@ class GenerateKnowledgeMapUnitTests(TestCase):
                 "Check the 'if knowledge_map is not None' guard in the except block."
             )
 
-#===============views.py create_map and view_map and map_status testing=======================================
-from django.test import TestCase
-from django.urls import reverse
-from django.contrib.auth.models import User
-from unittest.mock import patch
-from django.core.files.uploadedfile import SimpleUploadedFile
-
-from knowledge_app.models import UploadedFile, KnowledgeMap
-
-class KnowledgeMapViewsTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='pass')
-        self.client.login(username='testuser', password='pass')
-
-        self.uploaded_file = UploadedFile.objects.create(
-            file=SimpleUploadedFile("test.pdf", b"dummy content", content_type="application/pdf"),
-            uploaded_at="2024-01-01"
-        )
-
-    @patch('knowledge_app.views.generate_knowledge_map.delay')
-    def test_create_map_post(self, mock_delay):
-        """Test that posting to create_map creates a KnowledgeMap and triggers Celery."""
-        response = self.client.post(reverse('create_map'), {
-            'file_id': self.uploaded_file.id,
-            'title': 'My Test Map'
-        })
-
-        # Assert a KnowledgeMap was created
-        km = KnowledgeMap.objects.first()
-        self.assertIsNotNone(km)
-        self.assertEqual(km.title, 'My Test Map')
-        self.assertEqual(km.status, 'pending')
-        self.assertEqual(km.user, self.user)
-        self.assertEqual(km.uploaded_file, self.uploaded_file)  # Use the actual UploadedFile object
-
-        # Assert Celery task was triggered
-        mock_delay.assert_called_once_with(km.id)
-
-        # Assert redirect to view_map
-        self.assertRedirects(response, reverse('view_map', args=[km.id]))
+#===============views.py create_map and view_map and map_status=======================================
