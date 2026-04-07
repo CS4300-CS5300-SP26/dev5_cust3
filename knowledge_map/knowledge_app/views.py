@@ -198,19 +198,42 @@ def quiz_detail(request, pk):
             correct_count=0,
             total_questions=quiz.questions.count()
         )
-        
+
+        questions = list(quiz.questions.all())
         correct_count = 0
-        total_questions = quiz.questions.count()
-        
+        total_questions = len(questions)
+
+        # Collect all short answer questions to batch grade in one OpenAI call
+        short_answer_pairs = [
+            (q, request.POST.get(f'q_{q.id}', '').strip(), q.correct_answer)
+            for q in questions if q.question_type == 'short_answer'
+        ]
+
+        # Grade all short answers in one OpenAI call
+        from .services.quiz_generator import grade_short_answers
+        short_answer_grades = grade_short_answers(short_answer_pairs) if short_answer_pairs else {}
+
         # Process each question's answer
-        for question in quiz.questions.all():
-            user_answer = request.POST.get(f'q_{question.id}', '').strip()
-            
-            # Determine if answer is correct
-            is_correct = check_answer(question, user_answer)
+        for question in questions:
+            if question.question_type == 'matching':
+                # Collect all matching answers into one string
+                matching_answers = []
+                for i, pair in enumerate(question.pairs, start=1):
+                    answer_val = request.POST.get(f'q_{question.id}_{i}', '')
+                    matching_answers.append(f"{pair['premise']} → {answer_val}")
+                user_answer = ' | '.join(matching_answers)
+            else:
+                user_answer = request.POST.get(f'q_{question.id}', '').strip()
+
+            # Use OpenAI grade for short answer, normal check for everything else
+            if question.question_type == 'short_answer':
+                is_correct = short_answer_grades.get(question.id, False)
+            else:
+                is_correct = check_answer(question, user_answer)
+
             if is_correct:
                 correct_count += 1
-            
+
             # Save the answer
             Answer.objects.create(
                 attempt=attempt,
@@ -219,19 +242,18 @@ def quiz_detail(request, pk):
                 correct_answer=question.correct_answer,
                 is_correct=is_correct
             )
-        
+
         # Update attempt with final score
         score = round((correct_count / total_questions * 100)) if total_questions > 0 else 0
         attempt.score = score
         attempt.correct_count = correct_count
         attempt.total_questions = total_questions
         attempt.save()
-        
+
         return redirect('quiz_results', attempt_id=attempt.id)
-    
-    # Get all previous attempts
+
+    # Get all previous attempts and render the quiz detail page
     attempts = quiz.attempts.order_by('-created_at')
-    
     return render(request, 'knowledge_app/quiz_detail.html', {
         'quiz': quiz,
         'attempts': attempts,

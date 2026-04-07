@@ -46,50 +46,57 @@
         </div>
     </section>
  
-    <!-- Answer Review Section -->
-    <section class="answer-review">
-        <h2>Review Your Answers</h2>
-        
-        {% for answer in answers %}
-            <div class="answer-card {% if answer.is_correct %}correct{% else %}incorrect{% endif %}">
-                <div class="answer-header">
-                    <div class="answer-number-section">
-                        <span class="answer-number">Q{{ forloop.counter }}</span>
-                        <span class="answer-icon">
-                            {% if answer.is_correct %}
-                                ✓
-                            {% else %}
-                                ✗
-                            {% endif %}
-                        </span>
-                    </div>
-                    
-                    <h3 class="answer-question">{{ answer.question.question_text }}</h3>
+<!-- Answer Review Section -->
+<section class="answer-review">
+    <h2>Review Your Answers</h2>
+    
+    {% for answer in answers %}
+        <div class="answer-card {% if answer.is_correct %}correct{% else %}incorrect{% endif %}">
+            <div class="answer-header">
+                <div class="answer-number-section">
+                    <span class="answer-number">Q{{ forloop.counter }}</span>
+                    <span class="answer-icon">
+                        {% if answer.is_correct %}
+                            ✓
+                        {% else %}
+                            ✗
+                        {% endif %}
+                    </span>
                 </div>
- 
-                <div class="answer-content">
-                    <div class="answer-block user-answer">
-                        <span class="answer-label">Your Answer:</span>
-                        <span class="answer-text">{{ answer.user_answer }}</span>
-                    </div>
- 
-                    {% if not answer.is_correct %}
-                        <div class="answer-block correct-answer">
-                            <span class="answer-label">Correct Answer:</span>
-                            <span class="answer-text">{{ answer.correct_answer }}</span>
-                        </div>
-                    {% endif %}
- 
-                    {% if answer.question.explanation %}
-                        <div class="answer-block explanation">
-                            <span class="answer-label">Explanation:</span>
-                            <p class="explanation-text">{{ answer.question.explanation }}</p>
-                        </div>
-                    {% endif %}
-                </div>
+                <h3 class="answer-question">{{ answer.question.question_text }}</h3>
             </div>
-        {% endfor %}
-    </section>
+
+            <div class="answer-content">
+                <div class="answer-block user-answer">
+                    <span class="answer-label">Your Answer:</span>
+                    <span class="answer-text">{{ answer.user_answer }}</span>
+                </div>
+
+                {% if not answer.is_correct %}
+                    <div class="answer-block correct-answer">
+                        <span class="answer-label">Correct Answer:</span>
+                        {% if answer.question.question_type == "matching" %}
+                            <div class="answer-text">
+                                {% for pair in answer.question.pairs %}
+                                    <div>{{ pair.premise }} → {{ pair.response }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span class="answer-text">{{ answer.correct_answer }}</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if answer.question.explanation %}
+                    <div class="answer-block explanation">
+                        <span class="answer-label">Explanation:</span>
+                        <p class="explanation-text">{{ answer.question.explanation }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</section>
  
     <!-- Actions -->
     <div class="results-actions">

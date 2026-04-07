@@ -379,3 +379,62 @@ Text to generate questions from:
     except Exception as e:
         # Log any errors without crashing the app
         print(f"Quiz generation error: {e}")
+
+
+def grade_short_answers(questions_and_answers):
+    """
+    Grade all short answer questions in one OpenAI call to save tokens.
+    Takes a list of (question, user_answer, correct_answer) tuples.
+    Returns a dict mapping question id to True/False.
+    """
+    # Filter out empty answers before sending to OpenAI
+    to_grade = [(q, ua, ca) for q, ua, ca in questions_and_answers if ua and ua.strip()]
+
+    # If nothing to grade return all False
+    if not to_grade:
+        return {q.id: False for q, _, _ in questions_and_answers}
+
+    # Set up the OpenAI client
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+    # Build one prompt with all short answer questions
+    questions_text = "\n".join([
+        f"{i+1}. Correct: {ca} | Student: {ua}"
+        for i, (q, ua, ca) in enumerate(to_grade)
+    ])
+
+    try:
+        # Send all questions to OpenAI in one call
+        response = client.chat.completions.create(
+            model="gpt-5-mini",
+            messages=[
+                {"role": "system", "content": (
+                    "You are a strict but fair educational grader. "
+                    "For each question, determine if the student's answer covers the key points. "
+                    "Respond with ONLY a JSON array of 'correct' or 'incorrect' for each question in order. "
+                    "Example: ['correct', 'incorrect', 'correct']"
+                )},
+                {"role": "user", "content": f"Grade these answers:\n{questions_text}"}
+            ],
+        )
+
+        # Parse the JSON array response
+        raw = response.choices[0].message.content.strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+
+        # Map results back to question ids
+        results = json.loads(raw)
+        graded = {q.id: False for q, _, _ in questions_and_answers}
+        for i, (q, ua, ca) in enumerate(to_grade):
+            if i < len(results):
+                graded[q.id] = results[i].strip().lower() == "correct"
+        return graded
+
+    except Exception as e:
+        # Fall back to exact match if OpenAI fails
+        print(f"Short answer grading error: {e}")
+        return {q.id: ua.strip().lower() == ca.strip().lower()
+                for q, ua, ca in questions_and_answers}
