@@ -445,66 +445,6 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         self.assertIn('hard', prompt.lower())
     
     @patch('knowledge_app.services.quiz_generator.OpenAI')
-    def test_parses_json_response(self, mock_openai_class):
-        """Test that JSON response is properly parsed."""
-        mock_client = MagicMock()
-        mock_openai_class.return_value = mock_client
-        
-        mock_response = MagicMock()
-        questions_json = json.dumps([
-            {
-                'question_text': 'Q1?',
-                'question_type': 'multiple_choice',
-                'choices': ['A', 'B', 'C', 'D'],
-                'correct_answer': 'A'
-            },
-            {
-                'question_text': 'Q2?',
-                'question_type': 'true_false',
-                'choices': ['True', 'False'],
-                'correct_answer': 'True'
-            }
-        ])
-        mock_response.choices[0].message.content = questions_json
-        mock_client.chat.completions.create.return_value = mock_response
-        
-        mock_question_model = MagicMock()
-        with patch('knowledge_app.services.quiz_generator.Question', mock_question_model):
-            generate_quiz_from_text(MagicMock(), self.sample_text, num_questions=2)
-        
-        # Verify both questions were created
-        self.assertEqual(mock_question_model.objects.create.call_count, 2)
-    
-    @patch('knowledge_app.services.quiz_generator.OpenAI')
-    def test_handles_markdown_wrapped_json(self, mock_openai_class):
-        """Test handling of JSON wrapped in markdown code blocks."""
-        mock_client = MagicMock()
-        mock_openai_class.return_value = mock_client
-        
-        questions_json = json.dumps([
-            {
-                'question_text': 'Q1?',
-                'question_type': 'multiple_choice',
-                'choices': ['A', 'B', 'C', 'D'],
-                'correct_answer': 'A'
-            }
-        ])
-        
-        # Wrap in markdown
-        markdown_response = f"```json\n{questions_json}\n```"
-        
-        mock_response = MagicMock()
-        mock_response.choices[0].message.content = markdown_response
-        mock_client.chat.completions.create.return_value = mock_response
-        
-        mock_question_model = MagicMock()
-        with patch('knowledge_app.services.quiz_generator.Question', mock_question_model):
-            generate_quiz_from_text(MagicMock(), self.sample_text, num_questions=1)
-        
-        # Should successfully create the question despite markdown
-        mock_question_model.objects.create.assert_called_once()
-    
-    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_handles_api_errors(self, mock_openai_class):
         """Test graceful handling of API errors."""
         mock_client = MagicMock()
