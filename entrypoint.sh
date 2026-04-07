@@ -1,11 +1,14 @@
 #!/bin/bash
 set -e
 
-echo "Running migrations..."
-python ./knowledge_map/manage.py migrate --noinput
+# Optional: collect static files
+python manage.py collectstatic --noinput || echo "Static files collection failed"
 
-echo "Collecting static files..."
-python ./knowledge_map/manage.py collectstatic --noinput
+# Run migrations, but do not stop Gunicorn if migration fails
+python manage.py migrate --noinput || echo "Migrations failed or already applied, continuing..."
 
-echo "Starting Gunicorn..."
-exec gunicorn --bind 0.0.0.0:8000 --workers 3 --chdir /app/knowledge_map knowledge_map.wsgi:application
+# Start Gunicorn
+exec gunicorn knowledge_map.wsgi:application \
+    --bind 0.0.0.0:8000 \
+    --workers 3 \
+    --timeout 120
