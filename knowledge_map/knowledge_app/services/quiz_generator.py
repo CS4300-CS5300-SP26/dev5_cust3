@@ -345,7 +345,7 @@ Text to generate questions from:
     try:
         # Send the prompt to OpenAI and get the response
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # FIXED: was "gpt-5-mini" (doesn't exist)
+            model="gpt-5-mini",  # FIXED: use this model
             messages=[
                 {"role": "system", "content": "You are a helpful educational quiz generator focused on helping students learn. Always respond with valid JSON only."},
                 {"role": "user", "content": prompt}
