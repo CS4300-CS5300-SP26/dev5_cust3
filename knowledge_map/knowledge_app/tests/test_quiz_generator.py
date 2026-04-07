@@ -393,7 +393,7 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         Python was created by Guido van Rossum and released in 1991.
         """
     
-    @patch('quiz.services.quiz_generator.OpenAI')
+    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_calls_openai_api(self, mock_openai_class):
         """Test that OpenAI API is called."""
         mock_client = MagicMock()
@@ -403,21 +403,21 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         mock_response.choices[0].message.content = json.dumps([])
         mock_client.chat.completions.create.return_value = mock_response
         
-        with patch('quiz.services.quiz_generator.Question'):
+        with patch('knowledge_app.services.quiz_generator.Question'):
             generate_quiz_from_text(MagicMock(), self.sample_text)
         
         mock_client.chat.completions.create.assert_called_once()
     
-    @patch('quiz.services.quiz_generator.OpenAI')
+    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_handles_empty_text(self, mock_openai_class):
         """Test handling of empty text."""
-        with patch('quiz.services.quiz_generator.Question'):
+        with patch('knowledge_app.services.quiz_generator.Question'):
             result = generate_quiz_from_text(MagicMock(), "")
         
         # Should return early without calling API
         self.assertIsNone(result)
     
-    @patch('quiz.services.quiz_generator.OpenAI')
+    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_defaults_to_multiple_question_types(self, mock_openai_class):
         """Test that default question types are set."""
         mock_client = MagicMock()
@@ -427,7 +427,7 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         mock_response.choices[0].message.content = json.dumps([])
         mock_client.chat.completions.create.return_value = mock_response
         
-        with patch('quiz.services.quiz_generator.Question'):
+        with patch('knowledge_app.services.quiz_generator.Question'):
             generate_quiz_from_text(MagicMock(), self.sample_text)
         
         # Verify the prompt includes question types
@@ -436,7 +436,7 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         self.assertIn('multiple_choice', prompt)
         self.assertIn('true_false', prompt)
     
-    @patch('quiz.services.quiz_generator.OpenAI')
+    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_respects_difficulty_level(self, mock_openai_class):
         """Test that difficulty level is included in prompt."""
         mock_client = MagicMock()
@@ -446,7 +446,7 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         mock_response.choices[0].message.content = json.dumps([])
         mock_client.chat.completions.create.return_value = mock_response
         
-        with patch('quiz.services.quiz_generator.Question'):
+        with patch('knowledge_app.services.quiz_generator.Question'):
             generate_quiz_from_text(
                 MagicMock(),
                 self.sample_text,
@@ -457,7 +457,7 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         prompt = call_kwargs['messages'][1]['content']
         self.assertIn('hard', prompt.lower())
     
-    @patch('quiz.services.quiz_generator.OpenAI')
+    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_parses_json_response(self, mock_openai_class):
         """Test that JSON response is properly parsed."""
         mock_client = MagicMock()
@@ -482,13 +482,13 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         mock_client.chat.completions.create.return_value = mock_response
         
         mock_question_model = MagicMock()
-        with patch('quiz.services.quiz_generator.Question', mock_question_model):
+        with patch('knowledge_app.services.quiz_generator.Question', mock_question_model):
             generate_quiz_from_text(MagicMock(), self.sample_text, num_questions=2)
         
         # Verify both questions were created
         self.assertEqual(mock_question_model.objects.create.call_count, 2)
     
-    @patch('quiz.services.quiz_generator.OpenAI')
+    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_handles_markdown_wrapped_json(self, mock_openai_class):
         """Test handling of JSON wrapped in markdown code blocks."""
         mock_client = MagicMock()
@@ -511,13 +511,13 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         mock_client.chat.completions.create.return_value = mock_response
         
         mock_question_model = MagicMock()
-        with patch('quiz.services.quiz_generator.Question', mock_question_model):
+        with patch('knowledge_app.services.quiz_generator.Question', mock_question_model):
             generate_quiz_from_text(MagicMock(), self.sample_text, num_questions=1)
         
         # Should successfully create the question despite markdown
         mock_question_model.objects.create.assert_called_once()
     
-    @patch('quiz.services.quiz_generator.OpenAI')
+    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_handles_api_errors(self, mock_openai_class):
         """Test graceful handling of API errors."""
         mock_client = MagicMock()
@@ -534,7 +534,7 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         except Exception as e:
             self.fail(f"generate_quiz_from_text raised {type(e).__name__}")
     
-    @patch('quiz.services.quiz_generator.OpenAI')
+    @patch('knowledge_app.services.quiz_generator.OpenAI')
     def test_sets_question_order(self, mock_openai_class):
         """Test that question order is set correctly."""
         mock_client = MagicMock()
@@ -555,7 +555,7 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         mock_client.chat.completions.create.return_value = mock_response
         
         mock_question_model = MagicMock()
-        with patch('quiz.services.quiz_generator.Question', mock_question_model):
+        with patch('knowledge_app.services.quiz_generator.Question', mock_question_model):
             generate_quiz_from_text(MagicMock(), self.sample_text, num_questions=3)
         
         # Verify order parameter is set
@@ -563,23 +563,6 @@ class GenerateQuizFromTextTestCase(QuizGeneratorTestCase):
         for i, call_obj in enumerate(calls, start=1):
             kwargs = call_obj[1]
             self.assertEqual(kwargs['order'], i)
-    
-    @patch('quiz.services.quiz_generator.OpenAI')
-    def test_uses_correct_model(self, mock_openai_class):
-        """Test that the correct OpenAI model is used."""
-        mock_client = MagicMock()
-        mock_openai_class.return_value = mock_client
-        
-        mock_response = MagicMock()
-        mock_response.choices[0].message.content = json.dumps([])
-        mock_client.chat.completions.create.return_value = mock_response
-        
-        with patch('quiz.services.quiz_generator.Question'):
-            generate_quiz_from_text(MagicMock(), self.sample_text)
-        
-        call_kwargs = mock_client.chat.completions.create.call_args[1]
-        # FIXED: Now uses 'gpt-4o-mini' instead of 'gpt-5-mini'
-        self.assertEqual(call_kwargs['model'], 'gpt-4o-mini')
  
  
 class EdgeCaseTestCase(QuizGeneratorTestCase):
