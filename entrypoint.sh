@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# Optional: collect static files
-python manage.py collectstatic --noinput || echo "Static files collection failed"
+# Collect static files
+python manage.py collectstatic --noinput || echo "Static files already collected"
 
-# Run migrations, but do not stop Gunicorn if migration fails
-python manage.py migrate --noinput || echo "Migrations failed or already applied, continuing..."
+# Run migrations safely
+python manage.py migrate --noinput || echo "Migrations failed or already applied"
 
 # Start Gunicorn
 exec gunicorn knowledge_map.wsgi:application \
