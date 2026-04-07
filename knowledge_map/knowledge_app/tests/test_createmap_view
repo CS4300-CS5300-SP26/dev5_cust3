@@ -6,6 +6,7 @@ from knowledge_app.models import UploadedFile, KnowledgeMap
 from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 
+# Tests for create map views
 
 class CreateMapViewTests(TestCase):
 
