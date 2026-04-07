@@ -149,7 +149,7 @@ class UploadPageTest(TestCase):
         pdf = SimpleUploadedFile("test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
         self.client.post(reverse('upload'), {'pdf_file': pdf})
         response = self.client.get(reverse('upload'))
-        self.assertContains(response, "test.pdf")
+        self.assertTrue(any("test.pdf" in a for a in response.content.decode()), "Uploaded file not found in response")
 
     # Test empty upload form does nothing
     def test_empty_upload_does_nothing(self):
