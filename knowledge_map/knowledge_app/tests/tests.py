@@ -384,8 +384,7 @@ class QuizDetailViewTests(TestCase):
     #  Quiz belongs to another user
     def test_quiz_not_owned_returns_404(self):
         чужой_quiq = Quiz.objects.create(user=self.other_user, title="Other Quiz")
-
-        response = self.client.get(reverse('quiz_detail', args=[чужой_quiz.id]))
+        response = self.client.get(reverse('quiz_detail', args=[чужой_quiq.id]))
         self.assertEqual(response.status_code, 404)
 
     # GET request renders page
