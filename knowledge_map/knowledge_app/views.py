@@ -215,7 +215,15 @@ def quiz_detail(request, pk):
 
         # Process each question's answer
         for question in questions:
-            user_answer = request.POST.get(f'q_{question.id}', '').strip()
+            if question.question_type == 'matching':
+                # Collect all matching answers into one string
+                matching_answers = []
+                for i, pair in enumerate(question.pairs, start=1):
+                    answer_val = request.POST.get(f'q_{question.id}_{i}', '')
+                    matching_answers.append(f"{pair['premise']} → {answer_val}")
+                user_answer = ' | '.join(matching_answers)
+            else:
+                user_answer = request.POST.get(f'q_{question.id}', '').strip()
 
             # Use OpenAI grade for short answer, normal check for everything else
             if question.question_type == 'short_answer':
