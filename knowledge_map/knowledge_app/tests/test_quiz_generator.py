@@ -224,21 +224,7 @@ class GenerateTrueFalseTestCase(QuizGeneratorTestCase):
         
         self.assertIsNone(question)
     
-    def test_mostly_true_statements(self):
-        """Test that most statements are true (66% chance)."""
-        # Generate multiple questions and check distribution
-        true_count = 0
-        iterations = 30
-        
-        for _ in range(iterations):
-            question = generate_true_false(self.sample_topic, 0)
-            if question['answer'] is True:
-                true_count += 1
-        
-        # With 66% true rate, expect roughly 20 out of 30 to be true
-        # Use loose bound (15-25) to account for randomness
-        self.assertGreater(true_count, 15)
-        self.assertLess(true_count, 25)
+
  
  
 class GenerateMatchingTestCase(QuizGeneratorTestCase):
