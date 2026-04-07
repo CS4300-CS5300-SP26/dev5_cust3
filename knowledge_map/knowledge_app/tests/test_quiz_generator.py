@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 import random
  
 # Import the functions to test
-from quiz.services.quiz_generator import (
+from knowledge_app.services.quiz_generator import (
     generate_multiple_choice,
     generate_fill_in_blank,
     generate_true_false,
