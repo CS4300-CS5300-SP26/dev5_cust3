@@ -20,6 +20,8 @@ DJANGO_SETTINGS_MODULE=knowledge_map.settings.dev celery -A knowledge_map worker
 
 ## Known issues and bugs
 - Redis and celery need a manual start (will be implemented in future sprint)
+- Testing
+- Generate quiz not working in production
 
 ## AI Usage
 ### Sprint 1
