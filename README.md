@@ -12,10 +12,10 @@ Knowledge Map is a learning website powered by AI to find connections between id
 - Generate quiz
 
 ## How to start redis and celery manually in local host
-In terminal start local host
-In a new terminal run:
-cd dev5_cust3/knowledge_map
-sudo service redis-server start
+- In terminal start local host
+- In a new terminal run:
+cd dev5_cust3/knowledge_map,
+sudo service redis-server start,
 DJANGO_SETTINGS_MODULE=knowledge_map.settings.dev celery -A knowledge_map worker --loglevel=info
 
 ## AI Usage
