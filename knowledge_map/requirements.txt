@@ -107,4 +107,4 @@ tzlocal==5.3.1
 umap-learn==0.5.11
 vine==5.1.0
 wcwidth==0.6.0
-whitenoise
+whitenoise==6.9.0
