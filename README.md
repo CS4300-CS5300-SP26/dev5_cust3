@@ -11,6 +11,13 @@ Knowledge Map is a learning website powered by AI to find connections between id
 - Create map
 - Generate quiz
 
+## How to start redis and celery manually in local host
+In terminal start local host
+In a new terminal run:
+cd dev5_cust3/knowledge_map
+sudo service redis-server start
+DJANGO_SETTINGS_MODULE=knowledge_map.settings.dev celery -A knowledge_map worker --loglevel=info
+
 ## AI Usage
 ### Sprint 1
 We used AI to help troubleshoot some errors with the development server: https://claude.ai/share/a9005f00-2f88-4d50-954f-7479b75384b3
@@ -31,3 +38,4 @@ AI was used for writing and debugging tests: https://claude.ai/share/95dda967-78
 AI was used for figuring out what to use for background processing: https://claude.ai/share/3f5f6f96-aca9-4cbf-bf52-4d3d34e43b2a
 AI was used for debugging: https://claude.ai/share/9ee0d062-86c5-457c-90a0-0bc31cd81a12
 AI was used for workflow: https://chatgpt.com/share/69d5db3c-9d78-83e8-8b66-2515d8487800
+
