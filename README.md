@@ -43,4 +43,8 @@ AI was used for writing and debugging tests: https://claude.ai/share/95dda967-78
 AI was used for figuring out what to use for background processing: https://claude.ai/share/3f5f6f96-aca9-4cbf-bf52-4d3d34e43b2a
 AI was used for debugging: https://claude.ai/share/9ee0d062-86c5-457c-90a0-0bc31cd81a12
 AI was used for workflow: https://chatgpt.com/share/69d5db3c-9d78-83e8-8b66-2515d8487800
+For Continuous Deployment:
+AI was used for debugging: https://chatgpt.com/share/69d5f037-438c-832b-a34b-729a8477adc5
+https://claude.ai/share/e1293e50-e4ec-4d27-9efc-d7eb205f39c8
+Learning about the docker process: https://claude.ai/share/eb09d664-1308-49c8-86e0-15b0a2d7a4dd
 
