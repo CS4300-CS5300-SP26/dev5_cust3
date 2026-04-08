@@ -16,6 +16,10 @@ def generate_knowledge_map(knowledge_map_id):
     3. Generate relationships between topics using OpenAI
     4. Save everything to the database
     """
+    # Initialised to None so the except block can safely check it
+    # even if the database lookup below fails
+    knowledge_map = None
+
     try:
         # Get the knowledge map from the database
         knowledge_map = KnowledgeMap.objects.get(id=knowledge_map_id)
@@ -72,7 +76,10 @@ def generate_knowledge_map(knowledge_map_id):
         return f"Knowledge map {knowledge_map_id} generated successfully"
 
     except Exception as e:
-        # If anything fails, mark the map as failed
-        knowledge_map.status = 'failed'
-        knowledge_map.save()
+        # Guard against the case where the exception was raised before
+        # knowledge_map was assigned (e.g. KnowledgeMap.DoesNotExist)
+        if knowledge_map is not None:
+            knowledge_map.status = 'failed'
+            knowledge_map.save()
         return str(e)
+
