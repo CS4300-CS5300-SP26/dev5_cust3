@@ -8,6 +8,8 @@ Knowledge Map is a learning website powered by AI to find connections between id
 ## Main Features
 - User authentication
 - Upload and store content
+- Create map
+- Generate quiz
 
 ## AI Usage
 ### Sprint 1
@@ -24,3 +26,8 @@ AI was used for planning the architecture: https://claude.ai/chat/3568f0a1-296b-
 AI was used for generating open api calls and quiz storage: https://claude.ai/chat/aa57fb28-2e9f-4e58-b2d1-0b3a84abed37
 AI was used for debugging quiz selection switching: https://claude.ai/chat/fd1085a4-49ec-4298-84df-60b93059b570
 and
+For create map:
+AI was used for writing and debugging tests: https://claude.ai/share/95dda967-781a-4ad1-9bee-275c14094519
+AI was used for figuring out what to use for background processing: https://claude.ai/share/3f5f6f96-aca9-4cbf-bf52-4d3d34e43b2a
+AI was used for debugging: https://claude.ai/share/9ee0d062-86c5-457c-90a0-0bc31cd81a12
+AI was used for workflow: https://chatgpt.com/share/69d5db3c-9d78-83e8-8b66-2515d8487800
