@@ -38,10 +38,3 @@ jobs:
             cd /opt/knowledge_map
             docker compose pull
             docker compose up -d --remove-orphans
-            docker compose exec -T web python knowledge_map/manage.py migrate --noinput
-            mkdir -p /var/www/knowledge_map/static
-            cp -r /var/lib/docker/volumes/knowledge_map_static_files/_data/* /var/www/knowledge_map/static/
-            chown -R www-data:www-data /var/www/knowledge_map/static/
-            docker image prune -f
-
-            

@@ -14,6 +14,10 @@ if all([os.getenv("DB_NAME"), os.getenv("DB_USER"), os.getenv("DB_PASSWORD"), os
             'PASSWORD': os.getenv("DB_PASSWORD"),
             'HOST': os.getenv("DB_HOST"),
             'PORT': os.getenv("DB_PORT"),
+            'CONN_MAX_AGE': 0,  # IMPORTANT for pooler
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
         }
     }
 else:

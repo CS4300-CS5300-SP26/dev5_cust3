@@ -8,30 +8,34 @@ if missing:
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['yourknowledgemap.me', '157.230.89.215']
+ALLOWED_HOSTS = ['yourknowledgemap.me', '157.230.89.215', 'localhost']
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 #for when we use a database in deployment, for now we will just use sqlite
-if all([os.getenv("DB_NAME"), os.getenv("DB_USER"), os.getenv("DB_PASSWORD"), os.getenv("DB_HOST")]):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv("DB_NAME"),
-            'USER': os.getenv("DB_USER"),
-            'PASSWORD': os.getenv("DB_PASSWORD"),
-            'HOST': os.getenv("DB_HOST"),
-            'PORT': os.getenv("DB_PORT"),
-        }
+#if all([os.getenv("DB_NAME"), os.getenv("DB_USER"), os.getenv("DB_PASSWORD"), os.getenv("DB_HOST")]):
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT"),
+        'CONN_MAX_AGE': 60,  # keep connections alive
+        'OPTIONS': {
+            'sslmode': 'require',  # REQUIRED for Supabase
+        },
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
+#else:
+    #DATABASES = {
+        #'default': {
+            #'ENGINE': 'django.db.backends.sqlite3',
+            #'NAME': BASE_DIR / 'db.sqlite3',
+        #}
+    #}
 
 #sqlite db for the testing
 #DATABASES = {

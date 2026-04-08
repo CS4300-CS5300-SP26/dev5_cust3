@@ -1,8 +1,14 @@
 #!/bin/bash
 set -e
 
-echo "Running collectstatic..."
-python ./knowledge_map/manage.py collectstatic --noinput
+# Collect static files
+python manage.py collectstatic --noinput || echo "Static files already collected"
 
-echo "Starting server..."
-exec gunicorn --bind 0.0.0.0:8000 --workers 3 --chdir /app/knowledge_map knowledge_map.wsgi:application
+# Run migrations safely
+python manage.py migrate --noinput || echo "Migrations failed or already applied"
+
+# Start Gunicorn
+exec gunicorn knowledge_map.wsgi:application \
+    --bind 0.0.0.0:8000 \
+    --workers 3 \
+    --timeout 120
