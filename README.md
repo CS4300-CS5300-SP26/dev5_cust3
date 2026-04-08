@@ -18,6 +18,9 @@ cd dev5_cust3/knowledge_map,
 sudo service redis-server start,
 DJANGO_SETTINGS_MODULE=knowledge_map.settings.dev celery -A knowledge_map worker --loglevel=info
 
+## Known issues and bugs
+- Redis and celery need a manual start (will be implemented in future sprint)
+
 ## AI Usage
 ### Sprint 1
 We used AI to help troubleshoot some errors with the development server: https://claude.ai/share/a9005f00-2f88-4d50-954f-7479b75384b3
