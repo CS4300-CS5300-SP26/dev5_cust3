@@ -14,7 +14,6 @@ class AuthenticationTests(TestCase):
             username='testuser',
             password='testpass123'
         )
-        self.client.force_login(self.user)
 
     #-----------Login tests------------------------------------
     def test_login_page_loads(self):
