@@ -16,3 +16,11 @@ We used AI to help troubleshoot some errors with the development server: https:/
 AI was also used to help debug the homepage and update the upload html https://chatgpt.com/c/69af37c5-c110-8328-b930-90787bdb6faa https://teams.microsoft.com/l/message/19:5d12d6ba-6adb-4421-a4e2-881e1efec1af_62343346-7f5d-4d44-a56a-6258299f8710@unq.gbl.spaces/1773712791692?context=%7B%22contextType%22%3A%22chat%22%7D
 
 AI was also used to help debug some of the BDD testing: https://claude.ai/share/d964bd4d-4ed4-4af0-b6b3-4bc47ffda35b
+
+
+### Sprint 2
+For quiz generation:
+AI was used for planning the architecture: https://claude.ai/chat/3568f0a1-296b-4ef9-a660-35450f651b48
+AI was used for generating open api calls and quiz storage: https://claude.ai/chat/aa57fb28-2e9f-4e58-b2d1-0b3a84abed37
+AI was used for debugging quiz selection switching: https://claude.ai/chat/fd1085a4-49ec-4298-84df-60b93059b570
+and
