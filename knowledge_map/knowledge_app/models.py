@@ -15,9 +15,12 @@ class UploadedFile(models.Model):
     #extracts text for BERTopic
     extracted_text = models.TextField(blank=True, default='')
 
-    def __str__(self):
+    @property
+    def display_name(self):
         return self.original_filename or self.file.name
 
+    def __str__(self):
+        return self.display_name
 
     class Meta:
         ordering = ['-uploaded_at']
