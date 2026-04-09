@@ -7,6 +7,7 @@ import json
 class UploadedFile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_files', null=True, blank=True)
     file = models.FileField(upload_to='uploads/')
+    original_filename = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     #Store user and extracted text
@@ -15,7 +16,7 @@ class UploadedFile(models.Model):
     extracted_text = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return self.file.name
+        return self.original_filename or self.file.name
 
 
     class Meta:
