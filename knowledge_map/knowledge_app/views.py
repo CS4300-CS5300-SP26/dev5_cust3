@@ -17,20 +17,22 @@ import pdfplumber
 import os
 import json
 
+
 # Landing page view
 def index(request):
     return render(request, "knowledge_app/index.html")
 
+
 # use @login_required to force login before accessing a view
 
 # delete file button view
-#@login_required
+# @login_required
 def delete_selected_files(request):
     if request.method == "POST":
         selected_ids = request.POST.getlist("selected_files")
 
         if selected_ids:
-            files_to_delete = UploadedFile.objects.filter(id__in=selected_ids)
+            files_to_delete = UploadedFile.objects.filter(id__in=selected_ids, user=request.user)
 
             for f in files_to_delete:
                 # delete the actual file from storage first
@@ -41,19 +43,21 @@ def delete_selected_files(request):
                 f.delete()
 
     return redirect("upload")
-#Upload view
-#@login_required
+
+
+# Upload view
+# @login_required
 def upload(request):
     if request.method == 'POST':
         # Get the file from the form
         file = request.FILES.get('pdf_file')
-        
+
         if file and file.name.endswith('.pdf'):
             # Save file to database and disk
-            uploaded = UploadedFile.objects.create(file=file)
+            uploaded = UploadedFile.objects.create(file=file, user=request.user)
             # Extract text from each page of the PDF
             text = ""
-            try: 
+            try:
                 with pdfplumber.open(uploaded.file.path) as pdf:
                     for page in pdf.pages:
                         text += page.extract_text() or ""
@@ -64,6 +68,7 @@ def upload(request):
             uploaded.extracted_text = text
             uploaded.save()
 
+
         # Redirect back to upload page after submission
         return redirect('upload')
 
@@ -72,11 +77,12 @@ def upload(request):
 
     # Send files to the template so they appear in the list
     return render(request, "knowledge_app/upload.html", {'files': files})
-#@login_required
-def delete_file(request, file_id):
 
+
+# @login_required
+def delete_file(request, file_id):
     # Get the file or return 404 if it doesn't exist
-    uploaded = get_object_or_404(UploadedFile, id=file_id)
+    uploaded = get_object_or_404(UploadedFile, id=file_id, user=request.user)
 
     # Delete the actual file from disk
     if os.path.exists(uploaded.file.path):
@@ -88,26 +94,36 @@ def delete_file(request, file_id):
     # Redirect back to upload page
     return redirect('upload')
 
+
 # Home page view
+@login_required
 def homepage(request):
     files = UploadedFile.objects.all().order_by('-uploaded_at')
     return render(request, "knowledge_app/homepage.html", {'files': files})
 
-# Stored maps view 
+
+# Stored maps view
+@login_required
 def maps(request):
     return render(request, "knowledge_app/maps.html")
 
+
 # Quiz view
+@login_required
 def quiz(request):
     return render(request, "knowledge_app/quiz.html")
 
+
 # Progress view
+@login_required
 def progress(request):
     return render(request, "knowledge_app/progress.html")
+
 
 # Login view
 def Login(request):
     return render(request, "knowledge_app/login.html")
+
 
 # Register view
 def register(request):
@@ -119,6 +135,7 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
 
 # Quiz logic
 @login_required
@@ -132,7 +149,7 @@ def quizzes_hub(request):
             # Generate quiz from PDF or text
             quiz = form.save(commit=False)
             quiz.user = request.user
-            
+
             # Handle different source types
             source_choice = form.cleaned_data['source_choice']
             if source_choice == 'existing':
@@ -146,9 +163,9 @@ def quizzes_hub(request):
                 quiz.source_file = uploaded_file
             elif source_choice == 'text':
                 quiz.source_text = form.cleaned_data['text_input']
-            
+
             quiz.save()
-            
+
             # Extract text and generate questions using OpenAI
             text = ""
 
@@ -175,30 +192,30 @@ def quizzes_hub(request):
                 question_types=form.cleaned_data.get('question_types', ['multiple_choice', 'true_false']),
                 difficulty=form.cleaned_data.get('difficulty', 'medium')
             )
-            
+
             return redirect('quiz_detail', pk=quiz.id)
     else:
         form = QuizGenerationForm(user=request.user)
-    
+
     # Get all user's quizzes with their latest attempt
     quizzes = Quiz.objects.filter(user=request.user).prefetch_related(
         'questions',
         Prefetch('attempts', queryset=QuizAttempt.objects.order_by('-created_at'))
     ).order_by('-created_at')
-    
+
     return render(request, 'knowledge_app/quizzes.html', {
         'quizzes': quizzes,
         'form': form,
     })
- 
- 
+
+
 @login_required
 def quiz_detail(request, pk):
     """
     Display quiz details, previous attempts, and quiz form
     """
     quiz = get_object_or_404(Quiz, pk=pk, user=request.user)
-    
+
     if request.method == 'POST':
         # Process quiz submission
         attempt = QuizAttempt.objects.create(
@@ -267,8 +284,8 @@ def quiz_detail(request, pk):
         'quiz': quiz,
         'attempts': attempts,
     })
- 
- 
+
+
 @login_required
 def quiz_results(request, attempt_id):
     """
@@ -276,42 +293,42 @@ def quiz_results(request, attempt_id):
     """
     attempt = get_object_or_404(QuizAttempt, pk=attempt_id, user=request.user)
     quiz = attempt.quiz
-    
+
     # Get all answers for this attempt with related questions
     answers = attempt.answers.select_related('question').order_by('question__order')
-    
+
     return render(request, 'knowledge_app/quiz_results.html', {
         'attempt': attempt,
         'quiz': quiz,
         'answers': answers,
     })
- 
- 
+
+
 def check_answer(question, user_answer):
     """
     Check if user's answer is correct based on question type
     """
     if not user_answer:
         return False
-    
+
     user_answer = user_answer.strip().lower()
     correct = question.correct_answer.strip().lower()
-    
+
     if question.question_type in ['multiple_choice', 'fill_in_blank', 'true_false']:
         # Exact match for these types
         return user_answer == correct
-    
+
     elif question.question_type == 'short_answer':
         # Fuzzy matching for short answers (you might want to improve this)
         return similar_enough(user_answer, correct)
-    
+
     elif question.question_type == 'matching':
         # For matching, this would be handled differently (multiple answers per question)
         return user_answer == correct
-    
+
     return False
- 
- 
+
+
 def similar_enough(str1, str2, threshold=0.8):
     """
     Check if two strings are similar enough (for short answer tolerance)
@@ -320,6 +337,7 @@ def similar_enough(str1, str2, threshold=0.8):
     from difflib import SequenceMatcher
     ratio = SequenceMatcher(None, str1, str2).ratio()
     return ratio >= threshold
+
 
 @login_required
 def delete_quiz(request, pk):
@@ -335,6 +353,7 @@ def delete_quiz(request, pk):
     # Redirect back to the quizzes hub
     return redirect('quizzes')
 
+
 # Create map view - lets user select a PDF and trigger map generation
 @login_required
 def create_map(request):
@@ -343,8 +362,7 @@ def create_map(request):
         title = request.POST.get('title')
 
         # Get the uploaded file
-        uploaded_file = get_object_or_404(UploadedFile, id=file_id)
-
+        uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
         # Create a knowledge map record in the database
         knowledge_map = KnowledgeMap.objects.create(
             user=request.user,

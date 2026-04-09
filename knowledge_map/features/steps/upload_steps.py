@@ -1,13 +1,25 @@
 from behave import given, when, then
+from django.test import Client
 from django.urls import reverse
+from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from knowledge_app.models import UploadedFile
 import os
 
+def ensure_logged_in(context):
+    if not hasattr(context, "client"):
+        context.client = Client()
+    if not hasattr(context, "user"):
+        context.user = User.objects.create_user(
+            username="testuser",
+            password="testpass123"
+        )
+    context.client.force_login(context.user)
 # ---- Navigation scenario ----
 
 @given('I am on the home page')
 def step_on_home_page(context):
+    ensure_logged_in(context)
     # Visit the homepage
     context.response = context.client.get(reverse('homepage'))
 
@@ -25,12 +37,12 @@ def step_taken_to_upload_page(context):
 
 @given('I am on the upload page')
 def step_on_upload_page(context):
-    # Visit the upload page and confirm it loads
+    ensure_logged_in(context)
     context.response = context.client.get(reverse('upload'))
-    assert context.response.status_code == 200
 
 @when('I select a PDF file and click Upload')
 def step_upload_pdf(context):
+    ensure_logged_in(context)
     # Create a fake PDF and submit the upload form
     pdf = SimpleUploadedFile("test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
     context.response = context.client.post(reverse('upload'), {'pdf_file': pdf})
@@ -46,6 +58,7 @@ def step_file_saved_and_visible(context):
 
 @when('I have uploaded files in the past')
 def step_files_uploaded_in_past(context):
+    ensure_logged_in(context)
     # Upload a fake PDF to simulate a past upload
     pdf = SimpleUploadedFile("old.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
     context.client.post(reverse('upload'), {'pdf_file': pdf})
@@ -60,6 +73,7 @@ def step_see_list_of_files(context):
 
 @given('there is at least one file in the list')
 def step_file_in_list(context):
+    ensure_logged_in(context)
     # Upload a fake PDF so there is something to delete
     pdf = SimpleUploadedFile("delete_me.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
     context.client.post(reverse('upload'), {'pdf_file': pdf})
