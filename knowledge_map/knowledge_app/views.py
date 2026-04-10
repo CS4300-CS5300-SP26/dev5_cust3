@@ -50,7 +50,10 @@ def upload(request):
         
         if file and file.name.endswith('.pdf'):
             # Save file to database and disk
-            uploaded = UploadedFile.objects.create(file=file)
+            original_name = file.name
+            uploaded = UploadedFile(file=file, original_filename=original_name)
+            uploaded.save()
+
             # Extract text from each page of the PDF
             text = ""
             try: 

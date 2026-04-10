@@ -29,7 +29,7 @@
                                 value="{{ f.id }}"
                                 class="file-checkbox me-2"
                             >
-                            <a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a>
+                            <a href="{{ f.file.url }}" target="_blank">{{ f.display_name }}</a>
                             <span class="text-muted">— {{ f.uploaded_at|date:"M d, Y H:i" }}</span>
                         </div>
                     </li>
