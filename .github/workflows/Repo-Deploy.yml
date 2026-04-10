@@ -18,5 +18,23 @@ jobs:
             cd /opt/knowledge_map/dev5_cust3
             git pull origin main
             /opt/knowledge_map/venv/bin/pip install -r knowledge_map/requirements.txt
+
+            cd knowledge_map
+            export DJANGO_SETTINGS_MODULE=knowledge_map.settings.prod
+            export SECRET_KEY="${{ secrets.SECRET_KEY }}"
+            export DEBUG=False
+            export DJANGO_ALLOWED_HOSTS=yourknowledgemap.me
+            export DB_NAME="${{ secrets.DB_NAME }}"
+            export DB_USER="${{ secrets.DB_USER }}"
+            export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+            export DB_HOST="${{ secrets.DB_HOST }}"
+            export DB_PORT="${{ secrets.DB_PORT }}"
+            export DB_SSLMODE="${{ secrets.DB_SSLMODE }}"
+            export CELERY_BROKER_URL="${{ secrets.CELERY_BROKER_URL }}"
+            export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+
+            /opt/knowledge_map/venv/bin/python manage.py migrate --noinput
+            /opt/knowledge_map/venv/bin/python manage.py collectstatic --noinput --clear
+
             sudo systemctl restart gunicorn
             sudo systemctl restart celery
