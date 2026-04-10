@@ -1,8 +1,11 @@
 {% extends "knowledge_app/base.html" %}
 {% load static %}
 
-{% block content %}
+{% block head %}
 <link rel="stylesheet" href="{% static 'css/maps.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
 
 <div class="maps-wrapper">
     <div class="maps-header">
@@ -21,7 +24,7 @@
             <div class="map-card-body">
                 <p>Created: {{ map.created_at|date:"d M Y" }}</p>
                 <p>Source: {{ map.uploaded_file.file.name }}</p>
-                <p>Topics: {{ map.topics.count }}</p>
+                <p>Topics: {{ map.topic_count }}</p>
             </div>
             <div class="map-card-footer">
                 {% if map.status == 'complete' %}
@@ -31,7 +34,7 @@
                 {% endif %}
 
                 <!-- Delete button -->
-                <form method="POST" action="{% url 'delete_map' map.id %}" style="display:inline;">
+                <form method="POST" action="{% url 'delete_map' map.id %}" class="inline-form";">
                     {% csrf_token %}
                     <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this map?')">Delete</button>
                 </form>

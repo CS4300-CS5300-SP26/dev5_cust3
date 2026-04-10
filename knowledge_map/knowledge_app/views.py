@@ -6,7 +6,7 @@ import pdfplumber
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Count
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 
 from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
@@ -99,7 +99,11 @@ def homepage(request):
 # Stored maps view 
 @login_required
 def maps(request):
-    user_maps = KnowledgeMap.objects.filter(user=request.user).order_by('-created_at')
+    user_maps = KnowledgeMap.objects.filter(user=request.user)\
+        .select_related('uploaded_file')\
+        .prefetch_related('topics')\
+        .annotate(topic_count=Count('topics'))\
+        .order_by('-created_at')
     return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
 # Quiz view

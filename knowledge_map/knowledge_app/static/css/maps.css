@@ -161,3 +161,8 @@
     background-color: #721c24;
     color: white;
 }
+
+/* Keeps delete form inline with other footer buttons */
+.inline-form {
+    display: inline;
+}

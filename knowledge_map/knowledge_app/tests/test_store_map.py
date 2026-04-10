@@ -84,16 +84,18 @@ class StoreMapTest(TestCase):
         self.assertContains(response, "You haven't created any maps yet.")
 
     # Test maps are ordered newest first
+    # Test maps are ordered newest first
     def test_maps_ordered_newest_first(self):
-        KnowledgeMap.objects.create(
+        newer_map = KnowledgeMap.objects.create(
             user=self.user,
             uploaded_file=self.uploaded_file,
             title='Newer Map',
             status='complete'
         )
         response = self.client.get(reverse('maps'))
-        content = response.content.decode()
-        self.assertLess(content.index('Newer Map'), content.index('Test Map'))
+        maps = list(response.context['maps'])
+        self.assertEqual(maps[0].id, newer_map.id)
+        self.assertEqual(maps[1].id, self.knowledge_map.id)
 
     # Test unauthenticated user is redirected
     def test_unauthenticated_user_redirected(self):
