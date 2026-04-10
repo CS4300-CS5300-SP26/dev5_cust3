@@ -46,14 +46,6 @@ body {
     font-family: 'Sora', sans-serif;
     color: #ffffff;
 }
-body {
-    position: relative;
-    background-image: url('../images/Image\ option\ 2.png');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-attachment: fixed;
-}
 
 /* Dark overlay */
 body::before {
