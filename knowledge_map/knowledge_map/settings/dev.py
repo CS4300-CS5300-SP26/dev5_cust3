@@ -1,7 +1,7 @@
 from .base import *
 
 DEBUG = True
-ALLOWED_HOSTS = ['app-aoa-21.devedu.io', 'editor-aoa-21.devedu.io', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['app-aoa-21.devedu.io', 'editor-aoa-21.devedu.io', '127.0.0.1', 'localhost', 'editor-nschluescontainer-21.devedu.io', 'app-nschluescontainer-21.devedu.io']
 
 
 #uses the supabase db but will fall back on the sqlite db if something fails
