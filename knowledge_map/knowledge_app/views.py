@@ -6,7 +6,7 @@ import pdfplumber
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Count
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 
 from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
@@ -97,8 +97,14 @@ def homepage(request):
     return render(request, "knowledge_app/homepage.html", {'files': files})
 
 # Stored maps view 
+@login_required
 def maps(request):
-    return render(request, "knowledge_app/maps.html")
+    user_maps = KnowledgeMap.objects.filter(user=request.user)\
+        .select_related('uploaded_file')\
+        .prefetch_related('topics')\
+        .annotate(topic_count=Count('topics'))\
+        .order_by('-created_at')
+    return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
 # Quiz view
 def quiz(request):
@@ -342,6 +348,7 @@ def delete_quiz(request, pk):
 @login_required
 def create_map(request):
     if request.method == 'POST':
+        print(f"Creating map for user: {request.user}")
         file_id = request.POST.get('file_id')
         title = request.POST.get('title')
 
@@ -365,6 +372,7 @@ def create_map(request):
     # Get all uploaded files for the current user
     files = UploadedFile.objects.all().order_by('-uploaded_at')
     return render(request, 'knowledge_app/create_map.html', {'files': files})
+
 
 
 # View map - renders the knowledge map using Cytoscape.js
@@ -407,3 +415,11 @@ def view_map(request, map_id):
 def map_status(request, map_id):
     knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
     return JsonResponse({'status': knowledge_map.status})
+    
+# Delete map view
+@login_required
+def delete_map(request, map_id):
+    if request.method == 'POST':
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+        knowledge_map.delete()
+    return redirect('maps')

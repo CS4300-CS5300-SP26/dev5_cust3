@@ -1,11 +1,14 @@
 {% extends "knowledge_app/base.html" %}
 {% load static %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+{% endblock %}
+
 {% block content %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/homepage.css' %}">
 <div class="homepage-wrapper">
     <div class="homepage-main">
         <h1 style="text-align: center;">Welcome to the Homepage</h1>

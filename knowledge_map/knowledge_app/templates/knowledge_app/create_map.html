@@ -1,8 +1,11 @@
 {% extends "knowledge_app/base.html" %}
 {% load static %}
 
-{% block content %}
+{% block head %}
 <link rel="stylesheet" href="{% static 'css/create_map.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
 
 <div class="create-map-wrapper">
     <div class="create-map-form">

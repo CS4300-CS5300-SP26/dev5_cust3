@@ -1,0 +1,168 @@
+/* Maps page wrapper */
+.maps-wrapper {
+    padding: 2rem;
+}
+
+/* Header with title and create button */
+.maps-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.maps-header h1 {
+    font-size: 1.5rem;
+    color: #0e223e;
+}
+
+/* Create new map button */
+.create-map-btn {
+    background-color: #0e223e;
+    color: white;
+    padding: 0.625rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.create-map-btn:hover {
+    background-color: #3b7ddd;
+    color: white;
+}
+
+/* Grid layout for map cards */
+.maps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Individual map card */
+.map-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Card header */
+.map-card-header {
+    padding: 1rem 1.25rem;
+    background-color: #0e223e;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.map-card-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+}
+
+/* Card body */
+.map-card-body {
+    padding: 1rem 1.25rem;
+    flex: 1;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.map-card-body p {
+    margin-bottom: 0.4rem;
+}
+
+/* Card footer */
+.map-card-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* View map button */
+.view-btn {
+    background-color: #3b7ddd;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.view-btn:hover {
+    background-color: #0e223e;
+    color: white;
+}
+
+/* Status badge */
+.map-status {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.map-status.pending,
+.map-status.processing {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.map-status.complete {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.map-status.failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Pending message */
+.pending-msg {
+    font-size: 0.85rem;
+    color: #856404;
+}
+
+/* Empty state */
+.no-maps {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #555;
+}
+
+.no-maps a {
+    color: #3b7ddd;
+    font-weight: 600;
+}
+
+/* Delete button */
+.delete-btn {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background-color: #721c24;
+    color: white;
+}
+
+/* Keeps delete form inline with other footer buttons */
+.inline-form {
+    display: inline;
+}
