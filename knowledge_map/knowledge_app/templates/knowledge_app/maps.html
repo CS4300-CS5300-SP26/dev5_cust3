@@ -1,1 +1,43 @@
 {% extends "knowledge_app/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/maps.css' %}?v=1">
+
+<div class="maps-wrapper">
+    <div class="maps-header">
+        <h1>My Knowledge Maps</h1>
+        <a href="{% url 'create_map' %}" class="create-map-btn">+ Create New Map</a>
+    </div>
+
+    <!-- Maps grid -->
+    <div class="maps-grid">
+        {% for map in maps %}
+        <div class="map-card">
+            <div class="map-card-header">
+                <h2>{{ map.title }}</h2>
+                <span class="map-status {{ map.status }}">{{ map.status }}</span>
+            </div>
+            <div class="map-card-body">
+                <p>Created: {{ map.created_at|date:"d M Y" }}</p>
+                <p>Source: {{ map.uploaded_file.file.name }}</p>
+                <p>Topics: {{ map.topics.count }}</p>
+            </div>
+            <div class="map-card-footer">
+                {% if map.status == 'complete' %}
+                <a href="{% url 'view_map' map.id %}" class="view-btn">View Map</a>
+                {% else %}
+                <span class="pending-msg">{{ map.status|capfirst }}...</span>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-maps">
+            <p>You haven't created any maps yet.</p>
+            <a href="{% url 'create_map' %}">Create your first map</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

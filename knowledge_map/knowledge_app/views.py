@@ -94,8 +94,10 @@ def homepage(request):
     return render(request, "knowledge_app/homepage.html", {'files': files})
 
 # Stored maps view 
+@login_required
 def maps(request):
-    return render(request, "knowledge_app/maps.html")
+    user_maps = KnowledgeMap.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
 # Quiz view
 def quiz(request):
@@ -339,6 +341,7 @@ def delete_quiz(request, pk):
 @login_required
 def create_map(request):
     if request.method == 'POST':
+        print(f"Creating map for user: {request.user}")
         file_id = request.POST.get('file_id')
         title = request.POST.get('title')
 

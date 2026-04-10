@@ -8,7 +8,7 @@ if missing:
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['yourknowledgemap.me', '157.230.89.215', 'localhost']
+ALLOWED_HOSTS = ['yourknowledgemap.me', '157.230.89.215', '127.0.0.1', 'localhost']
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

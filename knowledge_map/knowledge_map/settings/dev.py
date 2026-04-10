@@ -36,6 +36,15 @@ else:
 #    }
 #}
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 # Dev-friendly settings
 CSRF_TRUSTED_ORIGINS = [
     'https://*.devedu.io',
