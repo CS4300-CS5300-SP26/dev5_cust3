@@ -46,8 +46,10 @@ class AuthenticationTests(TestCase):
 class NavbarTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(username='testuser', password='testpass123')
-
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass123'
+        )
+        self.client.login(username='testuser', password='testpass123')
     # Test all navbar links return 200
     def test_homepage_link(self):
         response = self.client.get(reverse('homepage'))
