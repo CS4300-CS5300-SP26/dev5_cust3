@@ -24,7 +24,7 @@ def index(request):
 # use @login_required to force login before accessing a view
 
 # delete file button view
-#@login_required
+@login_required
 def delete_selected_files(request):
     if request.method == "POST":
         selected_ids = request.POST.getlist("selected_files")
@@ -42,7 +42,7 @@ def delete_selected_files(request):
 
     return redirect("upload")
 #Upload view
-#@login_required
+@login_required
 def upload(request):
     if request.method == 'POST':
         # Get the file from the form
@@ -75,7 +75,8 @@ def upload(request):
 
     # Send files to the template so they appear in the list
     return render(request, "knowledge_app/upload.html", {'files': files})
-#@login_required
+
+@login_required
 def delete_file(request, file_id):
 
     # Get the file or return 404 if it doesn't exist
@@ -92,6 +93,7 @@ def delete_file(request, file_id):
     return redirect('upload')
 
 # Home page view
+@login_required
 def homepage(request):
     files = UploadedFile.objects.all().order_by('-uploaded_at')
     return render(request, "knowledge_app/homepage.html", {'files': files})
@@ -107,10 +109,12 @@ def maps(request):
     return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
 # Quiz view
+@login_required
 def quiz(request):
     return render(request, "knowledge_app/quiz.html")
 
 # Progress view
+@login_required
 def progress(request):
     return render(request, "knowledge_app/progress.html")
 
