@@ -18,8 +18,5 @@ jobs:
             cd /opt/knowledge_map/dev5_cust3
             git pull origin main
             /opt/knowledge_map/venv/bin/pip install -r knowledge_map/requirements.txt
-            cd knowledge_map
-            /opt/knowledge_map/venv/bin/python manage.py migrate --noinput
-            /opt/knowledge_map/venv/bin/python manage.py collectstatic --noinput --clear
             sudo systemctl restart gunicorn
             sudo systemctl restart celery
