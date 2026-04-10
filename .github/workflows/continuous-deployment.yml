@@ -1,8 +1,8 @@
 name: Deploy to Development Droplet
 
-on:
-  push:
-    branches: [main]
+#on:
+  #push:
+    #branches: [main]
 
 jobs:
   deploy:
