@@ -367,6 +367,7 @@ def create_map(request):
     return render(request, 'knowledge_app/create_map.html', {'files': files})
 
 
+
 # View map - renders the knowledge map using Cytoscape.js
 @login_required
 def view_map(request, map_id):
@@ -407,3 +408,11 @@ def view_map(request, map_id):
 def map_status(request, map_id):
     knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
     return JsonResponse({'status': knowledge_map.status})
+    
+# Delete map view
+@login_required
+def delete_map(request, map_id):
+    if request.method == 'POST':
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+        knowledge_map.delete()
+    return redirect('maps')

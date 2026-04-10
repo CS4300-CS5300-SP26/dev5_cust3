@@ -29,6 +29,12 @@
                 {% else %}
                 <span class="pending-msg">{{ map.status|capfirst }}...</span>
                 {% endif %}
+
+                <!-- Delete button -->
+                <form method="POST" action="{% url 'delete_map' map.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this map?')">Delete</button>
+                </form>
             </div>
         </div>
         {% empty %}
