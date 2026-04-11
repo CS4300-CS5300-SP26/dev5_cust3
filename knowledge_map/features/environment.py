@@ -12,6 +12,15 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'knowledge_map.settings')
 # Set up Django immediately when environment loads
 django.setup()
 
+def before_scenario(context, scenario):
+    from django.contrib.auth.models import User
+    context.client = Client()
+    context.user = User.objects.create_user(
+        username='testuser',
+        password='testpass123'
+    )
+    context.client.login(username='testuser', password='testpass123')
+
 def before_all(context):
     # Set up test environment once before all scenarios
     setup_test_environment()
