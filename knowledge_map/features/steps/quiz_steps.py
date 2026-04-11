@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 @given('I am logged in')
 def step_logged_in(context):
-    context.user = User.objects.create_user(username='testuser', password='testpass123')
+    context.user, _ = User.objects.get_or_create(username='testuser', defaults={'password': 'testpass123'})
     context.client.login(username='testuser', password='testpass123')
 
 @when('I visit the quizzes page')

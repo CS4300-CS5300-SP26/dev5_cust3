@@ -109,9 +109,6 @@ class UploadPageTest(TestCase):
             username='testuser', password='testpass123'
         )
         self.client.login(username='testuser', password='testpass123')
-        
-    def setUp(self):
-        self.client = Client()
 
     # Test upload page loads correctly
     def test_upload_page_loads(self):
@@ -160,6 +157,7 @@ class UploadPageTest(TestCase):
         for f in UploadedFile.objects.all():
             if os.path.exists(f.file.path):
                 os.remove(f.file.path)
+
 # ----------------Tests for Delete Feature---------------------
 class DeleteFileTest(TestCase):
     def setUp(self):
@@ -168,9 +166,6 @@ class DeleteFileTest(TestCase):
             username='testuser', password='testpass123'
         )
         self.client.login(username='testuser', password='testpass123')
-    
-    def setUp(self):
-        self.client = Client()  # set up fake browser before each test
 
     # Test deleting a file removes it from the database
     def test_delete_removes_file_from_database(self):
@@ -344,8 +339,6 @@ class QuizResultsViewTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-
-
 class QuizDetailViewTests(TestCase):
 
     def setUp(self):
@@ -396,7 +389,6 @@ class QuizDetailViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Quiz")
 
-   
 
     #  Empty answers (edge case)
     def test_submit_quiz_empty_answers(self):
