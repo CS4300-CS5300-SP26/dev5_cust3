@@ -1,66 +1,38 @@
 """
-Celery will run the BERTopic and OpenAI processing in the background
+Celery will run the OpenAI processing in the background
 """
 
 from celery import shared_task
 from .models import KnowledgeMap, TopicNode, SubtopicNode, NodeRelationship
-from .processing import extract_topics, generate_labels, generate_relationships
+from .processing import generate_knowledge_map_data
 
 
 @shared_task
 def generate_knowledge_map(knowledge_map_id):
-    """
-    Background task that runs the full pipeline:
-    1. Extract topics from PDF text using BERTopic
-    2. Generate human-readable labels using OpenAI
-    3. Generate relationships between topics using OpenAI
-    4. Save everything to the database
-    """
-    # Initialised to None so the except block can safely check it
-    # even if the database lookup below fails
-    knowledge_map = None
-
     try:
-        # Get the knowledge map from the database
         knowledge_map = KnowledgeMap.objects.get(id=knowledge_map_id)
-
-        # Update status to processing
         knowledge_map.status = 'processing'
         knowledge_map.save()
 
-        # Get the extracted text from the uploaded PDF
         text = knowledge_map.uploaded_file.extracted_text
 
-        # Step 1: Extract topics using BERTopic
-        topics, error = extract_topics(text)
-        if error:
-            knowledge_map.status = 'failed'
-            knowledge_map.save()
-            return error
+        # Single OpenAI call replaces BERTopic + generate_labels + generate_relationships
+        topics, relationships = generate_knowledge_map_data(text)
 
-        # Step 2: Generate labels and summaries using OpenAI
-        labeled_topics = generate_labels(topics)
-
-        # Step 3: Generate relationships between topics using OpenAI
-        relationships = generate_relationships(labeled_topics)
-
-        # Step 4: Save topics to the database as TopicNodes
+        # Save topics to database
         topic_nodes = {}
-        for topic in labeled_topics:
+        for topic in topics:
             node = TopicNode.objects.create(
                 knowledge_map=knowledge_map,
                 label=topic['label'],
                 summary=topic['summary']
             )
-            # Map label to node for relationship lookup
             topic_nodes[topic['label']] = node
 
-        # Step 5: Save relationships to the database
+        # Save relationships to database
         for rel in relationships:
             source_node = topic_nodes.get(rel['source'])
             target_node = topic_nodes.get(rel['target'])
-
-            # Only save if both nodes exist
             if source_node and target_node:
                 NodeRelationship.objects.create(
                     knowledge_map=knowledge_map,
@@ -69,17 +41,12 @@ def generate_knowledge_map(knowledge_map_id):
                     relationship_label=rel['label']
                 )
 
-        # Update status to complete
         knowledge_map.status = 'complete'
         knowledge_map.save()
 
         return f"Knowledge map {knowledge_map_id} generated successfully"
 
     except Exception as e:
-        # Guard against the case where the exception was raised before
-        # knowledge_map was assigned (e.g. KnowledgeMap.DoesNotExist)
-        if knowledge_map is not None:
-            knowledge_map.status = 'failed'
-            knowledge_map.save()
+        knowledge_map.status = 'failed'
+        knowledge_map.save()
         return str(e)
-
