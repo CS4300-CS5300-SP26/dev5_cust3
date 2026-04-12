@@ -9,17 +9,15 @@ from .processing import generate_knowledge_map_data
 
 @shared_task
 def generate_knowledge_map(knowledge_map_id):
+    knowledge_map = None  # ← initialize before try block
     try:
         knowledge_map = KnowledgeMap.objects.get(id=knowledge_map_id)
         knowledge_map.status = 'processing'
         knowledge_map.save()
 
         text = knowledge_map.uploaded_file.extracted_text
-
-        # Single OpenAI call replaces BERTopic + generate_labels + generate_relationships
         topics, relationships = generate_knowledge_map_data(text)
 
-        # Save topics to database
         topic_nodes = {}
         for topic in topics:
             node = TopicNode.objects.create(
@@ -29,7 +27,6 @@ def generate_knowledge_map(knowledge_map_id):
             )
             topic_nodes[topic['label']] = node
 
-        # Save relationships to database
         for rel in relationships:
             source_node = topic_nodes.get(rel['source'])
             target_node = topic_nodes.get(rel['target'])
@@ -47,6 +44,7 @@ def generate_knowledge_map(knowledge_map_id):
         return f"Knowledge map {knowledge_map_id} generated successfully"
 
     except Exception as e:
-        knowledge_map.status = 'failed'
-        knowledge_map.save()
+        if knowledge_map is not None:  # ← guard against None
+            knowledge_map.status = 'failed'
+            knowledge_map.save()
         return str(e)
