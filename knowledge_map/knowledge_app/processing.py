@@ -1,13 +1,13 @@
-from sklearn.feature_extraction.text import CountVectorizer
 from openai import OpenAI
 from django.conf import settings
+import json
+
 
 def generate_knowledge_map_data(text):
     """
     Takes extracted PDF text and uses OpenAI to generate
-    topics, subtopics, summaries and relationship in one call
+    topics, summaries and relationships in one call.
     """
-
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
     prompt = f"""
@@ -40,7 +40,6 @@ def generate_knowledge_map_data(text):
         input=prompt
     )
 
-    import json
     content = response.output_text.strip()
     # Strip markdown code fences if present
     content = content.replace('```json', '').replace('```', '').strip()
