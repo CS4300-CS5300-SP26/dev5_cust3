@@ -19,10 +19,7 @@ class CreateMapViewTests(TestCase):
 
         # Create a fake uploaded file record in the database
         pdf = SimpleUploadedFile("test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
-        self.uploaded_file = UploadedFile.objects.create(
-            file=pdf,
-            user=self.user
-        )
+        self.uploaded_file = UploadedFile.objects.create(file=pdf)
 
     # -------------------------------------------------------------------------
     # Authentication
