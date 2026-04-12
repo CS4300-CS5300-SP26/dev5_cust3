@@ -1,4 +1,3 @@
-from bertopic import BERTopic
 from sklearn.feature_extraction.text import CountVectorizer
 from openai import OpenAI
 from django.conf import settings
