@@ -1,0 +1,22 @@
+# tells github to auto scan for outdated or vulnerable dependencies
+# and open pull requests to update them
+version: 2
+updates:
+  # Scan Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/knowledge_map"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+
+  # Scan GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
