@@ -445,5 +445,15 @@
 
     // Run on page load
     updateSourceFields();
+    const preselected = "{{ preselected_pdf }}";
+    if (preselected) {
+        const radio = document.querySelector('input[name="source_choice"][value="existing"]');
+        if (radio) {
+            radio.checked = true;
+            updateSourceFields();
+        }
+        const select = document.querySelector('select[name="existing_pdf"]');
+        if (select) select.value = preselected;
+    }
 </script>
 {% endblock %}

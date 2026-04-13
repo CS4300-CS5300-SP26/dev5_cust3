@@ -40,6 +40,10 @@
                     <button id="create-map-btn" type="button" class="btn btn-primary" disabled>
                         Create Knowledge Map
                     </button>
+                    <button id="create-quiz-btn" type="button" class="btn btn-primary" disabled
+                        title="Select exactly one file to generate a quiz">
+                        Generate Quiz
+                    </button>
 
                     <button id="delete-files-btn" type="submit" class="btn btn-danger" disabled>
                         Delete Selected Files
@@ -56,15 +60,26 @@
 <script>
 const checkboxes = document.querySelectorAll('.file-checkbox');
 const createBtn = document.getElementById('create-map-btn');
+const quizBtn = document.getElementById('create-quiz-btn');
 const deleteBtn = document.getElementById('delete-files-btn');
 
 function updateButtonState() {
-    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    const checked = Array.from(checkboxes).filter(cb => cb.checked);
+    const anyChecked = checked.length > 0;
+    const exactlyOne = checked.length === 1;
 
     if (createBtn) createBtn.disabled = !anyChecked;
+    if (quizBtn) quizBtn.disabled = !exactlyOne;  // only enable for single selection
     if (deleteBtn) deleteBtn.disabled = !anyChecked;
 }
-
+updateButtonState()
 checkboxes.forEach(cb => cb.addEventListener('change', updateButtonState));
+
+quizBtn.addEventListener('click', function() {
+    const selectedId = Array.from(checkboxes).find(cb => cb.checked)?.value;
+    if (selectedId) {
+        window.location.href = `{% url 'quizzes' %}?existing_pdf=${selectedId}`;
+    }
+});
 </script>
 {% endblock %}

@@ -51,7 +51,7 @@ def upload(request):
         if file and file.name.endswith('.pdf'):
             # Save file to database and disk
             original_name = file.name
-            uploaded = UploadedFile(file=file, original_filename=original_name)
+            uploaded = UploadedFile(file=file, original_filename=original_name,user=request.user)
             uploaded.save()
 
             # Extract text from each page of the PDF
@@ -71,7 +71,7 @@ def upload(request):
         return redirect('upload')
 
     # Get all uploaded files from the database, newest first
-    files = UploadedFile.objects.all().order_by('-uploaded_at')
+    files = UploadedFile.objects.filter(user=request.user).order_by('-uploaded_at')
 
     # Send files to the template so they appear in the list
     return render(request, "knowledge_app/upload.html", {'files': files})
@@ -192,6 +192,13 @@ def quizzes_hub(request):
             return redirect('quiz_detail', pk=quiz.id)
     else:
         form = QuizGenerationForm(user=request.user)
+        preselected = request.GET.get('existing_pdf')
+        if preselected:
+            # Validate the file belongs to the current user before trusting it
+            file = UploadedFile.objects.filter(user=request.user, pk=preselected).first()
+            if file:
+                form.fields['existing_pdf'].initial = file.pk
+                form.fields['source_choice'].initial = 'existing'
     
     # Get all user's quizzes with their latest attempt
     quizzes = Quiz.objects.filter(user=request.user).prefetch_related(
@@ -202,7 +209,8 @@ def quizzes_hub(request):
     return render(request, 'knowledge_app/quizzes.html', {
         'quizzes': quizzes,
         'form': form,
-    })
+    '   preselected_pdf': request.GET.get('existing_pdf'), 
+})
  
  
 @login_required
