@@ -37,10 +37,10 @@ jobs:
          # --format json flagoutputs machine readable results
          # -o flag saves report to file
          # report vulnerabilities without blocking build
-         pip-audit -r knowledge_map/requirements.txt --format json -o dependency-scan-report.json || true
+         pip-audit -r requirements.txt --format json -o dependency-scan-report.json || true
 
          # run pip audit again without JSON for human-readable in github actions
-         pip-audit -r knowledge_map/requirements.txt || true
+         pip-audit -r requirements.txt || true
       
       - name: Upload dependency scan report
         uses: actions/upload-artifact@v4
