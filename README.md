@@ -48,3 +48,5 @@ AI was used for debugging: https://chatgpt.com/share/69d5f037-438c-832b-a34b-729
 https://claude.ai/share/e1293e50-e4ec-4d27-9efc-d7eb205f39c8
 Learning about the docker process: https://claude.ai/share/eb09d664-1308-49c8-86e0-15b0a2d7a4dd
 
+### Sprint 3
+AI was used to debug error with generate quizes from upload view not working https://claude.ai/chat/78960749-62cd-4976-a296-26c7691b26ad
