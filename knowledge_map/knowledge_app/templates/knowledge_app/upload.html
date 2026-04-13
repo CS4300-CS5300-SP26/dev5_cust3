@@ -40,7 +40,8 @@
                     <button id="create-map-btn" type="button" class="btn btn-primary" disabled>
                         Create Knowledge Map
                     </button>
-                    <button id="create-quiz-btn" type="button" class="btn btn-primary" disabled>
+                    <button id="create-quiz-btn" type="button" class="btn btn-primary" disabled
+                        title="Select exactly one file to generate a quiz">
                         Generate Quiz
                     </button>
 
@@ -63,9 +64,12 @@ const quizBtn = document.getElementById('create-quiz-btn');
 const deleteBtn = document.getElementById('delete-files-btn');
 
 function updateButtonState() {
-    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    const checked = Array.from(checkboxes).filter(cb => cb.checked);
+    const anyChecked = checked.length > 0;
+    const exactlyOne = checked.length === 1;
+
     if (createBtn) createBtn.disabled = !anyChecked;
-    if (quizBtn) quizBtn.disabled = !anyChecked;
+    if (quizBtn) quizBtn.disabled = !exactlyOne;  // only enable for single selection
     if (deleteBtn) deleteBtn.disabled = !anyChecked;
 }
 updateButtonState()
