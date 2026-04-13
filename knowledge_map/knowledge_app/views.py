@@ -194,8 +194,11 @@ def quizzes_hub(request):
         form = QuizGenerationForm(user=request.user)
         preselected = request.GET.get('existing_pdf')
         if preselected:
-            form.fields['existing_pdf'].initial = preselected
-            form.fields['source_choice'].initial = 'existing'
+            # Validate the file belongs to the current user before trusting it
+            file = UploadedFile.objects.filter(user=request.user, pk=preselected).first()
+            if file:
+                form.fields['existing_pdf'].initial = file.pk
+                form.fields['source_choice'].initial = 'existing'
     
     # Get all user's quizzes with their latest attempt
     quizzes = Quiz.objects.filter(user=request.user).prefetch_related(
@@ -204,9 +207,9 @@ def quizzes_hub(request):
     ).order_by('-created_at')
     
     return render(request, 'knowledge_app/quizzes.html', {
-    'quizzes': quizzes,
-    'form': form,
-    'preselected_pdf': request.GET.get('existing_pdf'), 
+        'quizzes': quizzes,
+        'form': form,
+    '   preselected_pdf': request.GET.get('existing_pdf'), 
 })
  
  

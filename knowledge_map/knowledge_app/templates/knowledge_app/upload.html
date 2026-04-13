@@ -68,7 +68,7 @@ function updateButtonState() {
     if (quizBtn) quizBtn.disabled = !anyChecked;
     if (deleteBtn) deleteBtn.disabled = !anyChecked;
 }
-
+updateButtonState()
 checkboxes.forEach(cb => cb.addEventListener('change', updateButtonState));
 
 quizBtn.addEventListener('click', function() {
