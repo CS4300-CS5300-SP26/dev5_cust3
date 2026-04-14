@@ -22,7 +22,6 @@ def index(request):
     return render(request, "knowledge_app/index.html")
 
 # use @login_required to force login before accessing a view
-
 # delete file button view
 @login_required
 def delete_selected_files(request):
@@ -41,6 +40,7 @@ def delete_selected_files(request):
                 f.delete()
 
     return redirect("upload")
+
 #Upload view
 @login_required
 def upload(request):
@@ -132,6 +132,24 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+# User profile and settings page view
+@login_required
+def user_profile(request):
+    user = request.user
+    upload_count = UploadedFile.objects.filter(user=user).count()
+    quiz_attempts = QuizAttempt.objects.filter(user=user)
+    total_quizzes = quiz_attempts.count()
+    average_score = round(
+        sum(a.score for a in quiz_attempts) / total_quizzes, 1
+    ) if total_quizzes > 0 else 0
+
+    return render(request, "knowledge_app/user_profile.html", {
+        'user': user,
+        'upload_count': upload_count,
+        'total_quizzes': total_quizzes,
+        'average_score': average_score,
+    })
 
 # Quiz logic
 @login_required
@@ -306,8 +324,8 @@ def quiz_results(request, attempt_id):
         'quiz': quiz,
         'answers': answers,
     })
- 
- 
+
+
 def check_answer(question, user_answer):
     """
     Check if user's answer is correct based on question type
@@ -331,8 +349,8 @@ def check_answer(question, user_answer):
         return user_answer == correct
     
     return False
- 
- 
+
+
 def similar_enough(str1, str2, threshold=0.8):
     """
     Check if two strings are similar enough (for short answer tolerance)
@@ -420,7 +438,6 @@ def view_map(request, map_id):
         'nodes': nodes,
         'edges': edges,
     })
-
 
 # API endpoint to check map generation status
 @login_required
