@@ -8,6 +8,7 @@ import os
 
 # Tests for create map views
 
+
 class CreateMapViewTests(TestCase):
 
     def setUp(self):
@@ -18,7 +19,8 @@ class CreateMapViewTests(TestCase):
         self.client.login(username='testuser', password='testpass123')
 
         # Create a fake uploaded file record in the database
-        pdf = SimpleUploadedFile("test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
+        pdf = SimpleUploadedFile(
+            "test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
         self.uploaded_file = UploadedFile.objects.create(file=pdf)
 
     # -------------------------------------------------------------------------
@@ -29,7 +31,8 @@ class CreateMapViewTests(TestCase):
         """Unauthenticated users should be redirected to login."""
         self.client.logout()
         response = self.client.get(reverse('create_map'))
-        self.assertRedirects(response, f"/accounts/login/?next={reverse('create_map')}")
+        self.assertRedirects(
+            response, f"/accounts/login/?next={reverse('create_map')}")
 
     # -------------------------------------------------------------------------
     # GET requests

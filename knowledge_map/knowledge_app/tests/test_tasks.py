@@ -242,8 +242,10 @@ class GenerateKnowledgeMapUnitTests(TestCase):
         km = _make_knowledge_map()
         mock_get.return_value = km
         mock_data.return_value = (_fake_topics(), [
-            {'source': 'Machine Learning', 'target': 'Data Science', 'label': 'underpins'},
-            {'source': 'Data Science', 'target': 'Machine Learning', 'label': 'feeds into'},
+            {'source': 'Machine Learning',
+                'target': 'Data Science', 'label': 'underpins'},
+            {'source': 'Data Science', 'target': 'Machine Learning',
+                'label': 'feeds into'},
         ])
         mock_create_node.side_effect = [node_a, node_b]
 
@@ -262,7 +264,8 @@ class GenerateKnowledgeMapUnitTests(TestCase):
         km = _make_knowledge_map()
         mock_get.return_value = km
         mock_data.return_value = (_fake_topics(), [
-            {'source': 'Nonexistent Topic', 'target': 'Data Science', 'label': 'causes'}
+            {'source': 'Nonexistent Topic',
+                'target': 'Data Science', 'label': 'causes'}
         ])
         mock_create_node.side_effect = [MagicMock(), MagicMock()]
 
@@ -342,7 +345,8 @@ class GenerateKnowledgeMapUnitTests(TestCase):
     @patch('knowledge_app.tasks.KnowledgeMap.objects.get')
     def test_knowledge_map_not_found_does_not_raise(self, mock_get):
         """If KnowledgeMap does not exist, the task should return a string not crash."""
-        mock_get.side_effect = KnowledgeMap.DoesNotExist('No KnowledgeMap matches id=999')
+        mock_get.side_effect = KnowledgeMap.DoesNotExist(
+            'No KnowledgeMap matches id=999')
 
         try:
             result = generate_knowledge_map(999)
@@ -356,7 +360,8 @@ class GenerateKnowledgeMapUnitTests(TestCase):
     @patch('knowledge_app.tasks.KnowledgeMap.objects.get')
     def test_knowledge_map_not_found_returns_error_string(self, mock_get):
         """When the map doesn't exist, the returned value should be a non-empty string."""
-        mock_get.side_effect = KnowledgeMap.DoesNotExist('No KnowledgeMap matches id=999')
+        mock_get.side_effect = KnowledgeMap.DoesNotExist(
+            'No KnowledgeMap matches id=999')
 
         result = generate_knowledge_map(999)
 
@@ -366,7 +371,8 @@ class GenerateKnowledgeMapUnitTests(TestCase):
     @patch('knowledge_app.tasks.KnowledgeMap.objects.get')
     def test_knowledge_map_not_found_does_not_attempt_save(self, mock_get):
         """When DoesNotExist is raised, no .save() should be attempted on None."""
-        mock_get.side_effect = KnowledgeMap.DoesNotExist('No KnowledgeMap matches id=999')
+        mock_get.side_effect = KnowledgeMap.DoesNotExist(
+            'No KnowledgeMap matches id=999')
 
         try:
             generate_knowledge_map(999)

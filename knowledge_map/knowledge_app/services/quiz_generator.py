@@ -7,9 +7,10 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from pathlib import Path
 from knowledge_app.models import Question
- 
+
 load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
- 
+
+
 def generate_multiple_choice(topic: Dict[str, Any], topic_num: int) -> Optional[Dict[str, Any]]:
     """
     Generate a multiple choice question from a topic.
@@ -17,23 +18,23 @@ def generate_multiple_choice(topic: Dict[str, Any], topic_num: int) -> Optional[
     """
     if not topic['keywords'] or not topic['sentences']:
         return None
-    
+
     keywords = topic['keywords'][:5]  # Top 5 keywords
     sentence = topic['sentences'][0]
-    
+
     # Extract a keyword phrase from the sentence
     answer = keywords[0]
-    
+
     # Use other keywords as distractors
     distractors = keywords[1:4] if len(keywords) > 3 else keywords[1:]
-    
+
     # Pad with random keywords if needed
     while len(distractors) < 3:
         distractors.append(keywords[-1])
-    
+
     choices = [answer] + distractors[:3]
     random.shuffle(choices)
-    
+
     return {
         'id': f"q_{topic_num}_mc",
         'type': 'multiple_choice',
@@ -43,8 +44,8 @@ def generate_multiple_choice(topic: Dict[str, Any], topic_num: int) -> Optional[
         'topic_id': topic['topic_id'],
         'difficulty': 'easy'
     }
- 
- 
+
+
 def generate_fill_in_blank(topic: Dict[str, Any], topic_num: int) -> Optional[Dict[str, Any]]:
     """
     Generate a fill-in-the-blank question.
@@ -52,10 +53,11 @@ def generate_fill_in_blank(topic: Dict[str, Any], topic_num: int) -> Optional[Di
     """
     if not topic['sentences'] or not topic['keywords']:
         return None
-    
-    sentence = topic['sentences'][1] if len(topic['sentences']) > 1 else topic['sentences'][0]
+
+    sentence = topic['sentences'][1] if len(
+        topic['sentences']) > 1 else topic['sentences'][0]
     keywords = topic['keywords'][:5]
-    
+
     # Find which keyword appears in the sentence
     for keyword in keywords:
         if keyword.lower() in sentence.lower():
@@ -66,13 +68,13 @@ def generate_fill_in_blank(topic: Dict[str, Any], topic_num: int) -> Optional[Di
                 sentence,
                 count=1
             )
-            
+
             # Get distractors
             distractors = [kw for kw in keywords if kw != keyword][:3]
-            
+
             choices = [keyword] + distractors
             random.shuffle(choices)
-            
+
             return {
                 'id': f"q_{topic_num}_fib",
                 'type': 'fill_in_blank',
@@ -82,12 +84,12 @@ def generate_fill_in_blank(topic: Dict[str, Any], topic_num: int) -> Optional[Di
                 'topic_id': topic['topic_id'],
                 'difficulty': 'medium'
             }
-    
+
     # Fallback: use first keyword and try to create a sentence-based question
     # Use actual sentence from topic instead of generic fallback
     first_keyword = keywords[0]
     fallback_sentence = f"{sentence.split('.')[0]} uses _____."
-    
+
     return {
         'id': f"q_{topic_num}_fib",
         'type': 'fill_in_blank',
@@ -97,8 +99,8 @@ def generate_fill_in_blank(topic: Dict[str, Any], topic_num: int) -> Optional[Di
         'topic_id': topic['topic_id'],
         'difficulty': 'medium'  # FIXED: was 'easy', should be 'medium'
     }
- 
- 
+
+
 def generate_true_false(topic: Dict[str, Any], topic_num: int) -> Optional[Dict[str, Any]]:
     """
     Generate a true/false question.
@@ -106,16 +108,19 @@ def generate_true_false(topic: Dict[str, Any], topic_num: int) -> Optional[Dict[
     """
     if not topic['sentences']:
         return None
-    
-    sentence = topic['sentences'][2] if len(topic['sentences']) > 2 else topic['sentences'][0]
-    
+
+    sentence = topic['sentences'][2] if len(
+        topic['sentences']) > 2 else topic['sentences'][0]
+
     # Extract the main subject and predicate
     # Simple heuristic: split by common verbs
-    verbs = ['enables', 'uses', 'requires', 'helps', 'creates', 'improves', 'prevents']
-    negation_verbs = ['disables', 'avoids', 'forbids', 'prevents', 'stops', 'blocks']
-    
+    verbs = ['enables', 'uses', 'requires',
+             'helps', 'creates', 'improves', 'prevents']
+    negation_verbs = ['disables', 'avoids',
+                      'forbids', 'prevents', 'stops', 'blocks']
+
     is_true = random.choice([True, True, False])  # 66% true statements
-    
+
     if is_true:
         return {
             'id': f"q_{topic_num}_tf",
@@ -138,7 +143,7 @@ def generate_true_false(topic: Dict[str, Any], topic_num: int) -> Optional[Dict[
                     count=1
                 )
                 break
-        
+
         return {
             'id': f"q_{topic_num}_tf",
             'type': 'true_false',
@@ -147,23 +152,23 @@ def generate_true_false(topic: Dict[str, Any], topic_num: int) -> Optional[Dict[
             'topic_id': topic['topic_id'],
             'difficulty': 'medium'
         }
- 
- 
+
+
 def generate_matching(topics: List[Dict[str, Any]], num_questions: int = 1) -> Optional[List[Dict[str, Any]]]:
     """
     Generate multiple matching questions across topics.
     Each question matches key terms to their topic descriptions.
-    
+
     Returns a list of matching question dicts, or None if not enough topics.
     """
     if len(topics) < 2:
         return None  # FIXED: was returning [], should return None for consistency
- 
+
     questions = []
     for q_idx in range(num_questions):
         # Randomly pick 2 to 4 topics per question
         selected_topics = random.sample(topics, min(4, len(topics)))
- 
+
         # Create premise-response pairs
         pairs = []
         for topic in selected_topics:
@@ -173,7 +178,7 @@ def generate_matching(topics: List[Dict[str, Any]], num_questions: int = 1) -> O
                 'premise': keyword,
                 'response': sentence
             })
- 
+
         question_data = {
             'id': f'q_matching_{q_idx + 1}',
             'type': 'matching',
@@ -183,58 +188,61 @@ def generate_matching(topics: List[Dict[str, Any]], num_questions: int = 1) -> O
             'difficulty': 'hard'
         }
         questions.append(question_data)
- 
+
     return questions if questions else None
- 
- 
+
+
 def generate_quiz(topics, num_questions=10, question_types=None, include_matching=False):
     """
     Generate a quiz with specified question types.
-    
+
     Args:
         topics: List of topic dictionaries
         num_questions: Total number of individual questions to generate
         question_types: List of question types to include (e.g., ['multiple_choice', 'fill_in_blank'])
         include_matching: Boolean to include matching questions if 4+ topics available
-    
+
     Returns:
         List of questions (including matching questions if requested)
     """
     if not topics:
         return []
-    
+
     questions = []
-    
+
     # Default question types if none specified
     if question_types is None:
         question_types = ['multiple_choice', 'fill_in_blank', 'true_false']
-    
+
     # Generate individual questions cycling through types
     type_index = 0
     for i in range(num_questions):
         topic = topics[i % len(topics)]
         q_type = question_types[type_index % len(question_types)]
         type_index += 1
-        
+
         if q_type == 'multiple_choice':
             question = generate_multiple_choice(topic, i)
         elif q_type == 'fill_in_blank':
             question = generate_fill_in_blank(topic, i)
         elif q_type == 'true_false':
             question = generate_true_false(topic, i)
-        
+
         if question:
             questions.append(question)
-    
+
     # Add matching question if requested and possible
     if include_matching and len(topics) >= 4:
         matching_questions = generate_matching(topics, 1)
         if matching_questions:
-            questions.extend(matching_questions)  # FIXED: was append(), should be extend()
-    
+            # FIXED: was append(), should be extend()
+            questions.extend(matching_questions)
+
     return questions
- 
+
     # ------------------------- Raw PDF to OpenAi integration -----------------------------
+
+
 def generate_quiz_from_text(quiz, text, num_questions=5, question_types=None, difficulty="medium"):
     """
     Generate quiz questions from raw text using OpenAI.
@@ -243,14 +251,14 @@ def generate_quiz_from_text(quiz, text, num_questions=5, question_types=None, di
     # Don't generate if there is no text to work with
     if not text:
         return
- 
+
     # Default to multiple choice and true/false if no types specified
     if question_types is None:
         question_types = ["multiple_choice", "true_false"]
- 
+
     # Set up the OpenAI client using the API key from the environment
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
- 
+
     # Define what each difficulty level means so OpenAI generates appropriate questions
     difficulty_guide = {
         "easy": (
@@ -270,10 +278,11 @@ def generate_quiz_from_text(quiz, text, num_questions=5, question_types=None, di
             "Example: 'Which best explains the relationship between X and Y?' or 'What can be inferred from Z?'"
         )
     }
- 
+
     # Get the difficulty instructions, defaulting to medium if not found
-    difficulty_instructions = difficulty_guide.get(difficulty, difficulty_guide["medium"])
- 
+    difficulty_instructions = difficulty_guide.get(
+        difficulty, difficulty_guide["medium"])
+
     # Build the prompt telling OpenAI how many questions to generate and what format to return
     prompt = f"""
 You are an educational quiz generator designed to help students learn and retain knowledge.
@@ -341,7 +350,7 @@ For matching:
 Text to generate questions from:
 {text[:4000]}
 """
- 
+
     try:
         # Send the prompt to OpenAI and get the response
         response = client.chat.completions.create(
@@ -351,19 +360,19 @@ Text to generate questions from:
                 {"role": "user", "content": prompt}
             ],
         )
- 
+
         # Extract the raw text response from OpenAI
         raw = response.choices[0].message.content.strip()
- 
+
         # Strip markdown code blocks if OpenAI wraps the JSON in them
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
- 
+
         # Parse the JSON response into a list of question dictionaries
         questions_data = json.loads(raw)
- 
+
         # Save each generated question to the database
         from ..models import Question
         for order, q_data in enumerate(questions_data, start=1):
@@ -376,7 +385,7 @@ Text to generate questions from:
                 pairs=q_data.get("pairs", []),
                 order=order,
             )
- 
+
     except Exception as e:
         # Log any errors without crashing the app
         print(f"Quiz generation error: {e}")
@@ -389,7 +398,8 @@ def grade_short_answers(questions_and_answers):
     Returns a dict mapping question id to True/False.
     """
     # Filter out empty answers before sending to OpenAI
-    to_grade = [(q, ua, ca) for q, ua, ca in questions_and_answers if ua and ua.strip()]
+    to_grade = [(q, ua, ca)
+                for q, ua, ca in questions_and_answers if ua and ua.strip()]
 
     # If nothing to grade return all False
     if not to_grade:

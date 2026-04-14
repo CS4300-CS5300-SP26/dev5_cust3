@@ -6,9 +6,11 @@ from knowledge_app.models import UploadedFile
 from knowledge_app.models import Quiz, Question, QuizAttempt, Answer
 import os
 
-#----------------Tests for Authentication---------------------
+# ----------------Tests for Authentication---------------------
+
+
 class AuthenticationTests(TestCase):
-    
+
     def setUp(self):
         # set up test user before each run
         self.client = Client()
@@ -17,18 +19,20 @@ class AuthenticationTests(TestCase):
             password='testpass123'
         )
 
-    #-----------Login tests------------------------------------
+    # -----------Login tests------------------------------------
     def test_login_page_loads(self):
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
-    #------------------Login with valid user and password-------
+    # ------------------Login with valid user and password-------
+
     def test_login_with_valid_credentials(self):
         response = self.client.post(reverse('login'), {
             'username': 'testuser',
             'password': 'testpass123'
         })
         self.assertTrue(response.wsgi_request.user.is_authenticated)
-    #-------------------Test Invalid password------------------
+    # -------------------Test Invalid password------------------
+
     def test_login_with_invalid_credentials(self):
         response = self.client.post(reverse('login'), {
             'username': 'testuser',
@@ -43,6 +47,8 @@ class AuthenticationTests(TestCase):
         self.assertFalse(response.wsgi_request.user.is_authenticated)
 
 # Testing for navigation bar
+
+
 class NavbarTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -51,6 +57,7 @@ class NavbarTest(TestCase):
         )
         self.client.login(username='testuser', password='testpass123')
     # Test all navbar links return 200
+
     def test_homepage_link(self):
         response = self.client.get(reverse('homepage'))
         self.assertEqual(response.status_code, 200)
@@ -98,10 +105,14 @@ class NavbarTest(TestCase):
         pages = ['homepage', 'maps', 'quizzes', 'progress']
         for page in pages:
             response = self.client.get(reverse(page))
-            self.assertContains(response, 'id="sidebar"', msg_prefix=f"Sidebar missing on {page}")
-            self.assertContains(response, 'id="toggle-btn"', msg_prefix=f"Toggle button missing on {page}")
+            self.assertContains(response, 'id="sidebar"',
+                                msg_prefix=f"Sidebar missing on {page}")
+            self.assertContains(response, 'id="toggle-btn"',
+                                msg_prefix=f"Toggle button missing on {page}")
 
 # ----------------Tests for Upload Feature---------------------
+
+
 class UploadPageTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -122,20 +133,23 @@ class UploadPageTest(TestCase):
 
     # Test a valid PDF can be uploaded
     def test_valid_pdf_upload(self):
-        pdf = SimpleUploadedFile("test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
+        pdf = SimpleUploadedFile(
+            "test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
         response = self.client.post(reverse('upload'), {'pdf_file': pdf})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(UploadedFile.objects.count(), 1)
 
     # Test a non-PDF file is rejected
     def test_non_pdf_upload_rejected(self):
-        txt = SimpleUploadedFile("test.txt", b"not a pdf", content_type="text/plain")
+        txt = SimpleUploadedFile(
+            "test.txt", b"not a pdf", content_type="text/plain")
         response = self.client.post(reverse('upload'), {'pdf_file': txt})
         self.assertEqual(UploadedFile.objects.count(), 0)
 
     # Test uploaded files appear in the list
     def test_uploaded_files_appear_in_list(self):
-        pdf = SimpleUploadedFile("test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
+        pdf = SimpleUploadedFile(
+            "test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
         self.client.post(reverse('upload'), {'pdf_file': pdf})
         response = self.client.get(reverse('upload'))
         self.assertContains(response, "test.pdf")
@@ -147,7 +161,8 @@ class UploadPageTest(TestCase):
 
     # Test model stores correct filename
     def test_model_stores_filename(self):
-        pdf = SimpleUploadedFile("myfile.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
+        pdf = SimpleUploadedFile(
+            "myfile.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
         self.client.post(reverse('upload'), {'pdf_file': pdf})
         uploaded = UploadedFile.objects.first()
         self.assertIn("myfile.pdf", uploaded.file.name)
@@ -159,6 +174,8 @@ class UploadPageTest(TestCase):
                 os.remove(f.file.path)
 
 # ----------------Tests for Delete Feature---------------------
+
+
 class DeleteFileTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -169,26 +186,33 @@ class DeleteFileTest(TestCase):
 
     # Test deleting a file removes it from the database
     def test_delete_removes_file_from_database(self):
-        pdf = SimpleUploadedFile("delete_me.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
+        pdf = SimpleUploadedFile(
+            "delete_me.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
         self.client.post(reverse('upload'), {'pdf_file': pdf})  # upload a file
         uploaded = UploadedFile.objects.first()  # grab it from the database
-        self.client.post(reverse('delete_file', args=[uploaded.id]))  # delete it
+        self.client.post(reverse('delete_file', args=[
+                         uploaded.id]))  # delete it
         self.assertEqual(UploadedFile.objects.count(), 0)  # confirm it's gone
 
     # Test deleting a file that doesn't exist returns 404
     def test_delete_nonexistent_file_returns_404(self):
-        response = self.client.post(reverse('delete_file', args=[999]))  # try to delete something that doesn't exist
-        self.assertEqual(response.status_code, 404)  # confirm we get a 404 instead of a crash
+        # try to delete something that doesn't exist
+        response = self.client.post(reverse('delete_file', args=[999]))
+        # confirm we get a 404 instead of a crash
+        self.assertEqual(response.status_code, 404)
 
     # Clean up any leftover files after tests run
     def tearDown(self):
         for f in UploadedFile.objects.all():
             if os.path.exists(f.file.path):
                 os.remove(f.file.path)
-    #test delte selected files
+    # test delte selected files
+
     def test_delete_selected_files(self):
-        pdf1 = SimpleUploadedFile("a.pdf", b"data", content_type="application/pdf")
-        pdf2 = SimpleUploadedFile("b.pdf", b"data", content_type="application/pdf")
+        pdf1 = SimpleUploadedFile(
+            "a.pdf", b"data", content_type="application/pdf")
+        pdf2 = SimpleUploadedFile(
+            "b.pdf", b"data", content_type="application/pdf")
 
         self.client.post(reverse('upload'), {'pdf_file': pdf1})
         self.client.post(reverse('upload'), {'pdf_file': pdf2})
@@ -196,17 +220,20 @@ class DeleteFileTest(TestCase):
         files = UploadedFile.objects.all()
 
         response = self.client.post(reverse('delete_selected_files'), {
-        "selected_files": [f.id for f in files]
+            "selected_files": [f.id for f in files]
         })
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(UploadedFile.objects.count(), 0)
 
 # ----------------Tests for Quiz Feature---------------------
+
+
 class QuizViewTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(username='testuser', password='testpass123')
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass123')
         self.client.login(username='testuser', password='testpass123')
 
     # Test that the quizzes hub page loads successfully for a logged in user
@@ -231,12 +258,16 @@ class QuizViewTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
 # ----------------Tests for Quiz Detail View---------------------
+
+
 class QuizDetailViewTests(TestCase):
 
     def setUp(self):
         # Create two users, a quiz, and a question before each test
-        self.owner = User.objects.create_user(username="owner", password="pass")
-        self.other = User.objects.create_user(username="other", password="pass")
+        self.owner = User.objects.create_user(
+            username="owner", password="pass")
+        self.other = User.objects.create_user(
+            username="other", password="pass")
         self.quiz = Quiz.objects.create(user=self.owner, title="Test Quiz")
         self.question = Question.objects.create(
             quiz=self.quiz,
@@ -281,7 +312,8 @@ class QuizDetailViewTests(TestCase):
     def test_submit_redirects_to_results(self):
         response = self.client.post(self.url, {f"q_{self.question.id}": "4"})
         attempt = QuizAttempt.objects.get(quiz=self.quiz)
-        self.assertRedirects(response, reverse("quiz_results", kwargs={"attempt_id": attempt.id}))
+        self.assertRedirects(response, reverse(
+            "quiz_results", kwargs={"attempt_id": attempt.id}))
 
     # Test that another user cannot access someone else's quiz
     def test_other_user_gets_404(self):
@@ -295,8 +327,10 @@ class QuizResultsViewTests(TestCase):
 
     def setUp(self):
         # Create two users, a quiz, a question, an attempt, and an answer before each test
-        self.owner = User.objects.create_user(username="owner", password="pass")
-        self.other = User.objects.create_user(username="other", password="pass")
+        self.owner = User.objects.create_user(
+            username="owner", password="pass")
+        self.other = User.objects.create_user(
+            username="other", password="pass")
         self.quiz = Quiz.objects.create(user=self.owner, title="Test Quiz")
         self.question = Question.objects.create(
             quiz=self.quiz,
@@ -313,7 +347,8 @@ class QuizResultsViewTests(TestCase):
             attempt=self.attempt, question=self.question,
             user_answer="4", correct_answer="4", is_correct=True,
         )
-        self.url = reverse("quiz_results", kwargs={"attempt_id": self.attempt.pk})
+        self.url = reverse("quiz_results", kwargs={
+                           "attempt_id": self.attempt.pk})
         self.client.login(username="owner", password="pass")
 
     # Test that the results page loads successfully
@@ -378,8 +413,10 @@ class QuizDetailViewTests(TestCase):
 
     #  Quiz belongs to another user
     def test_quiz_not_owned_returns_404(self):
-        чужой_quiq = Quiz.objects.create(user=self.other_user, title="Other Quiz")
-        response = self.client.get(reverse('quiz_detail', args=[чужой_quiq.id]))
+        чужой_quiq = Quiz.objects.create(
+            user=self.other_user, title="Other Quiz")
+        response = self.client.get(
+            reverse('quiz_detail', args=[чужой_quiq.id]))
         self.assertEqual(response.status_code, 404)
 
     # GET request renders page
@@ -389,8 +426,8 @@ class QuizDetailViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Quiz")
 
-
     #  Empty answers (edge case)
+
     def test_submit_quiz_empty_answers(self):
         self.client.post(
             reverse('quiz_detail', args=[self.quiz.id]),
@@ -429,10 +466,13 @@ class QuizDetailViewTests(TestCase):
         self.assertIn("attempts", response.context)
 
 # ----------------Tests for Delete Quiz Feature---------------------
+
+
 class DeleteQuizTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(username='testuser', password='testpass123')
+        self.user = User.objects.create_user(
+            username='testuser', password='testpass123')
         self.client.login(username='testuser', password='testpass123')
         self.quiz = Quiz.objects.create(user=self.user, title='Test Quiz')
         self.url = reverse('delete_quiz', args=[self.quiz.id])
