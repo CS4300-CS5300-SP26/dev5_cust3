@@ -3,7 +3,7 @@
 <aside id="sidebar">
     <div class="d-flex">
         <button id="toggle-btn" type="button">
-            <i class="lni lni-layout-9"></i>
+            <i class="bi bi-grid"></i>
         </button>
         <div class="sidebar-logo">
             <a href="#">KnowledgeMap</a>
@@ -14,31 +14,37 @@
     <ul class="sidebar-nav">
         <li class="sidebar-item">
             <a href="{% url 'homepage' %}" class="sidebar-link">
-                <i class="lni lni-home-2"></i>
+                <i class="bi bi-house"></i>
                 <span>Home</span>
             </a>
         </li>
         <li class="sidebar-item">
+            <a href="{% url 'user_profile' %}" class="sidebar-link">
+                <i class="bi bi-person"></i>
+                <span>Profile</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
             <a href="{% url 'upload' %}" class="sidebar-link">
-                <i class="lni lni-file-plus-circle"></i>
+                <i class="bi bi-upload"></i>
                 <span>Upload Content</span>
             </a>
         </li>
         <li class="sidebar-item">
             <a href="{% url 'maps' %}" class="sidebar-link">
-                <i class="lni lni-vector-nodes-7"></i>
+                <i class="bi bi-diagram-3"></i>
                 <span>Maps</span>
             </a>
         </li>
         <li class="sidebar-item">
             <a href="{% url 'quizzes' %}" class="sidebar-link">
-                <i class="lni lni-book-1"></i>
+                <i class="bi bi-journal-text"></i>
                 <span>Quiz</span>
             </a>
         </li>
         <li class="sidebar-item">
             <a href="{% url 'progress' %}" class="sidebar-link">
-                <i class="lni lni-trend-up-1"></i>
+                <i class="bi bi-graph-up"></i>
                 <span>Progress</span>
             </a>
         </li>
@@ -51,7 +57,7 @@
             <form method="POST" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="sidebar-link logout-btn">
-                    <i class="lni lni-exit"></i>
+                    <i class="bi bi-box-arrow-right"></i>
                     <span>Logout</span>
                 </button>
             </form>
@@ -59,7 +65,7 @@
         {% else %}
         <li class="sidebar-footer">
             <a href="{% url 'login' %}" class="sidebar-link">
-                <i class="lni lni-enter"></i>
+                <i class="bi bi-box-arrow-in-right"></i>
                 <span>Login</span>
             </a>
         </li>
