@@ -20,12 +20,16 @@ import json
 # Landing page view
 
 
+
+
 def index(request):
     return render(request, "knowledge_app/index.html")
 
 # use @login_required to force login before accessing a view
 
 # delete file button view
+
+
 
 
 @login_required
@@ -45,6 +49,9 @@ def delete_selected_files(request):
                 f.delete()
 
     return redirect("upload")
+# Upload view
+
+
 # Upload view
 
 
