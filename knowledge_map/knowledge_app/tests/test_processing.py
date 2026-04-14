@@ -46,7 +46,8 @@ class GenerateKnowledgeMapDataTests(TestCase):
         mock_client.responses.create.return_value = self._fake_response()
         MockOpenAI.return_value = mock_client
 
-        topics, relationships = generate_knowledge_map_data("Some text about machine learning.")
+        topics, relationships = generate_knowledge_map_data(
+            "Some text about machine learning.")
         self.assertIsInstance(topics, list)
         self.assertIsInstance(relationships, list)
 
@@ -80,11 +81,13 @@ class GenerateKnowledgeMapDataTests(TestCase):
     def test_returns_correct_number_of_topics(self, MockOpenAI):
         """The number of topics returned should match the JSON response."""
         topics_data = [
-            {"label": f"Topic {i}", "summary": f"Summary {i}.", "keywords": ["kw"]}
+            {"label": f"Topic {i}",
+                "summary": f"Summary {i}.", "keywords": ["kw"]}
             for i in range(4)
         ]
         mock_client = MagicMock()
-        mock_client.responses.create.return_value = self._fake_response(topics=topics_data)
+        mock_client.responses.create.return_value = self._fake_response(
+            topics=topics_data)
         MockOpenAI.return_value = mock_client
 
         topics, _ = generate_knowledge_map_data("Some text.")
@@ -147,7 +150,8 @@ class GenerateKnowledgeMapDataTests(TestCase):
     def test_empty_relationships_list(self, MockOpenAI):
         """Should handle a response with no relationships gracefully."""
         mock_client = MagicMock()
-        mock_client.responses.create.return_value = self._fake_response(relationships=[])
+        mock_client.responses.create.return_value = self._fake_response(
+            relationships=[])
         MockOpenAI.return_value = mock_client
 
         _, relationships = generate_knowledge_map_data("Some text.")

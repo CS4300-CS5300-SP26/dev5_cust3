@@ -16,44 +16,56 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='KnowledgeMap',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=255)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('complete', 'Complete'), ('failed', 'Failed')], default='pending', max_length=20)),
-                ('uploaded_file', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='knowledge_app.uploadedfile')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('status', models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), (
+                    'complete', 'Complete'), ('failed', 'Failed')], default='pending', max_length=20)),
+                ('uploaded_file', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='knowledge_app.uploadedfile')),
+                ('user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
             name='TopicNode',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('label', models.CharField(max_length=255)),
                 ('summary', models.TextField()),
                 ('x_position', models.FloatField(default=0)),
                 ('y_position', models.FloatField(default=0)),
-                ('knowledge_map', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='topics', to='knowledge_app.knowledgemap')),
+                ('knowledge_map', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='topics', to='knowledge_app.knowledgemap')),
             ],
         ),
         migrations.CreateModel(
             name='SubtopicNode',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('label', models.CharField(max_length=255)),
                 ('summary', models.TextField()),
                 ('x_position', models.FloatField(default=0)),
                 ('y_position', models.FloatField(default=0)),
-                ('topic', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subtopics', to='knowledge_app.topicnode')),
+                ('topic', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='subtopics', to='knowledge_app.topicnode')),
             ],
         ),
         migrations.CreateModel(
             name='NodeRelationship',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('relationship_label', models.CharField(max_length=255)),
-                ('knowledge_map', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='relationships', to='knowledge_app.knowledgemap')),
-                ('source_topic', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='outgoing', to='knowledge_app.topicnode')),
-                ('target_topic', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='incoming', to='knowledge_app.topicnode')),
+                ('knowledge_map', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='relationships', to='knowledge_app.knowledgemap')),
+                ('source_topic', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='outgoing', to='knowledge_app.topicnode')),
+                ('target_topic', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='incoming', to='knowledge_app.topicnode')),
             ],
         ),
     ]

@@ -19,7 +19,8 @@ class StoreMapTest(TestCase):
 
         # Create a test uploaded file
         self.uploaded_file = UploadedFile.objects.create(
-            file=SimpleUploadedFile("test.pdf", b"%PDF-1.4 test", content_type="application/pdf")
+            file=SimpleUploadedFile(
+                "test.pdf", b"%PDF-1.4 test", content_type="application/pdf")
         )
 
         # Create a test knowledge map
