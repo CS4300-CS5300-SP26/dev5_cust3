@@ -63,7 +63,7 @@ def generate_knowledge_map(knowledge_map_id):
         return f"Knowledge map {knowledge_map_id} generated successfully"
 
     except Exception as e:
-        if knowledge_map is not None: 
+        if knowledge_map is not None:
             knowledge_map.status = 'failed'
             knowledge_map.save()
         return str(e)

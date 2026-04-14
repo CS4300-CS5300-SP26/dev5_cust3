@@ -2,6 +2,7 @@ from behave import given, when, then
 from django.contrib.auth.models import User
 from django.urls import reverse
 
+
 @given('I am on the registration page')
 def step_visit_register(context):
     context.response = context.client.get(reverse('register'))
@@ -19,7 +20,7 @@ def step_user_exists_with_password(context, username, password):
 
 @given('I am logged in as "{username}" with password "{password}"')
 def step_logged_in(context, username, password):
-    User.objects.filter(username=username).delete() 
+    User.objects.filter(username=username).delete()
     user = User.objects.create_user(username=username, password=password)
     context.client.login(username=username, password=password)
 

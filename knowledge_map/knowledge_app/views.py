@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import UploadedFile, KnowledgeMap
 from .tasks import generate_knowledge_map
-import pdfplumber
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
@@ -11,18 +10,25 @@ from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 
 from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
 from .forms import QuizGenerationForm
-from .services.quiz_generator import generate_quiz
 
 import pdfplumber
 import os
 import json
 
 # Landing page view
+
+
+
+
 def index(request):
     return render(request, "knowledge_app/index.html")
 
 # use @login_required to force login before accessing a view
 # delete file button view
+
+
+
+
 @login_required
 def delete_selected_files(request):
     if request.method == "POST":
@@ -40,6 +46,7 @@ def delete_selected_files(request):
                 f.delete()
 
     return redirect("upload")
+<<<<<<< HEAD
 
 #Upload view
 @login_required
@@ -47,7 +54,7 @@ def upload(request):
     if request.method == 'POST':
         # Get the file from the form
         file = request.FILES.get('pdf_file')
-        
+
         if file and file.name.endswith('.pdf'):
             # Save file to database and disk
             original_name = file.name
@@ -56,7 +63,7 @@ def upload(request):
 
             # Extract text from each page of the PDF
             text = ""
-            try: 
+            try:
                 with pdfplumber.open(uploaded.file.path) as pdf:
                     for page in pdf.pages:
                         text += page.extract_text() or ""
@@ -76,6 +83,7 @@ def upload(request):
     # Send files to the template so they appear in the list
     return render(request, "knowledge_app/upload.html", {'files': files})
 
+
 @login_required
 def delete_file(request, file_id):
 
@@ -93,12 +101,16 @@ def delete_file(request, file_id):
     return redirect('upload')
 
 # Home page view
+
+
 @login_required
 def homepage(request):
     files = UploadedFile.objects.all().order_by('-uploaded_at')
     return render(request, "knowledge_app/homepage.html", {'files': files})
 
-# Stored maps view 
+# Stored maps view
+
+
 @login_required
 def maps(request):
     user_maps = KnowledgeMap.objects.filter(user=request.user)\
@@ -109,20 +121,28 @@ def maps(request):
     return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
 # Quiz view
+
+
 @login_required
 def quiz(request):
     return render(request, "knowledge_app/quiz.html")
 
 # Progress view
+
+
 @login_required
 def progress(request):
     return render(request, "knowledge_app/progress.html")
 
 # Login view
+
+
 def Login(request):
     return render(request, "knowledge_app/login.html")
 
 # Register view
+
+
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -152,18 +172,21 @@ def user_profile(request):
     })
 
 # Quiz logic
+
+
 @login_required
 def quizzes_hub(request):
     """
     Main quiz hub - displays all quizzes and generation form
     """
     if request.method == 'POST':
-        form = QuizGenerationForm(request.POST, request.FILES, user=request.user)
+        form = QuizGenerationForm(
+            request.POST, request.FILES, user=request.user)
         if form.is_valid():
             # Generate quiz from PDF or text
             quiz = form.save(commit=False)
             quiz.user = request.user
-            
+
             # Handle different source types
             source_choice = form.cleaned_data['source_choice']
             if source_choice == 'existing':
@@ -177,9 +200,9 @@ def quizzes_hub(request):
                 quiz.source_file = uploaded_file
             elif source_choice == 'text':
                 quiz.source_text = form.cleaned_data['text_input']
-            
+
             quiz.save()
-            
+
             # Extract text and generate questions using OpenAI
             text = ""
 
@@ -203,10 +226,11 @@ def quizzes_hub(request):
                 quiz=quiz,
                 text=text,
                 num_questions=form.cleaned_data.get('num_questions', 5),
-                question_types=form.cleaned_data.get('question_types', ['multiple_choice', 'true_false']),
+                question_types=form.cleaned_data.get(
+                    'question_types', ['multiple_choice', 'true_false']),
                 difficulty=form.cleaned_data.get('difficulty', 'medium')
             )
-            
+
             return redirect('quiz_detail', pk=quiz.id)
     else:
         form = QuizGenerationForm(user=request.user)
@@ -218,26 +242,28 @@ def quizzes_hub(request):
                 form.fields['existing_pdf'].initial = file.pk
                 form.fields['source_choice'].initial = 'existing'
     
+
     # Get all user's quizzes with their latest attempt
     quizzes = Quiz.objects.filter(user=request.user).prefetch_related(
         'questions',
         Prefetch('attempts', queryset=QuizAttempt.objects.order_by('-created_at'))
     ).order_by('-created_at')
-    
+
     return render(request, 'knowledge_app/quizzes.html', {
         'quizzes': quizzes,
         'form': form,
-    '   preselected_pdf': request.GET.get('existing_pdf'), 
+        'preselected_pdf': request.GET.get('existing_pdf'),
 })
  
- 
+
+
 @login_required
 def quiz_detail(request, pk):
     """
     Display quiz details, previous attempts, and quiz form
     """
     quiz = get_object_or_404(Quiz, pk=pk, user=request.user)
-    
+
     if request.method == 'POST':
         # Process quiz submission
         attempt = QuizAttempt.objects.create(
@@ -259,7 +285,8 @@ def quiz_detail(request, pk):
 
         # Grade all short answers in one OpenAI call
         from .services.quiz_generator import grade_short_answers
-        short_answer_grades = grade_short_answers(short_answer_pairs) if short_answer_pairs else {}
+        short_answer_grades = grade_short_answers(
+            short_answer_pairs) if short_answer_pairs else {}
 
         # Process each question's answer
         for question in questions:
@@ -268,7 +295,8 @@ def quiz_detail(request, pk):
                 matching_answers = []
                 for i, pair in enumerate(question.pairs, start=1):
                     answer_val = request.POST.get(f'q_{question.id}_{i}', '')
-                    matching_answers.append(f"{pair['premise']} → {answer_val}")
+                    matching_answers.append(
+                        f"{pair['premise']} → {answer_val}")
                 user_answer = ' | '.join(matching_answers)
             else:
                 user_answer = request.POST.get(f'q_{question.id}', '').strip()
@@ -292,7 +320,8 @@ def quiz_detail(request, pk):
             )
 
         # Update attempt with final score
-        score = round((correct_count / total_questions * 100)) if total_questions > 0 else 0
+        score = round((correct_count / total_questions * 100)
+                      ) if total_questions > 0 else 0
         attempt.score = score
         attempt.correct_count = correct_count
         attempt.total_questions = total_questions
@@ -306,8 +335,8 @@ def quiz_detail(request, pk):
         'quiz': quiz,
         'attempts': attempts,
     })
- 
- 
+
+
 @login_required
 def quiz_results(request, attempt_id):
     """
@@ -315,10 +344,11 @@ def quiz_results(request, attempt_id):
     """
     attempt = get_object_or_404(QuizAttempt, pk=attempt_id, user=request.user)
     quiz = attempt.quiz
-    
+
     # Get all answers for this attempt with related questions
-    answers = attempt.answers.select_related('question').order_by('question__order')
-    
+    answers = attempt.answers.select_related(
+        'question').order_by('question__order')
+
     return render(request, 'knowledge_app/quiz_results.html', {
         'attempt': attempt,
         'quiz': quiz,
@@ -332,22 +362,22 @@ def check_answer(question, user_answer):
     """
     if not user_answer:
         return False
-    
+
     user_answer = user_answer.strip().lower()
     correct = question.correct_answer.strip().lower()
-    
+
     if question.question_type in ['multiple_choice', 'fill_in_blank', 'true_false']:
         # Exact match for these types
         return user_answer == correct
-    
+
     elif question.question_type == 'short_answer':
         # Fuzzy matching for short answers (you might want to improve this)
         return similar_enough(user_answer, correct)
-    
+
     elif question.question_type == 'matching':
         # For matching, this would be handled differently (multiple answers per question)
         return user_answer == correct
-    
+
     return False
 
 
@@ -359,6 +389,7 @@ def similar_enough(str1, str2, threshold=0.8):
     from difflib import SequenceMatcher
     ratio = SequenceMatcher(None, str1, str2).ratio()
     return ratio >= threshold
+
 
 @login_required
 def delete_quiz(request, pk):
@@ -375,6 +406,8 @@ def delete_quiz(request, pk):
     return redirect('quizzes')
 
 # Create map view - lets user select a PDF and trigger map generation
+
+
 @login_required
 def create_map(request):
     if request.method == 'POST':
@@ -404,11 +437,11 @@ def create_map(request):
     return render(request, 'knowledge_app/create_map.html', {'files': files})
 
 
-
 # View map - renders the knowledge map using Cytoscape.js
 @login_required
 def view_map(request, map_id):
-    knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+    knowledge_map = get_object_or_404(
+        KnowledgeMap, id=map_id, user=request.user)
 
     # Get all topic nodes and relationships for this map
     topics = knowledge_map.topics.all()
@@ -416,7 +449,8 @@ def view_map(request, map_id):
 
     # Build Cytoscape.js nodes
     nodes = [
-        {'data': {'id': str(topic.id), 'label': topic.label, 'summary': topic.summary}}
+        {'data': {'id': str(topic.id), 'label': topic.label,
+                  'summary': topic.summary}}
         for topic in topics
     ]
 
@@ -442,13 +476,17 @@ def view_map(request, map_id):
 # API endpoint to check map generation status
 @login_required
 def map_status(request, map_id):
-    knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+    knowledge_map = get_object_or_404(
+        KnowledgeMap, id=map_id, user=request.user)
     return JsonResponse({'status': knowledge_map.status})
-    
+
 # Delete map view
+
+
 @login_required
 def delete_map(request, map_id):
     if request.method == 'POST':
-        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+        knowledge_map = get_object_or_404(
+            KnowledgeMap, id=map_id, user=request.user)
         knowledge_map.delete()
     return redirect('maps')
