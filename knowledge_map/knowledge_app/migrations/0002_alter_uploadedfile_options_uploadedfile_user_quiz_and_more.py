@@ -21,20 +21,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='uploadedfile',
             name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='uploaded_files', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    related_name='uploaded_files', to=settings.AUTH_USER_MODEL),
         ),
         migrations.CreateModel(
             name='Quiz',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=255)),
                 ('description', models.TextField(blank=True)),
                 ('source_text', models.TextField(blank=True)),
-                ('difficulty', models.CharField(choices=[('easy', 'Easy'), ('medium', 'Medium'), ('hard', 'Hard')], default='medium', max_length=20)),
+                ('difficulty', models.CharField(choices=[
+                 ('easy', 'Easy'), ('medium', 'Medium'), ('hard', 'Hard')], default='medium', max_length=20)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('source_file', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='generated_quizzes', to='knowledge_app.uploadedfile')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quizzes', to=settings.AUTH_USER_MODEL)),
+                ('source_file', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='generated_quizzes', to='knowledge_app.uploadedfile')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='quizzes', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['-created_at'],
@@ -43,16 +48,19 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Question',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('question_text', models.TextField()),
-                ('question_type', models.CharField(choices=[('multiple_choice', 'Multiple Choice'), ('fill_in_blank', 'Fill in the Blank'), ('true_false', 'True/False'), ('matching', 'Matching'), ('short_answer', 'Short Answer')], max_length=20)),
+                ('question_type', models.CharField(choices=[('multiple_choice', 'Multiple Choice'), ('fill_in_blank', 'Fill in the Blank'), (
+                    'true_false', 'True/False'), ('matching', 'Matching'), ('short_answer', 'Short Answer')], max_length=20)),
                 ('choices', models.JSONField(blank=True, default=list)),
                 ('correct_answer', models.TextField()),
                 ('pairs', models.JSONField(blank=True, default=list)),
                 ('order', models.PositiveIntegerField(default=0)),
                 ('explanation', models.TextField(blank=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='questions', to='knowledge_app.quiz')),
+                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='questions', to='knowledge_app.quiz')),
             ],
             options={
                 'ordering': ['quiz', 'order'],
@@ -61,14 +69,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='QuizAttempt',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('score', models.IntegerField(validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(100)])),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('score', models.IntegerField(validators=[django.core.validators.MinValueValidator(
+                    0), django.core.validators.MaxValueValidator(100)])),
                 ('correct_count', models.PositiveIntegerField()),
                 ('total_questions', models.PositiveIntegerField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('completed_at', models.DateTimeField(auto_now_add=True)),
-                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attempts', to='knowledge_app.quiz')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quiz_attempts', to=settings.AUTH_USER_MODEL)),
+                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='attempts', to='knowledge_app.quiz')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='quiz_attempts', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['-created_at'],
@@ -77,13 +89,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Answer',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('user_answer', models.TextField()),
                 ('correct_answer', models.TextField()),
                 ('is_correct', models.BooleanField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='knowledge_app.question')),
-                ('attempt', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='knowledge_app.quizattempt')),
+                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='answers', to='knowledge_app.question')),
+                ('attempt', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='answers', to='knowledge_app.quizattempt')),
             ],
             options={
                 'unique_together': {('attempt', 'question')},

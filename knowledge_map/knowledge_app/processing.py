@@ -46,9 +46,10 @@ def generate_knowledge_map_data(text):
 
     try:
         data = json.loads(content)
-    except json.JSONDecodeError as e: 
+    except json.JSONDecodeError as e:
         # Log errors and return empty structures so the task doesn't crash
-        print(f"Failed to parse OpenAI response as JSON: {e}\nResponse was: {content}")
+        print(
+            f"Failed to parse OpenAI response as JSON: {e}\nResponse was: {content}")
         return [], []
 
     # Validate and filter topics — skip any missing required fields

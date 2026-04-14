@@ -6,6 +6,8 @@ from knowledge_app.models import UploadedFile, KnowledgeMap
 import os
 
 # ----------------Tests for Delete Map Feature---------------------
+
+
 class DeleteMapTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -19,7 +21,8 @@ class DeleteMapTest(TestCase):
 
         # Create a test uploaded file
         self.uploaded_file = UploadedFile.objects.create(
-            file=SimpleUploadedFile("test.pdf", b"%PDF-1.4 test", content_type="application/pdf")
+            file=SimpleUploadedFile(
+                "test.pdf", b"%PDF-1.4 test", content_type="application/pdf")
         )
 
         # Create a test knowledge map
@@ -37,7 +40,8 @@ class DeleteMapTest(TestCase):
 
     # Test deleting a map redirects to maps page
     def test_delete_map_redirects_to_maps(self):
-        response = self.client.post(reverse('delete_map', args=[self.knowledge_map.id]))
+        response = self.client.post(
+            reverse('delete_map', args=[self.knowledge_map.id]))
         self.assertRedirects(response, reverse('maps'))
 
     # Test deleting a map that doesn't exist returns 404
@@ -48,7 +52,8 @@ class DeleteMapTest(TestCase):
     # Test a user cannot delete another user's map
     def test_cannot_delete_another_users_map(self):
         self.client.login(username='otheruser', password='testpass123')
-        response = self.client.post(reverse('delete_map', args=[self.knowledge_map.id]))
+        response = self.client.post(
+            reverse('delete_map', args=[self.knowledge_map.id]))
         self.assertEqual(response.status_code, 404)
         self.assertEqual(KnowledgeMap.objects.count(), 1)
 
