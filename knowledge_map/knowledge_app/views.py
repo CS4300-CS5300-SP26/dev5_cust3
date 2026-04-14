@@ -17,18 +17,11 @@ import json
 
 # Landing page view
 
-
-
-
 def index(request):
     return render(request, "knowledge_app/index.html")
 
 # use @login_required to force login before accessing a view
 # delete file button view
-
-
-
-
 @login_required
 def delete_selected_files(request):
     if request.method == "POST":
@@ -46,7 +39,6 @@ def delete_selected_files(request):
                 f.delete()
 
     return redirect("upload")
-<<<<<<< HEAD
 
 #Upload view
 @login_required
@@ -101,16 +93,12 @@ def delete_file(request, file_id):
     return redirect('upload')
 
 # Home page view
-
-
 @login_required
 def homepage(request):
     files = UploadedFile.objects.all().order_by('-uploaded_at')
     return render(request, "knowledge_app/homepage.html", {'files': files})
 
 # Stored maps view
-
-
 @login_required
 def maps(request):
     user_maps = KnowledgeMap.objects.filter(user=request.user)\
@@ -121,28 +109,20 @@ def maps(request):
     return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
 # Quiz view
-
-
 @login_required
 def quiz(request):
     return render(request, "knowledge_app/quiz.html")
 
 # Progress view
-
-
 @login_required
 def progress(request):
     return render(request, "knowledge_app/progress.html")
 
 # Login view
-
-
 def Login(request):
     return render(request, "knowledge_app/login.html")
 
 # Register view
-
-
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
