@@ -21,4 +21,5 @@ urlpatterns = [
     path('map/<int:map_id>/status/', views.map_status, name='map_status'),
     path('map/<int:map_id>/delete/', views.delete_map, name='delete_map'),
     path('profile/', views.user_profile, name='user_profile'),
+    path('preferences/theme/', views.update_theme, name='update_theme'),
 ]

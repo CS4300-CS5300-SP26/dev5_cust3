@@ -3,6 +3,14 @@
 <html lang="en">
 
 <head>
+    <!-- Apply Theme Before Page Load -->
+    <script>
+        const serverTheme = '{{ dark_mode|yesno:"dark,light" }}';
+        localStorage.setItem('theme', serverTheme);
+        if (serverTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -17,6 +25,31 @@
     <!-- Navbar CSS -->
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}?v=2">
     {% block head %}{% endblock %}
+
+    <script>
+        const toggle = document.getElementById('dark-mode-toggle');
+        if (toggle) {
+            toggle.checked = localStorage.getItem('theme') === 'dark';
+      
+            toggle.addEventListener('change', () => {
+                const isDark = toggle.checked;
+      
+                // 1. Update UI immediately (no waiting for server)
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      
+                // 2. Persist to Django in the background
+                fetch("{% url 'update_theme' %}", {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ dark_mode: isDark }),
+                });
+            });
+        }
+    </script>
 </head>
 
 

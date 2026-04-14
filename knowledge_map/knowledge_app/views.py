@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.db.models import Prefetch, Count
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
-
+from django.views.decorators.http import require_POST
 from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
 from .forms import QuizGenerationForm
 
@@ -470,3 +470,14 @@ def delete_map(request, map_id):
             KnowledgeMap, id=map_id, user=request.user)
         knowledge_map.delete()
     return redirect('maps')
+
+# Update theme view
+@login_required
+@require_POST
+def update_theme(request):
+    data = json.loads(request.body)
+    dark_mode = data.get('dark_mode', False)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.dark_mode = dark_mode
+    profile.save()
+    return JsonResponse({'status': 'ok', 'dark_mode': dark_mode})

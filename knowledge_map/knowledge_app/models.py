@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 import json
+from django.dispatch import receiver
 
 # Database table - stores info about PDF uploads
 
@@ -232,3 +233,24 @@ class NodeRelationship(models.Model):
 
     def __str__(self):
         return f"{self.source_topic} → {self.target_topic}"
+
+# User profile to persist personal settings
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    dark_mode = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+
+
+# Django signals to ensure that every user will get a profile automatically
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    # get_or_create handles existing users who don't have a profile yet
+    UserProfile.objects.get_or_create(user=instance)
+    
