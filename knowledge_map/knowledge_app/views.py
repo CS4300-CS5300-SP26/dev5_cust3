@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import UploadedFile, KnowledgeMap
 from .tasks import generate_knowledge_map
-import pdfplumber
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
@@ -11,7 +10,6 @@ from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 
 from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
 from .forms import QuizGenerationForm
-from .services.quiz_generator import generate_quiz
 
 import pdfplumber
 import os
@@ -19,19 +17,11 @@ import json
 
 # Landing page view
 
-
-
-
 def index(request):
     return render(request, "knowledge_app/index.html")
 
 # use @login_required to force login before accessing a view
-
 # delete file button view
-
-
-
-
 @login_required
 def delete_selected_files(request):
     if request.method == "POST":
@@ -49,12 +39,8 @@ def delete_selected_files(request):
                 f.delete()
 
     return redirect("upload")
-# Upload view
 
-
-# Upload view
-
-
+#Upload view
 @login_required
 def upload(request):
     if request.method == 'POST':
@@ -107,16 +93,12 @@ def delete_file(request, file_id):
     return redirect('upload')
 
 # Home page view
-
-
 @login_required
 def homepage(request):
     files = UploadedFile.objects.all().order_by('-uploaded_at')
     return render(request, "knowledge_app/homepage.html", {'files': files})
 
 # Stored maps view
-
-
 @login_required
 def maps(request):
     user_maps = KnowledgeMap.objects.filter(user=request.user)\
@@ -127,28 +109,20 @@ def maps(request):
     return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
 # Quiz view
-
-
 @login_required
 def quiz(request):
     return render(request, "knowledge_app/quiz.html")
 
 # Progress view
-
-
 @login_required
 def progress(request):
     return render(request, "knowledge_app/progress.html")
 
 # Login view
-
-
 def Login(request):
     return render(request, "knowledge_app/login.html")
 
 # Register view
-
-
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -158,6 +132,24 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+# User profile and settings page view
+@login_required
+def user_profile(request):
+    user = request.user
+    upload_count = UploadedFile.objects.filter(user=user).count()
+    quiz_attempts = QuizAttempt.objects.filter(user=user)
+    total_quizzes = quiz_attempts.count()
+    average_score = round(
+        sum(a.score for a in quiz_attempts) / total_quizzes, 1
+    ) if total_quizzes > 0 else 0
+
+    return render(request, "knowledge_app/user_profile.html", {
+        'user': user,
+        'upload_count': upload_count,
+        'total_quizzes': total_quizzes,
+        'average_score': average_score,
+    })
 
 # Quiz logic
 
@@ -240,7 +232,7 @@ def quizzes_hub(request):
     return render(request, 'knowledge_app/quizzes.html', {
         'quizzes': quizzes,
         'form': form,
-    '   preselected_pdf': request.GET.get('existing_pdf'), 
+        'preselected_pdf': request.GET.get('existing_pdf'),
 })
  
 
@@ -460,7 +452,6 @@ def view_map(request, map_id):
         'nodes': nodes,
         'edges': edges,
     })
-
 
 # API endpoint to check map generation status
 @login_required
