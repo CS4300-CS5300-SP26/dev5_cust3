@@ -243,8 +243,6 @@ def quizzes_hub(request):
     '   preselected_pdf': request.GET.get('existing_pdf'), 
 })
  
- 
-    })
 
 
 @login_required
