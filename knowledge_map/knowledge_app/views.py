@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.db.models import Prefetch, Count
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
+from django.db.models import Q
 
 from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
 from .forms import QuizGenerationForm
@@ -44,16 +45,13 @@ def delete_selected_files(request):
 @login_required
 def upload(request):
     if request.method == 'POST':
-        # Get the file from the form
         file = request.FILES.get('pdf_file')
 
         if file and file.name.endswith('.pdf'):
-            # Save file to database and disk
             original_name = file.name
-            uploaded = UploadedFile(file=file, original_filename=original_name,user=request.user)
+            uploaded = UploadedFile(file=file, original_filename=original_name, user=request.user)
             uploaded.save()
 
-            # Extract text from each page of the PDF
             text = ""
             try:
                 with pdfplumber.open(uploaded.file.path) as pdf:
@@ -62,18 +60,22 @@ def upload(request):
             except Exception as e:
                 pass
 
-            # Save extracted text
             uploaded.extracted_text = text
             uploaded.save()
 
-        # Redirect back to upload page after submission
         return redirect('upload')
 
-    # Get all uploaded files from the database, newest first
-    files = UploadedFile.objects.filter(user=request.user).order_by('-uploaded_at')
+    # Search
+    query = request.GET.get('q', '')
+    files = UploadedFile.objects.filter(user=request.user)
+    if query:
+        files = files.filter(
+            Q(original_filename__icontains=query) |
+            Q(extracted_text__icontains=query)
+        )
+    files = files.order_by('-uploaded_at')
 
-    # Send files to the template so they appear in the list
-    return render(request, "knowledge_app/upload.html", {'files': files})
+    return render(request, "knowledge_app/upload.html", {'files': files, 'query': query})
 
 
 @login_required

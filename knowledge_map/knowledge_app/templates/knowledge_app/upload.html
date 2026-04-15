@@ -14,7 +14,18 @@
             </form>
 
             <h3 class="mt-4">Uploaded Files</h3>
-
+            <!--add search feature---->
+            <form method="GET" action="" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="Search by filename or content..."
+                           value="{{ request.GET.q }}">
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                    {% if request.GET.q %}
+                    <a href="{% url 'upload' %}" class="btn btn-outline-secondary">Clear</a>
+                    {% endif %}
+                </div>
+            </form>
             {% if files %}
             <form method="POST" action="{% url 'delete_selected_files' %}">
                 {% csrf_token %}
