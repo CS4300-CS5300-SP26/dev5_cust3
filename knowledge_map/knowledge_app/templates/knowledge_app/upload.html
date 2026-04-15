@@ -14,18 +14,48 @@
             </form>
 
             <h3 class="mt-4">Uploaded Files</h3>
-            <!--add search feature---->
+
+            <!-- Search -->
             <form method="GET" action="" class="mb-3">
                 <div class="input-group">
-                    <input type="text" name="q" class="form-control" 
+                    <input type="text" name="q" class="form-control"
                            placeholder="Search by filename or content..."
-                           value="{{ request.GET.q }}">
+                           value="{{ query }}">
+                    {% if active_folder %}<input type="hidden" name="folder" value="{{ active_folder }}">{% endif %}
                     <button class="btn btn-outline-primary" type="submit">Search</button>
-                    {% if request.GET.q %}
-                    <a href="{% url 'upload' %}" class="btn btn-outline-secondary">Clear</a>
+                    {% if query %}
+                    <a href="{% url 'upload' %}{% if active_folder %}?folder={{ active_folder }}{% endif %}" class="btn btn-outline-secondary">Clear</a>
                     {% endif %}
                 </div>
             </form>
+
+            <!-- Folder pills -->
+            <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                <a href="{% url 'upload' %}{% if query %}?q={{ query }}{% endif %}"
+                   class="btn btn-sm {% if not active_folder %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    All Files
+                </a>
+                <a href="?folder=none{% if query %}&q={{ query }}{% endif %}"
+                   class="btn btn-sm {% if active_folder == 'none' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    📄 Unfiled
+                </a>
+                {% for folder in folders %}
+                <a href="?folder={{ folder.id }}{% if query %}&q={{ query }}{% endif %}"
+                   class="btn btn-sm {% if active_folder == folder.id|stringformat:'s' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    📁 {{ folder.name }}
+                </a>
+                {% endfor %}
+
+                <!-- New folder inline form -->
+                <form method="POST" action="{% url 'create_folder' %}" class="d-flex gap-1" id="new-folder-form" style="display:none !important">
+                    {% csrf_token %}
+                    <input type="text" name="name" class="form-control form-control-sm" placeholder="Folder name" style="width:140px">
+                    <button type="submit" class="btn btn-sm btn-success">Add</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="cancel-folder">✕</button>
+                </form>
+                <button class="btn btn-sm btn-outline-secondary" id="new-folder-btn">+ New Folder</button>
+            </div>
+
             {% if files %}
             <form method="POST" action="{% url 'delete_selected_files' %}">
                 {% csrf_token %}
@@ -34,35 +64,51 @@
                     {% for f in files %}
                     <li class="border rounded p-2 mb-2 d-flex justify-content-between align-items-center">
                         <div>
-                            <input
-                                type="checkbox"
-                                name="selected_files"
-                                value="{{ f.id }}"
-                                class="file-checkbox me-2"
-                            >
+                            <input type="checkbox" name="selected_files" value="{{ f.id }}" class="file-checkbox me-2">
                             <a href="{{ f.file.url }}" target="_blank">{{ f.display_name }}</a>
                             <span class="text-muted">— {{ f.uploaded_at|date:"M d, Y H:i" }}</span>
+                            {% if f.folder %}
+                            <span class="badge bg-secondary ms-1">📁 {{ f.folder.name }}</span>
+                            {% endif %}
                         </div>
                     </li>
                     {% endfor %}
                 </ul>
 
-                <div class="d-flex gap-2 mt-3">
+                <div class="d-flex gap-2 mt-3 flex-wrap align-items-center">
                     <button id="create-map-btn" type="button" class="btn btn-primary" disabled>
                         Create Knowledge Map
                     </button>
-                    <button id="create-quiz-btn" type="button" class="btn btn-primary" disabled
-                        title="Select exactly one file to generate a quiz">
+                    <button id="create-quiz-btn" type="button" class="btn btn-primary" disabled>
                         Generate Quiz
                     </button>
-
                     <button id="delete-files-btn" type="submit" class="btn btn-danger" disabled>
-                        Delete Selected Files
+                        Delete Selected
                     </button>
+
+                    <!-- Move to folder -->
+                    <div class="d-flex gap-1 align-items-center" id="move-controls" style="display:none !important">
+                        <select id="move-target" class="form-select form-select-sm" style="width:auto" disabled>
+                            <option value="">Move to...</option>
+                            <option value="">— Unfiled —</option>
+                            {% for folder in folders %}
+                            <option value="{{ folder.id }}">📁 {{ folder.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="move-btn" disabled>Move</button>
+                    </div>
                 </div>
             </form>
+
+            <!-- Separate move form (POST to move_files) -->
+            <form method="POST" action="{% url 'move_files' %}" id="move-form">
+                {% csrf_token %}
+                <input type="hidden" name="target_folder" id="move-folder-input">
+                <!-- file ids injected by JS -->
+            </form>
+
             {% else %}
-            <p>No files uploaded yet.</p>
+            <p class="text-muted">No files found.</p>
             {% endif %}
         </div>
     </div>
@@ -73,6 +119,10 @@ const checkboxes = document.querySelectorAll('.file-checkbox');
 const createBtn = document.getElementById('create-map-btn');
 const quizBtn = document.getElementById('create-quiz-btn');
 const deleteBtn = document.getElementById('delete-files-btn');
+const moveControls = document.getElementById('move-controls');
+const moveTarget = document.getElementById('move-target');
+const moveBtn = document.getElementById('move-btn');
+const moveForm = document.getElementById('move-form');
 
 function updateButtonState() {
     const checked = Array.from(checkboxes).filter(cb => cb.checked);
@@ -80,10 +130,18 @@ function updateButtonState() {
     const exactlyOne = checked.length === 1;
 
     if (createBtn) createBtn.disabled = !anyChecked;
-    if (quizBtn) quizBtn.disabled = !exactlyOne;  // only enable for single selection
+    if (quizBtn) quizBtn.disabled = !exactlyOne;
     if (deleteBtn) deleteBtn.disabled = !anyChecked;
+
+    // Show/hide move controls
+    if (moveControls) {
+        moveControls.style.display = anyChecked ? 'flex' : 'none';
+        moveTarget.disabled = !anyChecked;
+        moveBtn.disabled = !anyChecked;
+    }
 }
-updateButtonState()
+
+updateButtonState();
 checkboxes.forEach(cb => cb.addEventListener('change', updateButtonState));
 
 quizBtn.addEventListener('click', function() {
@@ -91,6 +149,37 @@ quizBtn.addEventListener('click', function() {
     if (selectedId) {
         window.location.href = `{% url 'quizzes' %}?existing_pdf=${selectedId}`;
     }
+});
+
+// Move button — inject checked file IDs into the move form and submit
+moveBtn.addEventListener('click', function() {
+    const checked = Array.from(checkboxes).filter(cb => cb.checked);
+    if (!checked.length) return;
+
+    // Clear old hidden inputs
+    moveForm.querySelectorAll('input[name="selected_files"]').forEach(el => el.remove());
+
+    // Add checked file ids
+    checked.forEach(cb => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'selected_files';
+        input.value = cb.value;
+        moveForm.appendChild(input);
+    });
+
+    document.getElementById('move-folder-input').value = moveTarget.value;
+    moveForm.submit();
+});
+
+// New folder toggle
+document.getElementById('new-folder-btn').addEventListener('click', function() {
+    document.getElementById('new-folder-form').style.display = 'flex';
+    this.style.display = 'none';
+});
+document.getElementById('cancel-folder').addEventListener('click', function() {
+    document.getElementById('new-folder-form').style.display = 'none';
+    document.getElementById('new-folder-btn').style.display = '';
 });
 </script>
 {% endblock %}

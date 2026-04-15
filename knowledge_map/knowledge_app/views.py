@@ -9,7 +9,7 @@ from django.db.models import Prefetch, Count
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 from django.db.models import Q
 
-from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
+from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile, Folder
 from .forms import QuizGenerationForm
 
 import pdfplumber
@@ -57,7 +57,7 @@ def upload(request):
                 with pdfplumber.open(uploaded.file.path) as pdf:
                     for page in pdf.pages:
                         text += page.extract_text() or ""
-            except Exception as e:
+            except Exception:
                 pass
 
             uploaded.extracted_text = text
@@ -65,17 +65,57 @@ def upload(request):
 
         return redirect('upload')
 
-    # Search
     query = request.GET.get('q', '')
+    folder_id = request.GET.get('folder', '')
+    folders = Folder.objects.filter(user=request.user)
+
     files = UploadedFile.objects.filter(user=request.user)
     if query:
         files = files.filter(
             Q(original_filename__icontains=query) |
             Q(extracted_text__icontains=query)
         )
+    if folder_id == 'none':
+        files = files.filter(folder__isnull=True)
+    elif folder_id:
+        files = files.filter(folder__id=folder_id)
+
     files = files.order_by('-uploaded_at')
 
-    return render(request, "knowledge_app/upload.html", {'files': files, 'query': query})
+    return render(request, "knowledge_app/upload.html", {
+        'files': files,
+        'query': query,
+        'folders': folders,
+        'active_folder': folder_id,
+    })
+
+#folder mangemnt views
+def create_folder(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            Folder.objects.get_or_create(user=request.user, name=name)
+    return redirect('upload')
+
+
+def move_files(request):
+    if request.method == 'POST':
+        file_ids = request.POST.getlist('selected_files')
+        folder_id = request.POST.get('target_folder')
+
+        folder = None
+        if folder_id:
+            try:
+                folder = Folder.objects.get(id=folder_id, user=request.user)
+            except Folder.DoesNotExist:
+                pass
+
+        UploadedFile.objects.filter(
+            id__in=file_ids,
+            user=request.user
+        ).update(folder=folder)
+
+    return redirect('upload')
 
 
 @login_required

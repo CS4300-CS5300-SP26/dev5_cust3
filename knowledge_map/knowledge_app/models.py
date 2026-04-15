@@ -4,6 +4,18 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 import json
 
 # Database table - stores info about PDF uploads
+# add folders model
+class Folder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folders')
+    name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+        unique_together = ['user', 'name']  # no duplicate folder names per user
 
 
 class UploadedFile(models.Model):
@@ -12,11 +24,11 @@ class UploadedFile(models.Model):
     file = models.FileField(upload_to='uploads/')
     original_filename = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
-    # Store user and extracted text
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    # extracts text for BERTopic
     extracted_text = models.TextField(blank=True, default='')
+    folder = models.ForeignKey(Folder, null=True, blank=True,   # update for folders
+                               on_delete=models.SET_NULL,
+                               related_name='files')
 
     @property
     def display_name(self):
