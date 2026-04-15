@@ -179,7 +179,7 @@ class GenerateKnowledgeMapDataTests(TestCase):
         for topic in topics:
             self.assertIsInstance(topic["keywords"], list)
 
-@patch("knowledge_app.processing.OpenAI")
+    @patch("knowledge_app.processing.OpenAI")
     def test_invalid_json_returns_empty_lists(self, MockOpenAI):
         """A response that is not valid JSON should return empty lists."""
         mock_response = MagicMock()
