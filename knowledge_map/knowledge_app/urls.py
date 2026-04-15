@@ -15,9 +15,10 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', views.register, name='register'),
     path('quiz/<int:pk>/delete/', views.delete_quiz, name='delete_quiz'),
-    #path('logout/', views.logout, name='logout'),
+    # path('logout/', views.logout, name='logout'),
     path('create-map/', views.create_map, name='create_map'),
     path('map/<int:map_id>/', views.view_map, name='view_map'),
     path('map/<int:map_id>/status/', views.map_status, name='map_status'),
     path('map/<int:map_id>/delete/', views.delete_map, name='delete_map'),
+    path('profile/', views.user_profile, name='user_profile'),
 ]

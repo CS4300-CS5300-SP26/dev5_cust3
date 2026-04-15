@@ -1,0 +1,28 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install flake8 isort
+
+      - name: Run flake8
+        run: flake8 . --exit-zero
+
+      - name: Run isort check
+        run: isort . --check-only --diff || true

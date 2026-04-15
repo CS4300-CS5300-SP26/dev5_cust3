@@ -1,0 +1,75 @@
+{% extends "knowledge_app/base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/user_profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrapper">
+
+  <div class="profile-header">
+    <div class="profile-avatar">{{ user.username|slice:":2"|upper }}</div>
+    <div>
+      <h1>{{ user.username }}</h1>
+      <p class="profile-joined">Joined {{ user.date_joined|date:"F j, Y" }}</p>
+    </div>
+  </div>
+
+  <div class="profile-stats">
+    <div class="stat-card">
+      <p class="stat-label">Files uploaded</p>
+      <p class="stat-value">{{ upload_count }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Quizzes taken</p>
+      <p class="stat-value">{{ total_quizzes }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Average score</p>
+      <p class="stat-value">{{ average_score }}%</p>
+    </div>
+  </div>
+
+  <div class="profile-section">
+    <h2>Account info</h2>
+    <table class="profile-table">
+      <tr>
+        <td>Username</td>
+        <td>{{ user.username }}</td>
+      </tr>
+      <tr>
+        <td>Email</td>
+        <td>{{ user.email|default:"Not set" }} <a href="#">Change</a></td>
+      </tr>
+      <tr>
+        <td>Password</td>
+        <td>Change password coming soon</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="profile-section">
+    <h2>Preferences</h2>
+    <div class="profile-row">
+      <div>
+        <p>Dark mode</p>
+        <p class="coming-soon">Coming soon</p>
+      </div>
+      <button disabled>Enable</button>
+    </div>
+  </div>
+
+  <div class="profile-section danger-zone">
+    <h2>Danger zone</h2>
+    <div class="profile-row">
+      <div>
+        <p>Delete account</p>
+        <p class="coming-soon">Coming soon</p>
+      </div>
+      <button disabled class="danger-btn">Delete</button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
