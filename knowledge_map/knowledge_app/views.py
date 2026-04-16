@@ -15,6 +15,9 @@ import pdfplumber
 import os
 import json
 
+from .models import KnowledgeMap, SharedMap
+from django.contrib.auth.models import User
+
 # Landing page view
 
 def index(request):
@@ -461,8 +464,6 @@ def map_status(request, map_id):
     return JsonResponse({'status': knowledge_map.status})
 
 # Delete map view
-
-
 @login_required
 def delete_map(request, map_id):
     if request.method == 'POST':
@@ -470,3 +471,61 @@ def delete_map(request, map_id):
             KnowledgeMap, id=map_id, user=request.user)
         knowledge_map.delete()
     return redirect('maps')
+
+# Share map view
+@login_required
+def share_map(request, map_id):
+    knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+
+    if request.method == 'POST':
+        share_type = request.POST.get('share_type')
+
+        if share_type == 'public':
+            # get or create public share link
+            shared_map, created = SharedMap.objects.get_or_create(
+                knowledge_map=knowledge_map,
+                is_public=True,
+                shared_with=None
+            )
+            return JsonResponse({
+                'share_url': request.build_absolute_uri(
+                    reverse('view_shared_map', args=[shared_map.share_token])
+                )
+            })
+        elif share_type == 'user':
+            username = request.POST.get('username', '').strip()
+            try:
+                user_to_share_with = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return JsonResponse({'error': f'User "{username}" not found'}, status=404)
+
+            # Don't allow sharing with yourself
+            if user_to_share_with == request.user:
+                return JsonResponse({'error': 'You cannot share a map with yourself'}, status=400)
+
+            # Get or create share for this specific user
+            shared_map, created = SharedMap.objects.get_or_create(
+                knowledge_map=knowledge_map,
+                shared_with=user_to_share_with,
+                defaults={'is_public': False}
+            )
+            return JsonResponse({
+                'message': f'Map shared with {username} successfully'
+            })
+
+    # GET - show share options
+    public_share = SharedMap.objects.filter(
+        knowledge_map=knowledge_map,
+        is_public=True
+    ).first()
+
+    shared_users = SharedMap.objects.filter(
+        knowledge_map=knowledge_map,
+        is_public=False
+    ).exclude(shared_with=None)
+
+    return render(request, 'knowledge_app/share_map.html', {
+        'knowledge_map': knowledge_map,
+        'public_share': public_share,
+        'shared_users': shared_users,
+    })

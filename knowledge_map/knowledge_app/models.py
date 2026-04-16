@@ -233,7 +233,7 @@ class NodeRelationship(models.Model):
         return f"{self.source_topic} → {self.target_topic}"
 
 # store permissions for a knowledge map
-class ShareMap(models.Model):
+class SharedMap(models.Model):
     knowledge_map = models.ForeignKey(KnowledgeMap, on_delete=models.CASCADE, related_name='shares')
 
     # public link sharing - anyone with the token can view
