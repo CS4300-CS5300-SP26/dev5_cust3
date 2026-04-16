@@ -15,6 +15,13 @@
 
     <!-- Cytoscape.js renders the map here -->
     <div id="cy"></div>
+
+    <!-- Node popup panel shown when a node is clicked -->
+    <div id="node-popup" class="node-popup hidden">
+        <button id="popup-close" class="popup-close">✕</button>
+        <h3 id="popup-label"></h3>
+        <p id="popup-summary"></p>
+    </div>
 </div>
 
 <!-- Cytoscape.js -->
@@ -67,6 +74,32 @@
             name: 'cose',         // force-directed layout
             animate: true,
             padding: 50
+        }
+    });
+
+    // Cache DOM elements once to avoid repeated lookups
+    const popup = document.getElementById('node-popup');
+    const popupLabel = document.getElementById('popup-label');
+    const popupSummary = document.getElementById('popup-summary');
+    const popupClose = document.getElementById('popup-close');
+
+    // Show popup when a node is clicked
+    cy.on('tap', 'node', function(event) {
+        const node = event.target;
+        popupLabel.textContent = node.data('label') || '';
+        popupSummary.textContent = node.data('summary') || '';
+        popup.classList.remove('hidden');
+    });
+
+    // Close popup when close button is clicked
+    popupClose.addEventListener('click', function() {
+        popup.classList.add('hidden');
+    });
+
+    // Close popup when clicking on the background
+    cy.on('tap', function(event) {
+        if (event.target === cy) {
+            popup.classList.add('hidden');
         }
     });
 
