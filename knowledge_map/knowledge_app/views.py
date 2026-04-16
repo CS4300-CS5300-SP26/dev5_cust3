@@ -492,8 +492,8 @@ def view_map(request, map_id):
 
     return render(request, 'knowledge_app/view_map.html', {
         'knowledge_map': knowledge_map,
-        'nodes': json.dumps(nodes),
-        'edges': json.dumps(edges),
+        'nodes': nodes,
+        'edges': edges,
     })
 
 # API endpoint to check map generation status
