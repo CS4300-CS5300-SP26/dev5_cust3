@@ -7,8 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.db.models import Prefetch, Count
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
+from django.db.models import Q
+from openai import OpenAI
 
-from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
+from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile, Folder
 from .forms import QuizGenerationForm
 
 import pdfplumber
@@ -44,36 +46,77 @@ def delete_selected_files(request):
 @login_required
 def upload(request):
     if request.method == 'POST':
-        # Get the file from the form
         file = request.FILES.get('pdf_file')
 
         if file and file.name.endswith('.pdf'):
-            # Save file to database and disk
             original_name = file.name
-            uploaded = UploadedFile(file=file, original_filename=original_name,user=request.user)
+            uploaded = UploadedFile(file=file, original_filename=original_name, user=request.user)
             uploaded.save()
 
-            # Extract text from each page of the PDF
             text = ""
             try:
                 with pdfplumber.open(uploaded.file.path) as pdf:
                     for page in pdf.pages:
                         text += page.extract_text() or ""
-            except Exception as e:
+            except Exception:
                 pass
 
-            # Save extracted text
             uploaded.extracted_text = text
             uploaded.save()
 
-        # Redirect back to upload page after submission
         return redirect('upload')
 
-    # Get all uploaded files from the database, newest first
-    files = UploadedFile.objects.filter(user=request.user).order_by('-uploaded_at')
+    query = request.GET.get('q', '')
+    folder_id = request.GET.get('folder', '')
+    folders = Folder.objects.filter(user=request.user)
 
-    # Send files to the template so they appear in the list
-    return render(request, "knowledge_app/upload.html", {'files': files})
+    files = UploadedFile.objects.filter(user=request.user)
+    if query:
+        files = files.filter(
+            Q(original_filename__icontains=query) |
+            Q(extracted_text__icontains=query)
+        )
+    if folder_id == 'none':
+        files = files.filter(folder__isnull=True)
+    elif folder_id:
+        files = files.filter(folder__id=folder_id)
+
+    files = files.order_by('-uploaded_at')
+
+    return render(request, "knowledge_app/upload.html", {
+        'files': files,
+        'query': query,
+        'folders': folders,
+        'active_folder': folder_id,
+    })
+
+#folder mangemnt views
+def create_folder(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            Folder.objects.get_or_create(user=request.user, name=name)
+    return redirect('upload')
+
+
+def move_files(request):
+    if request.method == 'POST':
+        file_ids = request.POST.getlist('selected_files')
+        folder_id = request.POST.get('target_folder')
+
+        folder = None
+        if folder_id:
+            try:
+                folder = Folder.objects.get(id=folder_id, user=request.user)
+            except Folder.DoesNotExist:
+                pass
+
+        UploadedFile.objects.filter(
+            id__in=file_ids,
+            user=request.user
+        ).update(folder=folder)
+
+    return redirect('upload')
 
 
 @login_required
@@ -449,8 +492,8 @@ def view_map(request, map_id):
 
     return render(request, 'knowledge_app/view_map.html', {
         'knowledge_map': knowledge_map,
-        'nodes': nodes,
-        'edges': edges,
+        'nodes': json.dumps(nodes),
+        'edges': json.dumps(edges),
     })
 
 # API endpoint to check map generation status
@@ -470,3 +513,31 @@ def delete_map(request, map_id):
             KnowledgeMap, id=map_id, user=request.user)
         knowledge_map.delete()
     return redirect('maps')
+
+
+#related topics
+
+def related_topics(request, map_id):
+    knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+    
+    topic_labels = list(knowledge_map.topics.values_list('label', flat=True))
+    
+    client = OpenAI()  # uses OPENAI_API_KEY env var
+    
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a research assistant. Given a list of knowledge map topics, suggest 5-8 related research areas or articles the user might want to explore. Return JSON: {\"suggestions\": [{\"title\": str, \"description\": str, \"search_query\": str}]}"
+            },
+            {
+                "role": "user", 
+                "content": f"Topics: {', '.join(topic_labels)}"
+            }
+        ],
+        response_format={"type": "json_object"}
+    )
+    
+    data = json.loads(response.choices[0].message.content)
+    return JsonResponse(data)
