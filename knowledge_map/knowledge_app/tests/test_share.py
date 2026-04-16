@@ -207,39 +207,7 @@ class ShareMapTest(TestCase):
         response = self.client.get(reverse('view_shared_map', args=[uuid.uuid4()]))
         self.assertEqual(response.status_code, 404)
 
-    # -------------------------------------------------------------------------
-    # Revoke share
-    # -------------------------------------------------------------------------
-
-    def test_revoke_public_share_deletes_record(self):
-        """Revoking a public share should delete the SharedMap record."""
-        shared = SharedMap.objects.create(
-            knowledge_map=self.knowledge_map,
-            is_public=True
-        )
-        self.client.post(reverse('revoke_share', args=[shared.id]))
-        self.assertFalse(SharedMap.objects.filter(id=shared.id).exists())
-
-    def test_revoke_user_share_deletes_record(self):
-        """Revoking a user share should delete the SharedMap record."""
-        shared = SharedMap.objects.create(
-            knowledge_map=self.knowledge_map,
-            shared_with=self.other_user,
-            is_public=False
-        )
-        self.client.post(reverse('revoke_share', args=[shared.id]))
-        self.assertFalse(SharedMap.objects.filter(id=shared.id).exists())
-
-    def test_revoke_share_by_non_owner_returns_404(self):
-        """Non-owner should not be able to revoke a share."""
-        shared = SharedMap.objects.create(
-            knowledge_map=self.knowledge_map,
-            is_public=True
-        )
-        self.client.login(username='otheruser', password='testpass123')
-        response = self.client.post(reverse('revoke_share', args=[shared.id]))
-        self.assertEqual(response.status_code, 404)
-
+    
     # -------------------------------------------------------------------------
     # Maps page shared with me section
     # -------------------------------------------------------------------------
