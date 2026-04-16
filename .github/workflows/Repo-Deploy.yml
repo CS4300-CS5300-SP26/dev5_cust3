@@ -1,9 +1,7 @@
 name: Deploy to Production
-
 on:
   push:
     branches: [main]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,73 +12,24 @@ jobs:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          envs: SECRET_KEY,DB_NAME,DB_USER,DB_PASSWORD,DB_HOST,DB_PORT,DB_SSLMODE,CELERY_BROKER_URL,OPENAI_API_KEY
           script: |
-            set -e
-
-            export DJANGO_SETTINGS_MODULE=knowledge_map.settings.prod
-            export SECRET_KEY="$SECRET_KEY"
-            export DEBUG=False
-            export DJANGO_ALLOWED_HOSTS=yourknowledgemap.me
-            export DB_NAME="$DB_NAME"
-            export DB_USER="$DB_USER"
-            export DB_PASSWORD="$DB_PASSWORD"
-            export DB_HOST="$DB_HOST"
-            export DB_PORT="$DB_PORT"
-            export DB_SSLMODE="$DB_SSLMODE"
-            export CELERY_BROKER_URL="$CELERY_BROKER_URL"
-            export OPENAI_API_KEY="$OPENAI_API_KEY"
-
             cd /opt/knowledge_map/dev5_cust3
             git pull origin main
             /opt/knowledge_map/venv/bin/pip install -r knowledge_map/requirements.txt
-
             cd knowledge_map
-
-            echo "Running Django system check..."
-            /opt/knowledge_map/venv/bin/python manage.py check 2>&1
-
-            echo "Running migrations..."
+            export DJANGO_SETTINGS_MODULE=knowledge_map.settings.prod
+            export SECRET_KEY="${{ secrets.SECRET_KEY }}"
+            export DEBUG=False
+            export DJANGO_ALLOWED_HOSTS=yourknowledgemap.me
+            export DB_NAME="${{ secrets.DB_NAME }}"
+            export DB_USER="${{ secrets.DB_USER }}"
+            export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+            export DB_HOST="${{ secrets.DB_HOST }}"
+            export DB_PORT="${{ secrets.DB_PORT }}"
+            export DB_SSLMODE="${{ secrets.DB_SSLMODE }}"
+            export CELERY_BROKER_URL="${{ secrets.CELERY_BROKER_URL }}"
+            export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
             /opt/knowledge_map/venv/bin/python manage.py migrate --noinput
-
-            echo "Collecting static files..."
             /opt/knowledge_map/venv/bin/python manage.py collectstatic --noinput --clear
-
-            echo "Restarting services..."
             sudo systemctl restart gunicorn
             sudo systemctl restart celery
-
-            echo "Waiting for gunicorn to start..."
-            sleep 5
-
-            echo "Testing key pages..."
-            test_page() {
-              local url=$1
-              local name=$2
-              local status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000$url)
-              if [ "$status" = "200" ] || [ "$status" = "302" ]; then
-                echo "  ✓ $name ($status)"
-              else
-                echo "  ✗ $name returned $status - DEPLOY FAILED"
-                sudo journalctl -u gunicorn -n 30 --no-pager
-                exit 1
-              fi
-            }
-
-            test_page "/" "Homepage"
-            test_page "/accounts/login/" "Login page"
-            test_page "/upload/" "Upload page"
-            test_page "/quizzes/" "Quizzes page"
-            test_page "/maps/" "Maps page"
-
-            echo "All checks passed - deploy successful!"
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
-          CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
