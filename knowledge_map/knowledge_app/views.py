@@ -17,6 +17,7 @@ import json
 
 from .models import KnowledgeMap, SharedMap
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 # Landing page view
 
@@ -109,8 +110,17 @@ def maps(request):
         .prefetch_related('topics')\
         .annotate(topic_count=Count('topics'))\
         .order_by('-created_at')
-    return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
+    # Maps shared with user by other users
+    shared_with_me = SharedMap.objects.filter(
+        shared_with=request.user
+    ).select_related('knowledge_map', 'knowledge_map__user')
+
+    return render(request, "knowledge_app/maps.html", {
+        'maps': user_maps,
+        'shared_with_me': shared_with_me,
+    })
+    
 # Quiz view
 @login_required
 def quiz(request):

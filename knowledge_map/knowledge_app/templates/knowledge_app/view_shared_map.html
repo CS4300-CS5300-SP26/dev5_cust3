@@ -1,0 +1,101 @@
+{% extends "knowledge_app/base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/view_map.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="view-map-wrapper">
+    <div class="map-header">
+        <h1>{{ knowledge_map.title }}</h1>
+        <span class="map-status complete">Shared Map</span>
+    </div>
+
+    <!-- Cytoscape.js renders the map here -->
+    <div id="cy"></div>
+
+    <!-- Node popup panel shown when a node is clicked -->
+    <div id="node-popup" class="node-popup hidden">
+        <button id="popup-close" class="popup-close">✕</button>
+        <h3 id="popup-label"></h3>
+        <p id="popup-summary"></p>
+    </div>
+</div>
+
+<!-- Cytoscape.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+
+<script>
+    const cyNodes = {{ nodes|safe }};
+    const cyEdges = {{ edges|safe }};
+
+    const cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: [...cyNodes, ...cyEdges],
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    'background-color': '#0e223e',
+                    'label': 'data(label)',
+                    'color': '#fff',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'font-size': '12px',
+                    'width': '120px',
+                    'height': '40px',
+                    'shape': 'roundrectangle',
+                    'text-wrap': 'wrap',
+                    'text-max-width': '110px',
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 2,
+                    'line-color': '#9db8dd',
+                    'target-arrow-color': '#9db8dd',
+                    'target-arrow-shape': 'triangle',
+                    'curve-style': 'bezier',
+                    'label': 'data(label)',
+                    'font-size': '10px',
+                    'color': '#333',
+                }
+            }
+        ],
+        layout: {
+            name: 'cose',
+            animate: true,
+            padding: 50
+        }
+    });
+
+    // Cache DOM elements
+    const popup = document.getElementById('node-popup');
+    const popupLabel = document.getElementById('popup-label');
+    const popupSummary = document.getElementById('popup-summary');
+    const popupClose = document.getElementById('popup-close');
+
+    // Show popup when a node is clicked
+    cy.on('tap', 'node', function(event) {
+        const node = event.target;
+        popupLabel.textContent = node.data('label') || '';
+        popupSummary.textContent = node.data('summary') || '';
+        popup.classList.remove('hidden');
+    });
+
+    // Close popup when close button is clicked
+    popupClose.addEventListener('click', function() {
+        popup.classList.add('hidden');
+    });
+
+    // Close popup when clicking on the background
+    cy.on('tap', function(event) {
+        if (event.target === cy) {
+            popup.classList.add('hidden');
+        }
+    });
+</script>
+
+{% endblock %}
