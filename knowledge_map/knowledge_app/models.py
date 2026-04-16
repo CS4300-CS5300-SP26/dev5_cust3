@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 import json
+import uuid
 
 # Database table - stores info about PDF uploads
 
@@ -218,8 +219,6 @@ class SubtopicNode(models.Model):
         return self.label
 
 # Relationship/edge between two topic nodes on the map
-
-
 class NodeRelationship(models.Model):
     knowledge_map = models.ForeignKey(
         KnowledgeMap, on_delete=models.CASCADE, related_name='relationships')
@@ -232,3 +231,21 @@ class NodeRelationship(models.Model):
 
     def __str__(self):
         return f"{self.source_topic} → {self.target_topic}"
+
+# store permissions for a knowledge map
+class ShareMap(models.Model):
+    knowledge_map = models.ForeignKey(KnowledgeMap, on_delete=models.CASCADE, related_name='shares')
+
+    # public link sharing - anyone with the token can view
+    share_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    is_public = models.BooleanField(default=False)
+
+    # sharing with specific user
+    shared_with = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='shared_map')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        if self.shared_with:
+            return f"{self.knowledge_map.title} shared with {self.shared_with.username}"
+        return f"{self.knowledge_map.title} (public link)"
