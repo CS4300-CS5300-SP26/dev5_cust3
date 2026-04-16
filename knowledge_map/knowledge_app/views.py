@@ -8,6 +8,7 @@ from django.views import View
 from django.db.models import Prefetch, Count
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 from django.db.models import Q
+from openai import OpenAI
 
 from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile, Folder
 from .forms import QuizGenerationForm
@@ -491,8 +492,8 @@ def view_map(request, map_id):
 
     return render(request, 'knowledge_app/view_map.html', {
         'knowledge_map': knowledge_map,
-        'nodes': nodes,
-        'edges': edges,
+        'nodes': json.dumps(nodes),
+        'edges': json.dumps(edges),
     })
 
 # API endpoint to check map generation status
@@ -512,3 +513,31 @@ def delete_map(request, map_id):
             KnowledgeMap, id=map_id, user=request.user)
         knowledge_map.delete()
     return redirect('maps')
+
+
+#related topics
+
+def related_topics(request, map_id):
+    knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+    
+    topic_labels = list(knowledge_map.topics.values_list('label', flat=True))
+    
+    client = OpenAI()  # uses OPENAI_API_KEY env var
+    
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a research assistant. Given a list of knowledge map topics, suggest 5-8 related research areas or articles the user might want to explore. Return JSON: {\"suggestions\": [{\"title\": str, \"description\": str, \"search_query\": str}]}"
+            },
+            {
+                "role": "user", 
+                "content": f"Topics: {', '.join(topic_labels)}"
+            }
+        ],
+        response_format={"type": "json_object"}
+    )
+    
+    data = json.loads(response.choices[0].message.content)
+    return JsonResponse(data)
