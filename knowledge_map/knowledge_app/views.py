@@ -529,3 +529,41 @@ def share_map(request, map_id):
         'public_share': public_share,
         'shared_users': shared_users,
     })
+
+# View a shared map — accessible via public token or if shared with the user
+def view_shared_map(request, share_token):
+    shared_map = get_object_or_404(SharedMap, share_token=share_token)
+
+    # Check access — public link or shared with logged in user
+    if not shared_map.is_public:
+        if not request.user.is_authenticated:
+            return redirect(f'/accounts/login/?next={request.path}')
+        if shared_map.shared_with != request.user:
+            return HttpResponse('You do not have access to this map.', status=403)
+
+    knowledge_map = shared_map.knowledge_map
+    topics = knowledge_map.topics.all()
+    relationships = knowledge_map.relationships.all()
+
+    nodes = [
+        {'data': {'id': str(topic.id), 'label': topic.label, 'summary': topic.summary}}
+        for topic in topics
+    ]
+    edges = [
+        {
+            'data': {
+                'id': f"e{rel.id}",
+                'source': str(rel.source_topic.id),
+                'target': str(rel.target_topic.id),
+                'label': rel.relationship_label
+            }
+        }
+        for rel in relationships
+    ]
+
+    return render(request, 'knowledge_app/view_shared_map.html', {
+        'knowledge_map': knowledge_map,
+        'nodes': nodes,
+        'edges': edges,
+        'shared_map': shared_map,
+    })

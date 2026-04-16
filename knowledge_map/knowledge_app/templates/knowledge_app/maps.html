@@ -29,6 +29,7 @@
             <div class="map-card-footer">
                 {% if map.status == 'complete' %}
                 <a href="{% url 'view_map' map.id %}" class="view-btn">View Map</a>
+                <a href="{% url 'share_map' map.id %}" class="share-btn">Share</a>
                 {% else %}
                 <span class="pending-msg">{{ map.status|capfirst }}...</span>
                 {% endif %}
