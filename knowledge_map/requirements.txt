@@ -64,7 +64,7 @@ nvidia-nvjitlink==13.0.88
 nvidia-nvshmem-cu13==3.4.5
 nvidia-nvtx==13.0.85
 openai==2.29.0
-packaging==26.0
+packaging==26.1
 pandas==3.0.1
 parse==1.21.1
 parse_type==0.6.6
