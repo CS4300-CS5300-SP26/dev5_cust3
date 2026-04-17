@@ -15,7 +15,7 @@ import pdfplumber
 import os
 import json
 
-from .models import KnowledgeMap, SharedMap
+from .models import KnowledgeMap, SharedMap, TopicNode
 from django.contrib.auth.models import User
 from django.urls import reverse
 
@@ -577,3 +577,41 @@ def view_shared_map(request, share_token):
         'edges': edges,
         'shared_map': shared_map,
     })
+
+# Add new topic node to a map
+@login_required
+def add_node(request, map_id):
+    if request.method == 'POST':
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+
+        data = json.loads(request.body)
+        label = data.get('label", '').strip()
+        summary = data.get('summary', '').strip()
+
+        if not label:
+            return JsonResponse({'error': 'Label is required'}, status=400)
+
+        node = TopicNode.objects.create(
+            knowledge_map=knowledge_map,
+            label=label,
+            summary=summary
+        )
+
+        return JsonResponse({
+            'id': str(node.id),
+            'label': node.label,
+            'summary': node.summary
+        })
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+# delete topic node
+@login_required
+def delete_node(request, mapi_id, node_id):
+    if request.method == 'POST':
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+        node = get_object_or_404(TopicNode, id=node_id, knowledge_map=knowledge_map)
+        node.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
