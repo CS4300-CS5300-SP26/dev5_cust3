@@ -13,13 +13,14 @@
         <span class="map-status" id="map-status">{{ knowledge_map.status }}</span>
     </div>
 
-    <!-- Cytoscape.js renders the map here -->
-    <div id="cy"></div>
-    <!---added related topics bar-->
-    <aside class="related-sidebar">
-        <h2> Related Research Areas</h2>
-        <div id="related-list"><em>Loading suggestions...</em></div>
-      </aside>
+    <!--wrapper for side-by-side layout -->
+    <div class="map-body">
+        <div id="cy"></div>
+        <aside class="related-sidebar">
+            <h2>Related Research Areas</h2>
+            <div id="related-list"><em>Loading suggestions...</em></div>
+        </aside>
+    </div>
 </div>
 
 <!-- Cytoscape.js -->
