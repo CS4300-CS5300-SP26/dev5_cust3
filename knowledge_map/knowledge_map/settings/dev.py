@@ -52,3 +52,16 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'https://yourknowledgemap.me',
 ]
+# Add logging cause depandabot or somthing is tryna make files
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': os.environ.get('DJANGO_LOG_FILE', 'django_errors.log'),
+            # Falls back to a local file if env var isn't set
+        },
+    },
+    ...
+}
