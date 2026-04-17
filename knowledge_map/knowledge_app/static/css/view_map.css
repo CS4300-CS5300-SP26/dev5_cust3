@@ -4,6 +4,7 @@
     flex-direction: column;
     height: 100vh;
     padding: 1rem;
+    position: relative;
 }
 
 /* Map header */
@@ -69,4 +70,53 @@
     background: #f5f8ff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
+/* Node popup */
+.node-popup {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 300px;
+    background-color: #fff;
+    border-left: 2px solid #e0e0e0;
+    border-radius: 0;
+    padding: 1.5rem;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.node-popup h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0e223e;
+    margin-bottom: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.node-popup p {
+    font-size: 0.875rem;
+    color: #555;
+    margin: 0;
+}
+
+/* Close button */
+.popup-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #555;
+}
+
+.popup-close:hover {
+    color: #0e223e;
+}
+
+/* Hidden state */
+.hidden {
+    display: none;
 }
