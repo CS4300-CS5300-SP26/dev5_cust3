@@ -59,7 +59,7 @@ LOGGING = {
     'handlers': {
         'file': {
             'class': 'logging.FileHandler',
-            'filename': os.environ.get('DJANGO_LOG_FILE', 'django_errors.log'),
+            'filename': 'django_errors.log',
             # Falls back to a local file if env var isn't set
         },
     },
