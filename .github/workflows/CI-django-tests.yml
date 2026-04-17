@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # name artifact with Python version so each matrix has own report
-          name: dependency-scan-report${{ matrix.python-version }}
+          name: dependency-scan-report-py${{ matrix.python-version }}
           #file to upload made by pip audit
           path: dependency-scan-report.json
           # if JSON not created, give warning, don't fail

@@ -1,0 +1,61 @@
+name: Dependabot Automated Tests
+
+on:
+  pull_request:
+    paths:
+      - 'requirements.txt'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install coverage pip-audit
+
+      - name: Run dependency vulnerability scan
+        run: |
+          pip-audit -r requirements.txt --format json -o dependency-scan-report.json || true
+          pip-audit -r requirements.txt || true
+
+      - name: Upload dependency scan report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-scan-report
+          path: dependency-scan-report.json
+          if-no-files-found: warn
+
+      - name: Run Django tests
+        env:
+          DJANGO_SETTINGS_MODULE: knowledge_map.settings.dev
+        run: |
+          cd knowledge_map
+          coverage run --source='.' manage.py test
+
+      - name: Enforce 80% coverage
+        run: |
+          cd knowledge_map
+          coverage report --fail-under=80 | tee coverage.txt
+
+      - name: Post coverage comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: 'dependabot-test-coverage'
+          path: knowledge_map/coverage.txt
