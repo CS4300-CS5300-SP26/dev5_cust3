@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code              # Download repo code on Github VM
-        uses: actions/checkout@v4        
+        uses: actions/checkout@v6        
         with:
           fetch-depth: 0                 # Pulls git history
 
