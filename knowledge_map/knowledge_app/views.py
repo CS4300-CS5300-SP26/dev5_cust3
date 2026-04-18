@@ -189,12 +189,16 @@ def progress(request):
                 d = type_breakdown[t]
                 d['pct'] = round(d['correct'] / d['total'] * 100) if d['total'] else 0
 
+        all_attempts = quiz.attempts.all()
+        highest_score = max((a.score for a in all_attempts), default=None)
+
         quiz_data.append({
             'quiz': quiz,
             'status': status,
             'latest_score': latest.score if latest else None,
             'attempts': quiz.total_attempts,
             'avg_score': quiz.average_score,
+            'highest_score': highest_score,
             'type_breakdown': type_breakdown,
         })
 
