@@ -159,7 +159,60 @@ def quiz(request):
 # Progress view
 @login_required
 def progress(request):
-    return render(request, "knowledge_app/progress.html")
+    from django.db.models import Avg
+    quizzes = Quiz.objects.filter(user=request.user).prefetch_related('attempts', 'questions')
+
+    quiz_data = []
+    for quiz in quizzes:
+        latest = quiz.latest_attempt
+
+        if latest is None:
+            status = 'not_attempted'
+        elif latest.score >= 80:
+            status = 'mastered'
+        elif latest.score >= 60:
+            status = 'learning'
+        else:
+            status = 'needs_practice'
+
+        # Per-question-type breakdown from latest attempt
+        type_breakdown = {}
+        if latest:
+            for answer in latest.answers.select_related('question'):
+                qtype = answer.question.get_question_type_display()
+                if qtype not in type_breakdown:
+                    type_breakdown[qtype] = {'correct': 0, 'total': 0}
+                type_breakdown[qtype]['total'] += 1
+                if answer.is_correct:
+                    type_breakdown[qtype]['correct'] += 1
+            for t in type_breakdown:
+                d = type_breakdown[t]
+                d['pct'] = round(d['correct'] / d['total'] * 100) if d['total'] else 0
+
+        quiz_data.append({
+            'quiz': quiz,
+            'status': status,
+            'latest_score': latest.score if latest else None,
+            'attempts': quiz.total_attempts,
+            'avg_score': quiz.average_score,
+            'type_breakdown': type_breakdown,
+        })
+
+    # Summary stats
+    total = len(quiz_data)
+    mastered = sum(1 for q in quiz_data if q['status'] == 'mastered')
+    learning = sum(1 for q in quiz_data if q['status'] == 'learning')
+    needs_practice = sum(1 for q in quiz_data if q['status'] == 'needs_practice')
+    not_attempted = sum(1 for q in quiz_data if q['status'] == 'not_attempted')
+
+    return render(request, 'knowledge_app/progress.html', {
+        'quiz_data': quiz_data,
+        'total': total,
+        'mastered': mastered,
+        'learning': learning,
+        'needs_practice': needs_practice,
+        'not_attempted': not_attempted,
+    })
 
 # Login view
 def Login(request):
