@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 import json
 import uuid
 
@@ -253,7 +254,7 @@ class SharedMap(models.Model):
     is_public = models.BooleanField(default=False)
 
     # sharing with specific user
-    shared_with = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='shared_map')
+    shared_with = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='shared_map')
 
     created_at = models.DateTimeField(auto_now_add=True)
 
