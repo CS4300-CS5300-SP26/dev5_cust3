@@ -74,13 +74,7 @@
                                 <span class="stat-label">Latest</span>
                                 <span class="stat-value">{{ item.latest_score }}%</span>
                             </div>
-                            {% if item.avg_score %}
-                            <div class="stat">
-                                <span class="stat-label">Average</span>
-                                <span class="stat-value">{{ item.avg_score }}%</span>
-                            </div>
-                            {% endif %}
-                            {% if item.highest_score is not None %}
+                            {% if item.highest_score != item.latest_score %}
                             <div class="stat">
                                 <span class="stat-label">Best</span>
                                 <span class="stat-value">{{ item.highest_score }}%</span>
