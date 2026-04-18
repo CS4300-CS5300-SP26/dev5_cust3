@@ -74,12 +74,16 @@
                                 <span class="stat-label">Latest</span>
                                 <span class="stat-value">{{ item.latest_score }}%</span>
                             </div>
-                            {% if item.highest_score != item.latest_score %}
+                            {% if item.avg_score %}
+                            <div class="stat">
+                                <span class="stat-label">Average</span>
+                                <span class="stat-value">{{ item.avg_score }}%</span>
+                            </div>
+                            {% endif %}
                             <div class="stat">
                                 <span class="stat-label">Best</span>
                                 <span class="stat-value">{{ item.highest_score }}%</span>
                             </div>
-                            {% endif %}
                         {% else %}
                             <p class="quiz-status">Not attempted yet</p>
                         {% endif %}
@@ -302,16 +306,24 @@
 
     .quiz-stats {
         display: flex;
-        gap: 15px;
+        gap: 0;
         padding: 10px 0;
         border-top: 1px solid #eee;
-    }
+}
 
     .stat {
         display: flex;
         flex-direction: column;
         gap: 3px;
-    }
+        flex: 1;
+        text-align: center;
+        padding: 0 10px;
+        border-right: 1px solid #eee;
+}
+
+    .stat:last-child {
+        border-right: none;
+}
 
     .stat-label {
         font-size: 0.8em;
