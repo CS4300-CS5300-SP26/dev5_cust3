@@ -80,6 +80,12 @@
                                 <span class="stat-value">{{ item.avg_score }}%</span>
                             </div>
                             {% endif %}
+                            {% if item.highest_score is not None %}
+                            <div class="stat">
+                                <span class="stat-label">Best</span>
+                                <span class="stat-value">{{ item.highest_score }}%</span>
+                            </div>
+                            {% endif %}
                         {% else %}
                             <p class="quiz-status">Not attempted yet</p>
                         {% endif %}
