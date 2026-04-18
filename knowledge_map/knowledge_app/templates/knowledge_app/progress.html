@@ -1,1 +1,500 @@
 {% extends "knowledge_app/base.html" %}
+
+{% block content %}
+<div class="progress-hub">
+
+    <!-- Hero Section (matches quiz-hero exactly) -->
+    <section class="progress-hero">
+        <h1>📊 Mastery Progress</h1>
+        <p>Track how well you know each quiz — see what's mastered, what needs work, and where to focus next.</p>
+
+        <!-- Summary pills inside hero -->
+        <div class="mastery-summary">
+            <div class="summary-pill mastered">
+                <span class="pill-count">{{ mastered }}</span>
+                <span class="pill-label">Mastered</span>
+            </div>
+            <div class="summary-pill learning">
+                <span class="pill-count">{{ learning }}</span>
+                <span class="pill-label">Learning</span>
+            </div>
+            <div class="summary-pill needs-practice">
+                <span class="pill-count">{{ needs_practice }}</span>
+                <span class="pill-label">Needs Practice</span>
+            </div>
+            <div class="summary-pill not-attempted">
+                <span class="pill-count">{{ not_attempted }}</span>
+                <span class="pill-label">Not Started</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quiz Mastery List -->
+    <section class="quiz-list">
+        <div class="list-header">
+            <h2>Your Quizzes</h2>
+            <!-- Filter tabs -->
+            <div class="filter-tabs">
+                <button class="tab-btn active" data-filter="all">All ({{ total }})</button>
+                <button class="tab-btn" data-filter="mastered">Mastered</button>
+                <button class="tab-btn" data-filter="learning">Learning</button>
+                <button class="tab-btn" data-filter="needs_practice">Needs Practice</button>
+                <button class="tab-btn" data-filter="not_attempted">Not Started</button>
+            </div>
+        </div>
+
+        {% if quiz_data %}
+            <div class="quizzes-grid">
+                {% for item in quiz_data %}
+                <div class="quiz-card" data-status="{{ item.status }}">
+
+                    <!-- Card header — matches quiz-card-header -->
+                    <div class="quiz-card-header">
+                        <h3>{{ item.quiz.title }}</h3>
+                        <span class="mastery-badge mastery-{{ item.status }}">
+                            {% if item.status == 'mastered' %}Mastered
+                            {% elif item.status == 'learning' %}Learning
+                            {% elif item.status == 'needs_practice' %}Needs Practice
+                            {% else %}Not Started
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Meta row — matches quiz-meta -->
+                    <p class="quiz-meta">
+                        <span class="meta-item">{{ item.quiz.question_count }} questions</span>
+                        <span class="meta-item">{{ item.quiz.get_difficulty_display }}</span>
+                        <span class="meta-item">{{ item.attempts }} attempt{{ item.attempts|pluralize }}</span>
+                    </p>
+
+                    <!-- Stats section — matches quiz-stats -->
+                    <div class="quiz-stats">
+                        {% if item.latest_score is not None %}
+                            <div class="stat">
+                                <span class="stat-label">Latest</span>
+                                <span class="stat-value">{{ item.latest_score }}%</span>
+                            </div>
+                            {% if item.avg_score %}
+                            <div class="stat">
+                                <span class="stat-label">Average</span>
+                                <span class="stat-value">{{ item.avg_score }}%</span>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <p class="quiz-status">Not attempted yet</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Score progress bar -->
+                    {% if item.latest_score is not None %}
+                    <div class="score-bar-wrap">
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill mastery-fill-{{ item.status }}"
+                                 style="width: {{ item.latest_score }}%"
+                                 data-target="{{ item.latest_score }}">
+                            </div>
+                        </div>
+                        <span class="score-bar-label">{{ item.latest_score }}%</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Per-question-type breakdown -->
+                    {% if item.type_breakdown %}
+                    <div class="type-breakdown">
+                        <div class="breakdown-title">By Question Type</div>
+                        {% for qtype, data in item.type_breakdown.items %}
+                        <div class="type-row">
+                            <span class="type-name">{{ qtype }}</span>
+                            <div class="type-bar-track">
+                                <div class="type-bar-fill" style="width: {{ data.pct }}%"></div>
+                            </div>
+                            <span class="type-score">{{ data.correct }}/{{ data.total }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- CTA button — matches btn-secondary btn-block -->
+                    <a href="{% url 'quiz_detail' item.quiz.pk %}" class="btn-secondary btn-block">
+                        {% if item.latest_score is not None %}Retake Quiz{% else %}Start Quiz{% endif %}
+                    </a>
+
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No quizzes yet. <a href="{% url 'quizzes_hub' %}">Create your first quiz!</a></p>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+    /* ── Layout ── */
+    .progress-hub {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* ── Hero — same gradient as quiz-hero ── */
+    .progress-hero {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 40px 20px 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+    }
+
+    .progress-hero h1 {
+        font-size: 2.5em;
+        margin: 0 0 8px;
+    }
+
+    .progress-hero p {
+        margin: 0 0 28px;
+        opacity: 0.9;
+        font-size: 1em;
+    }
+
+    /* ── Summary pills ── */
+    .mastery-summary {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .summary-pill {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 24px;
+        border-radius: 8px;
+        min-width: 110px;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.25);
+        transition: transform 0.2s ease;
+    }
+
+    .summary-pill:hover { transform: translateY(-2px); }
+
+    .summary-pill .pill-count {
+        font-size: 2em;
+        font-weight: 700;
+        line-height: 1;
+        color: white;
+    }
+
+    .summary-pill .pill-label {
+        font-size: 0.78em;
+        color: rgba(255,255,255,0.85);
+        margin-top: 4px;
+    }
+
+    /* ── List header + filter tabs ── */
+    .list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .list-header h2 { margin: 0; }
+
+    .filter-tabs {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        background: white;
+        color: #555;
+        cursor: pointer;
+        font-size: 0.82em;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .tab-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+
+    /* ── Cards grid — identical to quizzes-grid ── */
+    .quizzes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    /* ── Card — identical base to quiz-card ── */
+    .quiz-card {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .quiz-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    /* ── Card header — identical to quiz-card-header ── */
+    .quiz-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .quiz-card h3 {
+        margin: 0;
+        font-size: 1.2em;
+        color: #222;
+    }
+
+    /* ── Mastery badge — same shape as difficulty-badge ── */
+    .mastery-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.82em;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .mastery-mastered   { background: #d4edda; color: #155724; }
+    .mastery-learning   { background: #cce5ff; color: #004085; }
+    .mastery-needs_practice { background: #fff3cd; color: #856404; }
+    .mastery-not_attempted  { background: #f0f0f0; color: #666; }
+
+    /* ── Meta + stats — identical to quiz-meta / quiz-stats ── */
+    .quiz-meta {
+        font-size: 0.9em;
+        color: #666;
+        display: flex;
+        gap: 15px;
+        margin: 0;
+        flex-wrap: wrap;
+    }
+
+    .quiz-stats {
+        display: flex;
+        gap: 15px;
+        padding: 10px 0;
+        border-top: 1px solid #eee;
+    }
+
+    .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .stat-label {
+        font-size: 0.8em;
+        color: #999;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .quiz-status {
+        color: #999;
+        font-style: italic;
+        margin: 0;
+        font-size: 0.9em;
+    }
+
+    /* ── Score bar (new element, but uses brand color) ── */
+    .score-bar-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .score-bar-track {
+        flex: 1;
+        height: 8px;
+        background: #f0f0f0;
+        border-radius: 99px;
+        overflow: hidden;
+    }
+
+    .score-bar-fill {
+        height: 100%;
+        border-radius: 99px;
+        width: 0; /* animated in by JS */
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mastery-fill-mastered       { background: linear-gradient(90deg, #667eea, #22c55e); }
+    .mastery-fill-learning       { background: linear-gradient(90deg, #667eea, #3b82f6); }
+    .mastery-fill-needs_practice { background: linear-gradient(90deg, #667eea, #eab308); }
+    .mastery-fill-not_attempted  { background: #ccc; }
+
+    .score-bar-label {
+        font-size: 0.8em;
+        font-weight: 700;
+        color: #667eea;
+        width: 34px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    /* ── Per-type breakdown ── */
+    .type-breakdown {
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+
+    .breakdown-title {
+        font-size: 0.78em;
+        font-weight: 600;
+        color: #999;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .type-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    .type-name {
+        font-size: 0.78em;
+        color: #555;
+        width: 105px;
+        flex-shrink: 0;
+        text-align: left;
+    }
+
+    .type-bar-track {
+        flex: 1;
+        height: 6px;
+        background: #f0f0f0;
+        border-radius: 99px;
+        overflow: hidden;
+    }
+
+    .type-bar-fill {
+        height: 100%;
+        background: #667eea;
+        border-radius: 99px;
+        transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .type-score {
+        font-size: 0.75em;
+        color: #999;
+        width: 32px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    /* ── Buttons — identical to quizzes.html ── */
+    .btn-primary, .btn-secondary {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-block { width: 100%; }
+
+    /* ── Empty state — identical ── */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+
+    .empty-state a {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    /* ── Hidden cards via filter ── */
+    .quiz-card.hidden {
+        display: none;
+    }
+</style>
+
+<script>
+    // Animate score bars on load
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.score-bar-fill[data-target]').forEach(bar => {
+            const target = bar.dataset.target;
+            setTimeout(() => { bar.style.width = target + '%'; }, 100);
+        });
+
+        // Also animate type breakdown bars
+        document.querySelectorAll('.type-bar-fill').forEach(bar => {
+            const w = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => { bar.style.width = w; }, 200);
+        });
+    });
+
+    // Filter tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.dataset.filter;
+            document.querySelectorAll('.quiz-card').forEach(card => {
+                if (filter === 'all' || card.dataset.status === filter) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
