@@ -128,3 +128,50 @@ class ProgressViewTest(TestCase):
         quiz_data = response.context['quiz_data']
         # Latest was 40 so should be needs_practice even though highest was 90
         self.assertEqual(quiz_data[0]['status'], 'needs_practice')
+
+        # Test trend_diff is positive when score improved
+    def test_trend_diff_positive_on_improvement(self):
+        QuizAttempt.objects.create(
+            quiz=self.quiz, user=self.user,
+            score=60, correct_count=1, total_questions=1
+        )
+        QuizAttempt.objects.create(
+            quiz=self.quiz, user=self.user,
+            score=80, correct_count=1, total_questions=1
+        )
+        response = self.client.get(reverse('progress'))
+        quiz_data = response.context['quiz_data']
+        self.assertEqual(quiz_data[0]['trend_diff'], 20)
+
+    # Test trend_diff is negative when score decreased
+    def test_trend_diff_negative_on_decrease(self):
+        QuizAttempt.objects.create(
+            quiz=self.quiz, user=self.user,
+            score=80, correct_count=1, total_questions=1
+        )
+        QuizAttempt.objects.create(
+            quiz=self.quiz, user=self.user,
+            score=60, correct_count=1, total_questions=1
+        )
+        response = self.client.get(reverse('progress'))
+        quiz_data = response.context['quiz_data']
+        self.assertEqual(quiz_data[0]['trend_diff'], -20)
+
+    # Test previous_score is None with only one attempt
+    def test_previous_score_none_with_one_attempt(self):
+        QuizAttempt.objects.create(
+            quiz=self.quiz, user=self.user,
+            score=80, correct_count=1, total_questions=1
+        )
+        response = self.client.get(reverse('progress'))
+        quiz_data = response.context['quiz_data']
+        self.assertIsNone(quiz_data[0]['previous_score'])
+
+    # Test mastery_pct is correct
+    def test_mastery_pct_correct(self):
+        QuizAttempt.objects.create(
+            quiz=self.quiz, user=self.user,
+            score=80, correct_count=1, total_questions=1
+        )
+        response = self.client.get(reverse('progress'))
+        self.assertEqual(response.context['mastery_pct'], 100)
