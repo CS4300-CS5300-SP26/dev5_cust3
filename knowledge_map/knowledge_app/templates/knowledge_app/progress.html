@@ -76,12 +76,23 @@
                         {% if item.latest_score is not None %}
                             <div class="stat">
                                 <span class="stat-label">Latest</span>
-                                <span class="stat-value">{{ item.latest_score }}%</span>
+                                {% if item.previous_score is not None %}
+                                    {% if item.latest_score > item.previous_score %}
+                                        <span class="stat-value">{{ item.latest_score }}% <span class="trend-wrap"><span style="color: #22c55e; font-size: 0.8em; vertical-align: middle;">▲</span><span class="trend-tip">Improved by {{ item.trend_diff }}%</span></span></span>
+                                    {% elif item.latest_score < item.previous_score %}
+                                        <span class="stat-value">{{ item.latest_score }}% <span class="trend-wrap"><span style="color: #ef4444; font-size: 0.8em; vertical-align: middle;">▼</span><span class="trend-tip">Decreased by {{ item.trend_diff|cut:"-" }}%</span></span></span>
+                                    {% else %}
+                                        <span class="stat-value">{{ item.latest_score }}% <span class="trend-wrap"><span style="color: #aaa; font-size: 0.6em; vertical-align: 0.1em;">▬</span><span class="trend-tip">Same as last attempt</span></span></span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="stat-value">{{ item.latest_score }}%</span>
+                                {% endif %}
+                                </span>
                             </div>
                             {% if item.avg_score %}
                             <div class="stat">
                                 <span class="stat-label">Average</span>
-                                <span class="stat-value">{{ item.avg_score }}%</span>
+                                <span class="stat-value">{{ item.avg_score|floatformat:0 }}%</span>
                             </div>
                             {% endif %}
                             <div class="stat">
@@ -109,16 +120,20 @@
                     <!-- Per-question-type breakdown -->
                     {% if item.type_breakdown %}
                     <div class="type-breakdown">
-                        <div class="breakdown-title">By Question Type</div>
-                        {% for qtype, data in item.type_breakdown.items %}
-                        <div class="type-row">
-                            <span class="type-name">{{ qtype }}</span>
-                            <div class="type-bar-track">
-                                <div class="type-bar-fill" style="width: {{ data.pct }}%"></div>
-                            </div>
-                            <span class="type-score">{{ data.correct }}/{{ data.total }}</span>
+                        <div class="breakdown-title" onclick="toggleBreakdown(this)" style="cursor: pointer;">
+                            By Question Type <span class="toggle-icon">▼</span>
                         </div>
-                        {% endfor %}
+                        <div class="breakdown-content">
+                            {% for qtype, data in item.type_breakdown.items %}
+                            <div class="type-row">
+                                <span class="type-name">{{ qtype }}</span>
+                                <div class="type-bar-track">
+                                    <div class="type-bar-fill" style="width: 0%" data-target="{{ data.pct }}"></div>
+                                </div>
+                                <span class="type-score">{{ data.correct }}/{{ data.total }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                     {% endif %}
 
@@ -264,6 +279,56 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
+    .breakdown-content {
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        max-height: 0;
+    }
+
+    .breakdown-content.expanded {
+        max-height: 300px;
+    }
+
+    .toggle-icon {
+        font-size: 0.7em;
+        transition: transform 0.3s ease;
+        display: inline-block;
+        vertical-align: middle;
+        transform: rotate(-90deg);
+    }
+
+    .toggle-icon.expanded {
+        transform: rotate(0deg);
+    }
+
+    .trend-wrap {
+        position: relative;
+        display: inline-block;
+    }
+
+    .trend-wrap .trend-tip {
+        visibility: hidden;
+        background: #333;
+        color: #fff;
+        text-align: center;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.65em;
+        font-weight: 400;
+        white-space: nowrap;
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .trend-wrap:hover .trend-tip {
+        visibility: visible;
+        opacity: 1;
+    }
     .quiz-card:hover {
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         transform: translateY(-2px);
@@ -310,11 +375,6 @@
         white-space: nowrap;
 }
 
-    .meta-dot {
-        color: #ccc;
-        font-size: 0.9em;
-    }
-
     .quiz-created {
         font-size: 0.8em;
         color: #aaa;
@@ -326,7 +386,7 @@
         gap: 0;
         padding: 10px 0;
         border-top: 1px solid #eee;
-}
+    }
 
     .stat {
         display: flex;
@@ -336,11 +396,11 @@
         text-align: center;
         padding: 0 10px;
         border-right: 1px solid #eee;
-}
+    }
 
     .stat:last-child {
         border-right: none;
-}
+    }
 
     .stat-label {
         font-size: 0.8em;
@@ -495,20 +555,34 @@
 </style>
 
 <script>
-    // Animate score bars on load
     document.addEventListener('DOMContentLoaded', () => {
+        // Animate main score bars only
         document.querySelectorAll('.score-bar-fill[data-target]').forEach(bar => {
             const target = bar.dataset.target;
             setTimeout(() => { bar.style.width = target + '%'; }, 100);
         });
-
-        // Also animate type breakdown bars
-        document.querySelectorAll('.type-bar-fill').forEach(bar => {
-            const w = bar.style.width;
-            bar.style.width = '0';
-            setTimeout(() => { bar.style.width = w; }, 200);
-        });
     });
+
+    function toggleBreakdown(el) {
+        const content = el.nextElementSibling;
+        const icon = el.querySelector('.toggle-icon');
+        const isExpanding = !content.classList.contains('expanded');
+
+        content.classList.toggle('expanded');
+        icon.classList.toggle('expanded');
+
+        if (isExpanding) {
+            setTimeout(() => {
+                content.querySelectorAll('.type-bar-fill').forEach(bar => {
+                    bar.style.width = bar.dataset.target + '%';
+                });
+            }, 50);
+        } else {
+            content.querySelectorAll('.type-bar-fill').forEach(bar => {
+                bar.style.width = '0';
+            });
+        }
+    }
 
     // Filter tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -527,3 +601,5 @@
     });
 </script>
 {% endblock %}
+
+
