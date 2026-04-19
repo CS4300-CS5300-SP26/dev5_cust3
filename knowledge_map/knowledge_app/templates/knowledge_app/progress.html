@@ -11,23 +11,22 @@
             You've mastered {{ mastery_pct }}% of your quizzes
         </p>
         
-        <!-- Summary pills inside hero -->
-        <div class="mastery-summary">
-            <div class="summary-pill mastered">
-                <span class="pill-count">{{ mastered }}</span>
-                <span class="pill-label">Mastered</span>
-            </div>
-            <div class="summary-pill learning">
-                <span class="pill-count">{{ learning }}</span>
-                <span class="pill-label">Learning</span>
-            </div>
-            <div class="summary-pill needs-practice">
-                <span class="pill-count">{{ needs_practice }}</span>
-                <span class="pill-label">Needs Practice</span>
-            </div>
-            <div class="summary-pill not-attempted">
-                <span class="pill-count">{{ not_attempted }}</span>
-                <span class="pill-label">Not Started</span>
+        <!-- Donut chart + legend -->
+        <div class="donut-wrap" style="visibility: hidden;">
+            <svg class="donut-svg" viewBox="0 0 100 100">
+                <circle class="donut-bg" cx="50" cy="50" r="35"/>
+                <circle class="donut-seg seg-mastered"    cx="50" cy="50" r="35" data-val="{{ mastered }}"      data-total="{{ total }}"/>
+                <circle class="donut-seg seg-learning"    cx="50" cy="50" r="35" data-val="{{ learning }}"      data-total="{{ total }}" data-offset-after="mastered"/>
+                <circle class="donut-seg seg-needs"       cx="50" cy="50" r="35" data-val="{{ needs_practice }}" data-total="{{ total }}" data-offset-after="mastered,learning"/>
+                <circle class="donut-seg seg-not"         cx="50" cy="50" r="35" data-val="{{ not_attempted }}"  data-total="{{ total }}" data-offset-after="mastered,learning,needs_practice"/>
+                <text x="50" y="46" class="donut-center-top">{{ mastery_pct }}%</text>
+                <text x="50" y="57" class="donut-center-bot">mastered</text>
+            </svg>
+            <div class="donut-legend">
+                <div class="legend-row"><span class="legend-dot dot-mastered"></span><span class="legend-label">Mastered</span><span class="legend-count">{{ mastered }}</span></div>
+                <div class="legend-row"><span class="legend-dot dot-learning"></span><span class="legend-label">Learning</span><span class="legend-count">{{ learning }}</span></div>
+                <div class="legend-row"><span class="legend-dot dot-needs"></span><span class="legend-label">Needs Practice</span><span class="legend-count">{{ needs_practice }}</span></div>
+                <div class="legend-row"><span class="legend-dot dot-not"></span><span class="legend-label">Not Started</span><span class="legend-count">{{ not_attempted }}</span></div>
             </div>
         </div>
     </section>
@@ -87,7 +86,6 @@
                                 {% else %}
                                     <span class="stat-value">{{ item.latest_score }}%</span>
                                 {% endif %}
-                                </span>
                             </div>
                             {% if item.avg_score %}
                             <div class="stat">
@@ -109,11 +107,14 @@
                     <div class="score-bar-wrap">
                         <div class="score-bar-track">
                             <div class="score-bar-fill mastery-fill-{{ item.status }}"
-                                 style="width: {{ item.latest_score }}%"
+                                 style="width: 0%"
                                  data-target="{{ item.latest_score }}">
                             </div>
                         </div>
-                        <span class="score-bar-label">{{ item.latest_score }}%</span>
+                        <span class="score-bar-label" style="display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0;">
+                            <span style="font-size: 0.6em; color: #aaa; font-weight: 400; line-height: 1;">latest</span>
+                            <span>{{ item.latest_score }}%</span>
+                        </span>
                     </div>
                     {% endif %}
 
@@ -182,40 +183,93 @@
         font-size: 1em;
     }
 
-    /* ── Summary pills ── */
-    .mastery-summary {
+/* ── Donut ── */
+.donut-wrap {
         display: flex;
+        align-items: center;
         justify-content: center;
-        gap: 16px;
+        gap: 32px;
         flex-wrap: wrap;
+        visibility: hidden;
     }
 
-    .summary-pill {
+    .donut-svg {
+        width: 140px;
+        height: 140px;
+        transform: rotate(-90deg);
+    }
+
+    .donut-bg {
+        fill: none;
+        stroke: rgba(255,255,255,0.15);
+        stroke-width: 18;
+    }
+
+    .donut-seg {
+        fill: none;
+        stroke-width: 18;
+        stroke-dasharray: 0 220;
+        transition: stroke-dasharray 0.8s cubic-bezier(0.4,0,0.2,1);
+        opacity: 0;
+    }
+
+    .seg-mastered { stroke: #22c55e; }
+    .seg-learning { stroke: #3b82f6; }
+    .seg-needs    { stroke: #eab308; }
+    .seg-not      { stroke: #9ca3af; }
+
+    .donut-center-top {
+        font-size: 16px;
+        font-weight: 700;
+        fill: white;
+        text-anchor: middle;
+        transform: rotate(90deg);
+        transform-origin: 50px 50px;
+    }
+
+    .donut-center-bot {
+        font-size: 7px;
+        fill: rgba(255,255,255,0.75);
+        text-anchor: middle;
+        transform: rotate(90deg);
+        transform-origin: 50px 50px;
+    }
+
+    .donut-legend {
         display: flex;
         flex-direction: column;
+        gap: 10px;
+    }
+
+    .legend-row {
+        display: flex;
         align-items: center;
-        padding: 12px 24px;
-        border-radius: 8px;
-        min-width: 110px;
-        background: rgba(255,255,255,0.15);
-        backdrop-filter: blur(4px);
-        border: 1px solid rgba(255,255,255,0.25);
-        transition: transform 0.2s ease;
+        gap: 8px;
     }
 
-    .summary-pill:hover { transform: translateY(-2px); }
-
-    .summary-pill .pill-count {
-        font-size: 2em;
-        font-weight: 700;
-        line-height: 1;
-        color: white;
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
     }
 
-    .summary-pill .pill-label {
-        font-size: 0.78em;
+    .dot-mastered { background: #22c55e; }
+    .dot-learning { background: #3b82f6; }
+    .dot-needs    { background: #eab308; }
+    .dot-not      { background: #9ca3af; }
+
+    .legend-label {
+        font-size: 0.82em;
         color: rgba(255,255,255,0.85);
-        margin-top: 4px;
+        width: 100px;
+        text-align: left;
+    }
+
+    .legend-count {
+        font-size: 0.9em;
+        font-weight: 700;
+        color: white;
     }
 
     /* ── List header + filter tabs ── */
@@ -561,6 +615,38 @@
             const target = bar.dataset.target;
             setTimeout(() => { bar.style.width = target + '%'; }, 100);
         });
+
+        // Animate donut
+        const circumference = 2 * Math.PI * 35;
+        const donutTotal = {{ total }};
+
+        const vals = {
+            mastered: {{ mastered }},
+            learning: {{ learning }},
+            needs_practice: {{ needs_practice }},
+            not_attempted: {{ not_attempted }}
+        };
+
+        const order = ['mastered', 'learning', 'needs_practice', 'not_attempted'];
+        const segEls = document.querySelectorAll('.donut-seg');
+
+        let offset = 0;
+        order.forEach((key, i) => {
+            const val = vals[key];
+            const pct = donutTotal > 0 ? val / donutTotal : 0;
+            const dash = pct * circumference;
+            const gap = circumference - dash;
+            const finalOffset = circumference - offset;
+
+            setTimeout(() => {
+                segEls[i].style.opacity = 1;
+                segEls[i].style.strokeDasharray = `${dash} ${gap}`;
+                segEls[i].style.strokeDashoffset = finalOffset;
+            }, i * 700);
+
+            offset += dash;
+        });
+        document.querySelector('.donut-wrap').style.visibility = 'visible';
     });
 
     function toggleBreakdown(el) {
