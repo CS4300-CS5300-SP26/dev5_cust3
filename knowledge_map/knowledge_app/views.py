@@ -191,6 +191,9 @@ def progress(request):
 
         all_attempts = quiz.attempts.all()
         highest_score = max((a.score for a in all_attempts), default=None)
+        attempts_list = list(all_attempts.order_by('-created_at'))
+        previous_score = attempts_list[1].score if len(attempts_list) > 1 else None
+        trend_diff = round(latest.score - previous_score) if previous_score is not None and latest else None
 
         quiz_data.append({
             'quiz': quiz,
@@ -200,6 +203,8 @@ def progress(request):
             'avg_score': quiz.average_score,
             'highest_score': highest_score,
             'type_breakdown': type_breakdown,
+            'previous_score': previous_score,
+            'trend_diff': trend_diff,
         })
 
     # Summary stats
