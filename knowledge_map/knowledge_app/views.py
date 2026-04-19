@@ -208,7 +208,8 @@ def progress(request):
     learning = sum(1 for q in quiz_data if q['status'] == 'learning')
     needs_practice = sum(1 for q in quiz_data if q['status'] == 'needs_practice')
     not_attempted = sum(1 for q in quiz_data if q['status'] == 'not_attempted')
-
+    mastery_pct = round((mastered / total) * 100) if total > 0 else 0
+    
     return render(request, 'knowledge_app/progress.html', {
         'quiz_data': quiz_data,
         'total': total,
@@ -216,6 +217,7 @@ def progress(request):
         'learning': learning,
         'needs_practice': needs_practice,
         'not_attempted': not_attempted,
+        'mastery_pct': mastery_pct,
     })
 
 # Login view
