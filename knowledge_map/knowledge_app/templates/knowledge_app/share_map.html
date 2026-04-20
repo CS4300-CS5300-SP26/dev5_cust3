@@ -1,0 +1,133 @@
+{% extends "knowledge_app/base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/share_map.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="share-wrapper">
+    <div class="share-header">
+        <a href="{% url 'maps' %}" class="back-btn">← Back to Maps</a>
+        <h1>Share "{{ knowledge_map.title }}"</h1>
+    </div>
+
+    <!-- Public link sharing -->
+    <div class="share-section">
+        <h2>Public Link</h2>
+        <p>Anyone with the link can view this map.</p>
+
+        {% if public_share %}
+        <div class="share-link-box">
+            <input type="text" id="public-link" value="{{ request.scheme }}://{{ request.get_host }}{% url 'view_shared_map' public_share.share_token %}" readonly>
+            <button onclick="copyLink()" class="copy-btn">Copy</button>
+        </div>
+        
+        {% else %}
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="share_type" value="public">
+            <button type="submit" class="generate-btn">Generate Public Link</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Share with specific user -->
+    <div class="share-section">
+        <h2>Share with a User</h2>
+        <p>Share directly with another user by their username.</p>
+
+        <div class="share-user-form">
+            <input type="text" id="username-input" placeholder="Enter username">
+            <button onclick="shareWithUser()" class="share-user-btn">Share</button>
+        </div>
+        <p id="share-user-message" class="share-message"></p>
+
+        <!-- List of users already shared with -->
+        {% if shared_users %}
+        <div class="shared-users-list">
+            <h3>Shared with</h3>
+            {% for share in shared_users %}
+            <div class="shared-user-item">
+                <span>{{ share.shared_with.username }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Copy public link to clipboard
+    async function copyLink() {
+        const input = document.getElementById('public-link');
+        const message = document.getElementById('share-user-message');
+
+        try {
+            await navigator.clipboard.writeText(input.value);
+            message.textContent = 'Link copied to clipboard!';
+            message.className = 'share-message success';
+        } catch {
+            // Fallback for browsers that don't support clipboard API or non-HTTPS
+            try {
+                input.select();
+                document.execCommand('copy');
+                message.textContent = 'Link copied to clipboard!';
+                message.className = 'share-message success';
+            } catch {
+                message.textContent = 'Could not copy link. Please copy it manually.';
+                message.className = 'share-message error';
+            }
+        }
+    }
+
+    // Share with a specific user via AJAX
+    async function shareWithUser() {
+        const username = document.getElementById('username-input').value.trim();
+        const message = document.getElementById('share-user-message');
+
+        if (!username) {
+            message.textContent = 'Please enter a username.';
+            message.className = 'share-message error';
+            return;
+        }
+
+        try {
+        const response = await fetch("{% url 'share_map' knowledge_map.id %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `share_type=user&username=${encodeURIComponent(username)}`
+        });
+
+        // Only try to parse JSON if the response is valid
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            message.textContent = 'Something went wrong. Please try again.';
+            message.className = 'share-message error';
+            return;
+        }
+
+        if (response.ok) {
+            message.textContent = data.message;
+            message.className = 'share-message success';
+            document.getElementById('username-input').value = '';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            message.textContent = data.error || 'Something went wrong. Please try again.';
+            message.className = 'share-message error';
+        }
+
+    } catch {
+            // Network error or fetch failed entirely
+            message.textContent = 'Network error. Please check your connection and try again.';
+            message.className = 'share-message error';
+        }
+    }
+</script>
+
+{% endblock %}
