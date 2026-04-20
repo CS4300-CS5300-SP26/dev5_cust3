@@ -197,3 +197,12 @@
     background-color: #721c24;
     color: white;
 }
+
+/* Add relationship button */
+#add-relationship-btn {
+    background-color: #3b7ddd;
+}
+
+#add-relationship-btn:hover {
+    background-color: #0e223e;
+}
