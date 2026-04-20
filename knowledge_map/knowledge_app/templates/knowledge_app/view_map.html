@@ -31,6 +31,7 @@
         <button id="popup-close" class="popup-close">✕</button>
         <h3 id="popup-label"></h3>
         <p id="popup-summary"></p>
+        <button id="delete-node-btn" class="delete-node-btn">Delete Node</button>
     </div>
 </div>
 
@@ -44,6 +45,8 @@
     const cyEdges = {{ edges|safe }};
     const mapStatus = "{{ knowledge_map.status }}";
     const statusUrl = "{% url 'map_status' knowledge_map.id %}";
+    const addNodeUrl = "{% url 'add_node' knowledge_map.id %}";
+    const csrfToken = "{{ csrf_token }}";
 
     // Initialise Cytoscape
     const cy = cytoscape({
@@ -105,6 +108,7 @@
     cy.on('tap', 'node', function(event) {
         const node = event.target;
         selectedNodeId = node.data('id');
+        console.log('Selected node ID:', selectedNodeId);
         popupLabel.textContent = node.data('label') || '';
         popupSummary.textContent = node.data('summary') || '';
         popup.classList.remove('hidden');

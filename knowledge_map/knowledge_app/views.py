@@ -585,7 +585,7 @@ def add_node(request, map_id):
         knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
 
         data = json.loads(request.body)
-        label = data.get('label", '').strip()
+        label = data.get('label', '').strip()
         summary = data.get('summary', '').strip()
 
         if not label:
@@ -607,7 +607,7 @@ def add_node(request, map_id):
 
 # delete topic node
 @login_required
-def delete_node(request, mapi_id, node_id):
+def delete_node(request, map_id, node_id):
     if request.method == 'POST':
         knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
         node = get_object_or_404(TopicNode, id=node_id, knowledge_map=knowledge_map)
