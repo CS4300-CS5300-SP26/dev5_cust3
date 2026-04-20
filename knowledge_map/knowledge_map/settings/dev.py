@@ -1,5 +1,5 @@
 from .base import *
-
+import os
 DEBUG = True
 ALLOWED_HOSTS = ['app-aoa-21.devedu.io', 'editor-aoa-21.devedu.io', '127.0.0.1',
                  'localhost', 'editor-nschluescontainer-21.devedu.io', 'app-nschluescontainer-21.devedu.io']
@@ -52,3 +52,15 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'https://yourknowledgemap.me',
 ]
+# Add logging cause depandabot or somthing is tryna make files
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'django_errors.log',
+            # Falls back to a local file if env var isn't set
+        },
+    },
+}
