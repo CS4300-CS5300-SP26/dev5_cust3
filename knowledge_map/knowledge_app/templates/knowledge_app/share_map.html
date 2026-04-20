@@ -59,10 +59,26 @@
 
 <script>
     // Copy public link to clipboard
-    function copyLink() {
+    async function copyLink() {
         const input = document.getElementById('public-link');
-        input.select();
-        navigator.clipboard.writeText(input.value);
+        const message = document.getElementById('share-user-message');
+
+        try {
+            await navigator.clipboard.writeText(input.value);
+            message.textContent = 'Link copied to clipboard!';
+            message.className = 'share-message success';
+        } catch {
+            // Fallback for browsers that don't support clipboard API or non-HTTPS
+            try {
+                input.select();
+                document.execCommand('copy');
+                message.textContent = 'Link copied to clipboard!';
+                message.className = 'share-message success';
+            } catch {
+                message.textContent = 'Could not copy link. Please copy it manually.';
+                message.className = 'share-message error';
+            }
+        }
     }
 
     // Share with a specific user via AJAX
@@ -76,6 +92,7 @@
             return;
         }
 
+        try {
         const response = await fetch("{% url 'share_map' knowledge_map.id %}", {
             method: 'POST',
             headers: {
@@ -85,16 +102,29 @@
             body: `share_type=user&username=${encodeURIComponent(username)}`
         });
 
-        const data = await response.json();
+        // Only try to parse JSON if the response is valid
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            message.textContent = 'Something went wrong. Please try again.';
+            message.className = 'share-message error';
+            return;
+        }
 
         if (response.ok) {
             message.textContent = data.message;
             message.className = 'share-message success';
             document.getElementById('username-input').value = '';
-            // Reload to update shared users list
             setTimeout(() => location.reload(), 1000);
         } else {
-            message.textContent = data.error;
+            message.textContent = data.error || 'Something went wrong. Please try again.';
+            message.className = 'share-message error';
+        }
+
+    } catch {
+            // Network error or fetch failed entirely
+            message.textContent = 'Network error. Please check your connection and try again.';
             message.className = 'share-message error';
         }
     }

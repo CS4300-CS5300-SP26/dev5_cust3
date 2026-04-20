@@ -25,6 +25,13 @@
         <button id="cancel-add-node" class="cancel-btn">Cancel</button>
      </div>
 
+    <!--wrapper for side-by-side layout -->
+    <div class="map-body">
+        <aside class="related-sidebar">
+            <h2>Related Research Areas</h2>
+            <div id="related-list"><em>Loading suggestions...</em></div>
+        </aside>
+    </div>
     <!-- Cytoscape.js renders the map here -->
     <div id="cy"></div>
 
@@ -43,12 +50,35 @@
         <p id="edge-popup-label"></p>
         <button id="delete-relationship-btn" class="delete-node-btn">Delete Relationship</button>
     </div>
+    <!---added related topics bar-->
+    <aside class="related-sidebar">
+        <h2> Related Research Areas</h2>
+        <div id="related-list"><em>Loading suggestions...</em></div>
+      </aside>
 </div>
 
 <!-- Cytoscape.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 
 <script>
+    //related topics logic
+    const relatedUrl = "{% url 'related_topics' knowledge_map.id %}";
+
+    fetch(relatedUrl)
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('related-list');
+            container.innerHTML = data.suggestions.map(s => `
+                <div class="suggestion">
+                    <strong>${s.title}</strong>
+                    <p>${s.description}</p>
+                    <a href="https://scholar.google.com/scholar?q=${encodeURIComponent(s.search_query)}" target="_blank">Search on Google Scholar →</a>
+                </div>
+        `).join('');
+        })
+    .catch(() => {
+    document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
+    });
     // @ts-nocheck
     // Map data from Django
     const cyNodes = {{ nodes|safe }};
