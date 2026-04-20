@@ -66,9 +66,10 @@
                         <span class="question-text">{{ question.question_text }}</span>
                         <span class="question-type">{{ question.get_question_type_display }}</span>
                         <button type="button" class="btn-audio" onclick="speakQuestion(this)" 
-                            data-question="{{ question.question_text }}"
-                            data-choices="{% if question.question_type == 'matching' %}{% for pair in question.pairs %}Term {{ forloop.counter }}: {{ pair.premise }}. {% endfor %} Now match each term to one of these options. {% for pair in question.pairs %}Option {{ forloop.counter }}: {{ pair.response }}. {% endfor %}{% else %}{% for choice in question.choices %}Choice {{ forloop.counter }}: {{ choice }}. {% endfor %}{% endif %}">
-
+                            data-question="{{ question.question_text|escapejs }}"
+                            data-choices="{% if question.question_type == 'matching' %}{% for pair in question.pairs %}Term {{ forloop.counter }}: {{ pair.premise }}. {% endfor %} Now match each term to one of these options. {% for pair in question.pairs %}Option {{ forloop.counter }}: {{ pair.response }}. {% endfor %}{% else %}{% for choice in question.choices %}Choice {{ forloop.counter }}: {{ choice }}. {% endfor %}{% endif %}"
+                            aria-label="Read question aloud">
+                            
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
@@ -518,7 +519,8 @@
         animation: none;
     }
 
-    .btn-audio:hover::after {
+    .btn-audio:hover::after,
+    .btn-audio:focus::after {
         visibility: visible;
         opacity: 1;
     }
@@ -557,6 +559,12 @@
     });
 
     function speakQuestion(btn) {
+        // Guard against browsers that don't support Web Speech API
+        if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) {
+            alert('Your browser does not support text-to-speech.');
+            return;
+        }
+
         // Stop any current speech
         speechSynthesis.cancel();
 
@@ -590,7 +598,10 @@
         if (speechSynthesis.getVoices().length > 0) {
             setVoice();
         } else {
-            speechSynthesis.onvoiceschanged = setVoice;
+            speechSynthesis.addEventListener('voiceschanged', function handler() {
+                speechSynthesis.removeEventListener('voiceschanged', handler);
+                setVoice();
+            });
         }
 
     }
