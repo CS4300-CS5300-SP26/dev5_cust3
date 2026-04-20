@@ -8,7 +8,7 @@ from django.views import View
 from django.db.models import Prefetch, Count
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 from django.views.decorators.http import require_POST
-from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile
+from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile, UserProfile
 from .forms import QuizGenerationForm
 
 import pdfplumber
