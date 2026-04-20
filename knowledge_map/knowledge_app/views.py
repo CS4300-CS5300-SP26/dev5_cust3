@@ -591,7 +591,6 @@ def delete_map(request, map_id):
 
 
 #related topics
-
 def related_topics(request, map_id):
     knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
     
