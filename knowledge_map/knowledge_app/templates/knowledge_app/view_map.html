@@ -175,7 +175,32 @@
         }
     });
 
-    
+    // Delete node when delete button in popup is clicked
+    deleteNodeBtn.addEventListener('click', async function() {
+        if (!selectedNodeId) return;
+
+        if (!confirm('Are you sure you want to delete this node?')) return;
+
+        const deleteUrl = `/map/{{ knowledge_map.id }}/delete-node/${selectedNodeId}/`;
+
+        const response = await fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Remove the node and its connected edges from the canvas
+            cy.getElementById(selectedNodeId).remove();
+            popup.classList.add('hidden');
+            selectedNodeId = null;
+        } else {
+            alert(data.error || 'Failed to delete node.');
+        }
+    });
 
     // If map is still processing, poll the status every 3 seconds
     if (mapStatus === 'pending' || mapStatus === 'processing') {
