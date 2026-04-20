@@ -6,11 +6,14 @@
     <!-- Apply Theme Before Page Load -->
     <script>
         const serverTheme = '{{ dark_mode|yesno:"dark,light" }}';
-        localStorage.setItem('theme', serverTheme);
-        if (serverTheme === 'dark') {
-          document.documentElement.setAttribute('data-theme', 'dark');
+        // Only seed localStorage from server; don't overwrite what the user set
+        if (!localStorage.getItem('theme')) {
+            localStorage.setItem('theme', serverTheme);
         }
-      </script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -25,6 +28,28 @@
     <!-- Navbar CSS -->
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}?v=2">
     {% block head %}{% endblock %}
+
+</head>
+
+
+<body>
+
+    <div class="wrapper">
+        <!-- Include sidebar -->
+        {% include "knowledge_app/nav_bar.html" %}
+
+        <!-- Page Content -->
+        <div class="main">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <div class="bottom-bar">KnowledgeMap</div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/navbar.js' %}"></script>
 
     <script>
         const toggle = document.getElementById('dark-mode-toggle');
@@ -50,27 +75,6 @@
             });
         }
     </script>
-</head>
-
-
-<body>
-
-    <div class="wrapper">
-        <!-- Include sidebar -->
-        {% include "knowledge_app/nav_bar.html" %}
-
-        <!-- Page Content -->
-        <div class="main">
-            {% block content %}
-            {% endblock %}
-        </div>
-    </div>
-
-    <div class="bottom-bar">KnowledgeMap</div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/navbar.js' %}"></script>
 
 </body>
 </html>
