@@ -1,0 +1,143 @@
+.share-wrapper {
+    padding: 2rem;
+    max-width: 700px;
+}
+
+/* Header */
+.share-header {
+    margin-bottom: 2rem;
+}
+
+.share-header h1 {
+    font-size: 1.5rem;
+    color: #0e223e;
+    margin-top: 0.5rem;
+}
+
+.back-btn {
+    color: #3b7ddd;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    text-decoration: underline;
+}
+
+/* Share sections */
+.share-section {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.share-section h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0e223e;
+    margin-bottom: 0.25rem;
+}
+
+.share-section p {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+/* Public link box */
+.share-link-box {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.share-link-box input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+/* Buttons */
+.generate-btn,
+.copy-btn,
+.share-user-btn {
+    background-color: #0e223e;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+
+.generate-btn:hover,
+.copy-btn:hover,
+.share-user-btn:hover {
+    background-color: #3b7ddd;
+}
+
+/* Share with user form */
+.share-user-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.share-user-form input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+}
+
+.share-user-form input:focus {
+    border-color: #9db8dd;
+}
+
+/* Share message */
+.share-message {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.share-message.success {
+    color: #155724;
+}
+
+.share-message.error {
+    color: #721c24;
+}
+
+/* Shared users list */
+.shared-users-list {
+    margin-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 1rem;
+}
+
+.shared-users-list h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0e223e;
+    margin-bottom: 0.75rem;
+}
+
+.shared-user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.85rem;
+}

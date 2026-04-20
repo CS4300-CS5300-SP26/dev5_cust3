@@ -24,10 +24,10 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'django-insecure-u@e(vy4q082a8leb%(ln0ikwbmsa$kr12ez-xu%!0+gl(5asue'
+# SECRET_KEY = 'django-insecure-u@e(vy4q082a8leb%(ln0ikwbmsa$kr12ez-xu%!0+gl(5asue'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-for-dev-only')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-#ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+# ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
 
 # Application definition
 
@@ -77,8 +77,8 @@ WSGI_APPLICATION = 'knowledge_map.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-#for when we use a database in deployment, for now we will just use sqlite
-#DATABASES = {
+# for when we use a database in deployment, for now we will just use sqlite
+# DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.postgresql',
 #        'NAME': os.getenv("DB_NAME"),
@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'knowledge_map.wsgi.application'
 #        'HOST': os.getenv("DB_HOST"),
 #        'PORT': os.getenv("DB_PORT"),
 #    }
-#}
+# }
 
 
 # Password validation
@@ -108,12 +108,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-#user redirection paths
+# user redirection paths
 
 
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/homepage/'       
-LOGOUT_REDIRECT_URL = '/' 
+LOGIN_REDIRECT_URL = '/homepage/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Trusted domains allowed to submit forms (fixed 403 error)
 
@@ -159,3 +159,23 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://redis:6379/0')
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'default'
+
+# Add logging for debuggin the server
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/opt/knowledge_map/django_errors.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}

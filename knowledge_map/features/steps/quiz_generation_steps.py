@@ -47,7 +47,8 @@ def step_generate_multiple_choice_quiz(context, count):
     """Generate a quiz with multiple choice questions."""
     context.quiz = []
     for i in range(count):
-        question = generate_multiple_choice(context.topics[i % len(context.topics)], i)
+        question = generate_multiple_choice(
+            context.topics[i % len(context.topics)], i)
         if question:
             context.quiz.append(question)
 
@@ -83,7 +84,8 @@ def step_generate_fill_in_blank_quiz(context, count):
     """Generate a quiz with fill-in-blank questions."""
     context.quiz = []
     for i in range(count):
-        question = generate_fill_in_blank(context.topics[i % len(context.topics)], i)
+        question = generate_fill_in_blank(
+            context.topics[i % len(context.topics)], i)
         if question:
             context.quiz.append(question)
 
@@ -111,7 +113,8 @@ def step_generate_true_false_quiz(context, count):
     """Generate a quiz with true/false questions."""
     context.quiz = []
     for i in range(count):
-        question = generate_true_false(context.topics[i % len(context.topics)], i)
+        question = generate_true_false(
+            context.topics[i % len(context.topics)], i)
         if question:
             context.quiz.append(question)
 
@@ -122,9 +125,11 @@ def step_verify_tf_choices(context, count):
         assert question['type'] == 'true_false', f"Question {question['id']} is not a true_false question"
         # Verify choices exist and are exactly True/False
         choices = question.get('choices', [True, False])
-        assert set(choices) == {True, False}, f"Choices for {question['id']} should be [True, False], got {choices}"
+        assert set(choices) == {
+            True, False}, f"Choices for {question['id']} should be [True, False], got {choices}"
         # Verify answer is boolean
-        assert isinstance(question['answer'], bool), f"Answer for {question['id']} is not a boolean"
+        assert isinstance(
+            question['answer'], bool), f"Answer for {question['id']} is not a boolean"
 
 
 @then('each question should have a boolean answer')
@@ -174,7 +179,7 @@ def step_verify_topic_count(context, count):
 def step_generate_complete_quiz(context):
     """Generate a complete quiz including matching."""
     context.quiz = generate_quiz(
-        context.topics, 
+        context.topics,
         num_questions=len(context.topics) * 2,
         include_matching=True
     )
@@ -209,7 +214,8 @@ def step_generate_from_empty(context):
 @then('the quiz should be empty')
 def step_verify_empty_quiz(context):
     """Verify quiz is empty."""
-    assert len(context.quiz) == 0, f"Expected empty quiz, got {len(context.quiz)} questions"
+    assert len(
+        context.quiz) == 0, f"Expected empty quiz, got {len(context.quiz)} questions"
 
 
 @then('no errors should occur')
@@ -252,7 +258,7 @@ def step_verify_openai_called(context):
         }
         for i in range(context.requested_count)
     ])
-    
+
     context.mock_response = mock_response
 
 
@@ -262,7 +268,8 @@ def step_verify_question_returned(context, count):
     # This is mocked, so we just verify the response structure
     mock_response = context.mock_response
     questions = json.loads(mock_response.choices[0].message.content)
-    assert len(questions) == count, f"Expected {count} questions, got {len(questions)}"
+    assert len(
+        questions) == count, f"Expected {count} questions, got {len(questions)}"
 
 
 @then('each question should have a question_text and correct_answer')
@@ -301,7 +308,6 @@ def step_verify_wrong_answers_obvious(context):
 # ============================= QUESTION TYPE PREFERENCES ==============================
 
 
-
 # ============================= INCOMPLETE DATA ==============================
 
 @when('I have topics with missing keywords or sentences')
@@ -310,7 +316,8 @@ def step_create_incomplete_topics(context):
     context.topics = [
         {'topic_id': 0, 'keywords': [], 'sentences': []},  # Empty
         create_sample_topic(1),  # Valid
-        {'topic_id': 2, 'keywords': ['keyword'], 'sentences': []},  # No sentences
+        {'topic_id': 2, 'keywords': ['keyword'],
+            'sentences': []},  # No sentences
         {'topic_id': 3, 'keywords': [], 'sentences': ['sentence']},  # No keywords
     ]
 
@@ -385,7 +392,7 @@ def step_verify_equal_contribution(context):
     topic_counts = {}
     for tid in topic_ids:
         topic_counts[tid] = topic_counts.get(tid, 0) + 1
-    
+
     counts = list(topic_counts.values())
     # All counts should be within 1 of each other
     assert max(counts) - min(counts) <= 1, \
