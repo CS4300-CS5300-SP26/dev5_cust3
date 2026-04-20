@@ -166,3 +166,19 @@
 .inline-form {
     display: inline;
 }
+
+/* Share button */
+.share-btn {
+    background-color: #9dddbc;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.share-btn:hover {
+    background-color: #37c039;
+    color: white;
+}
