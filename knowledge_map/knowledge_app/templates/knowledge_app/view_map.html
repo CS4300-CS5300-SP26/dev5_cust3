@@ -11,7 +11,17 @@
     <div class="map-header">
         <h1>{{ knowledge_map.title }}</h1>
         <span class="map-status" id="map-status">{{ knowledge_map.status }}</span>
+        <!-- Add node button -->
+        <button id="add-node-btn" class="add-node-btn">+ Add Node</button>
     </div>
+
+    <!-- Add node form -->
+     <div id="add-node-form" class="add-node-form hidden">
+        <input type="text" id="new-node-label" placeholder="Node label (required)">
+        <input type="text" id="new-node-summary" placeholder="Node summary (optional)">
+        <button id="confirm-add-node" class="confirm-btn">Add</button>
+        <button id="cancel-add-node" class="cancel-btn">Cancel</button>
+     </div>
 
     <!-- Cytoscape.js renders the map here -->
     <div id="cy"></div>
@@ -82,10 +92,19 @@
     const popupLabel = document.getElementById('popup-label');
     const popupSummary = document.getElementById('popup-summary');
     const popupClose = document.getElementById('popup-close');
+    const deleteNodeBtn = document.getElementById('delete-node-btn');
+    const addNodeBtn = document.getElementById('add-node-btn');
+    const addNodeForm = document.getElementById('add-node-form');
+    const confirmAddNode = document.getElementById('confirm-add-node');
+    const cancelAddNode = document.getElementById('cancel-add-node');
+
+    // Track selected node id for deletion
+    let selectedNodeId = null;
 
     // Show popup when a node is clicked
     cy.on('tap', 'node', function(event) {
         const node = event.target;
+        selectedNodeId = node.data('id');
         popupLabel.textContent = node.data('label') || '';
         popupSummary.textContent = node.data('summary') || '';
         popup.classList.remove('hidden');
@@ -94,14 +113,69 @@
     // Close popup when close button is clicked
     popupClose.addEventListener('click', function() {
         popup.classList.add('hidden');
+        selectedNodeId = null;
     });
 
     // Close popup when clicking on the background
     cy.on('tap', function(event) {
         if (event.target === cy) {
             popup.classList.add('hidden');
+            selectedNodeId = null;
         }
     });
+
+    // Show add node form when add button is clicked
+    addNodeBtn.addEventListener('click', function() {
+        addNodeForm.classList.remove('hidden');
+        document.getElementById('new-node-label').focus();
+    });
+
+    // Hide add node form when cancel is clicked
+    cancelAddNode.addEventListener('click', function() {
+        addNodeForm.classList.add('hidden');
+        document.getElementById('new-node-label').value = '';
+        document.getElementById('new-node-summary').value = '';
+    });
+
+    // Add node when confirm is clicked
+    confirmAddNode.addEventListener('click', async function() {
+        const label = document.getElementById('new-node-label').value.trim();
+        const summary = document.getElementById('new-node-summary').value.trim();
+
+        if (!label) {
+            alert('Please enter a label for the node.');
+            return;
+        }
+
+        const response = await fetch(addNodeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ label, summary })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Add the new node to the Cytoscape canvas
+            cy.add({
+                group: 'nodes',
+                data: { id: data.id, label: data.label, summary: data.summary },
+                position: { x: cy.width() / 2, y: cy.height() / 2 }
+            });
+
+            // Hide and reset the form
+            addNodeForm.classList.add('hidden');
+            document.getElementById('new-node-label').value = '';
+            document.getElementById('new-node-summary').value = '';
+        } else {
+            alert(data.error || 'Failed to add node.');
+        }
+    });
+
+    
 
     // If map is still processing, poll the status every 3 seconds
     if (mapStatus === 'pending' || mapStatus === 'processing') {
