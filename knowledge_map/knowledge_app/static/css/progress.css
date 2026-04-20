@@ -466,4 +466,30 @@
     font-weight: 700;
     line-height: 1;
     flex-shrink: 0;
+    position: relative;
+}
+
+.new-quiz-btn::after {
+    content: 'Create new quiz';
+    visibility: hidden;
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.65em;
+    font-weight: 400;
+    white-space: nowrap;
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.new-quiz-btn:hover::after {
+    visibility: visible;
+    opacity: 1;
 }
