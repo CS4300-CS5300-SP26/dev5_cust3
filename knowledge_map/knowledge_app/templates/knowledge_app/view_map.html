@@ -13,13 +13,6 @@
         <span class="map-status" id="map-status">{{ knowledge_map.status }}</span>
     </div>
 
-    <!--wrapper for side-by-side layout -->
-    <div class="map-body">
-        <aside class="related-sidebar">
-            <h2>Related Research Areas</h2>
-            <div id="related-list"><em>Loading suggestions...</em></div>
-        </aside>
-    </div>
     <!-- Cytoscape.js renders the map here -->
     <div id="cy"></div>
 
@@ -29,11 +22,7 @@
         <h3 id="popup-label"></h3>
         <p id="popup-summary"></p>
     </div>
-    <!---added related topics bar-->
-    <aside class="related-sidebar">
-        <h2> Related Research Areas</h2>
-        <div id="related-list"><em>Loading suggestions...</em></div>
-      </aside>
+    
 </div>
 
 <!-- Cytoscape.js -->
@@ -58,6 +47,7 @@
     .catch(() => {
     document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
     });
+    
     // @ts-nocheck
     // Map data from Django
     const cyNodes = {{ nodes|safe }};
