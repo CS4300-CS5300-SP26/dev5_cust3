@@ -6,20 +6,12 @@
 {% endblock %}
 
 {% block content %}
-
 <div class="view-map-wrapper">
     <div class="map-header">
         <h1>{{ knowledge_map.title }}</h1>
-        <span class="map-status" id="map-status">{{ knowledge_map.status }}</span>
+        <span class="map-status complete">Shared Map</span>
     </div>
 
-    <!--wrapper for side-by-side layout -->
-    <div class="map-body">
-        <aside class="related-sidebar">
-            <h2>Related Research Areas</h2>
-            <div id="related-list"><em>Loading suggestions...</em></div>
-        </aside>
-    </div>
     <!-- Cytoscape.js renders the map here -->
     <div id="cy"></div>
 
@@ -29,43 +21,15 @@
         <h3 id="popup-label"></h3>
         <p id="popup-summary"></p>
     </div>
-    <!---added related topics bar-->
-    <aside class="related-sidebar">
-        <h2> Related Research Areas</h2>
-        <div id="related-list"><em>Loading suggestions...</em></div>
-      </aside>
 </div>
 
 <!-- Cytoscape.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 
 <script>
-    //related topics logic
-    const relatedUrl = "{% url 'related_topics' knowledge_map.id %}";
-
-    fetch(relatedUrl)
-        .then(r => r.json())
-        .then(data => {
-            const container = document.getElementById('related-list');
-            container.innerHTML = data.suggestions.map(s => `
-                <div class="suggestion">
-                    <strong>${s.title}</strong>
-                    <p>${s.description}</p>
-                    <a href="https://scholar.google.com/scholar?q=${encodeURIComponent(s.search_query)}" target="_blank">Search on Google Scholar →</a>
-                </div>
-        `).join('');
-        })
-    .catch(() => {
-    document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
-    });
-    // @ts-nocheck
-    // Map data from Django
     const cyNodes = {{ nodes|safe }};
     const cyEdges = {{ edges|safe }};
-    const mapStatus = "{{ knowledge_map.status }}";
-    const statusUrl = "{% url 'map_status' knowledge_map.id %}";
 
-    // Initialise Cytoscape
     const cy = cytoscape({
         container: document.getElementById('cy'),
         elements: [...cyNodes, ...cyEdges],
@@ -101,13 +65,13 @@
             }
         ],
         layout: {
-            name: 'cose',         // force-directed layout
+            name: 'cose',
             animate: true,
             padding: 50
         }
     });
 
-    // Cache DOM elements once to avoid repeated lookups
+    // Cache DOM elements
     const popup = document.getElementById('node-popup');
     const popupLabel = document.getElementById('popup-label');
     const popupSummary = document.getElementById('popup-summary');
@@ -132,25 +96,6 @@
             popup.classList.add('hidden');
         }
     });
-
-    // If map is still processing, poll the status every 3 seconds
-    if (mapStatus === 'pending' || mapStatus === 'processing') {
-        const statusEl = document.getElementById('map-status');
-
-        const poll = setInterval(async () => {
-            const response = await fetch(statusUrl);
-            const data = await response.json();
-
-            statusEl.textContent = data.status;
-            statusEl.className = `map-status ${data.status}`;
-
-            // Reload page when complete to show the map
-            if (data.status === 'complete' || data.status === 'failed') {
-                clearInterval(poll);
-                location.reload();
-            }
-        }, 3000);
-    }
 </script>
 
 {% endblock %}

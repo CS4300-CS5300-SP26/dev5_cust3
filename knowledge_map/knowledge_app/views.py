@@ -5,15 +5,20 @@ from .tasks import generate_knowledge_map
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.db.models import Prefetch, Count
+from django.db.models import Prefetch, Count, Q
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
 from django.views.decorators.http import require_POST
-from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile, UserProfile
+from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile, UserProfile, Folder
+from openai import OpenAI
 from .forms import QuizGenerationForm
 
 import pdfplumber
 import os
 import json
+
+from .models import KnowledgeMap, SharedMap
+from django.contrib.auth.models import User
+from django.urls import reverse
 
 # Landing page view
 
@@ -44,36 +49,77 @@ def delete_selected_files(request):
 @login_required
 def upload(request):
     if request.method == 'POST':
-        # Get the file from the form
         file = request.FILES.get('pdf_file')
 
         if file and file.name.endswith('.pdf'):
-            # Save file to database and disk
             original_name = file.name
-            uploaded = UploadedFile(file=file, original_filename=original_name,user=request.user)
+            uploaded = UploadedFile(file=file, original_filename=original_name, user=request.user)
             uploaded.save()
 
-            # Extract text from each page of the PDF
             text = ""
             try:
                 with pdfplumber.open(uploaded.file.path) as pdf:
                     for page in pdf.pages:
                         text += page.extract_text() or ""
-            except Exception as e:
+            except Exception:
                 pass
 
-            # Save extracted text
             uploaded.extracted_text = text
             uploaded.save()
 
-        # Redirect back to upload page after submission
         return redirect('upload')
 
-    # Get all uploaded files from the database, newest first
-    files = UploadedFile.objects.filter(user=request.user).order_by('-uploaded_at')
+    query = request.GET.get('q', '')
+    folder_id = request.GET.get('folder', '')
+    folders = Folder.objects.filter(user=request.user)
 
-    # Send files to the template so they appear in the list
-    return render(request, "knowledge_app/upload.html", {'files': files})
+    files = UploadedFile.objects.filter(user=request.user)
+    if query:
+        files = files.filter(
+            Q(original_filename__icontains=query) |
+            Q(extracted_text__icontains=query)
+        )
+    if folder_id == 'none':
+        files = files.filter(folder__isnull=True)
+    elif folder_id:
+        files = files.filter(folder__id=folder_id)
+
+    files = files.order_by('-uploaded_at')
+
+    return render(request, "knowledge_app/upload.html", {
+        'files': files,
+        'query': query,
+        'folders': folders,
+        'active_folder': folder_id,
+    })
+
+#folder mangemnt views
+def create_folder(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            Folder.objects.get_or_create(user=request.user, name=name)
+    return redirect('upload')
+
+
+def move_files(request):
+    if request.method == 'POST':
+        file_ids = request.POST.getlist('selected_files')
+        folder_id = request.POST.get('target_folder')
+
+        folder = None
+        if folder_id:
+            try:
+                folder = Folder.objects.get(id=folder_id, user=request.user)
+            except Folder.DoesNotExist:
+                pass
+
+        UploadedFile.objects.filter(
+            id__in=file_ids,
+            user=request.user
+        ).update(folder=folder)
+
+    return redirect('upload')
 
 
 @login_required
@@ -106,8 +152,17 @@ def maps(request):
         .prefetch_related('topics')\
         .annotate(topic_count=Count('topics'))\
         .order_by('-created_at')
-    return render(request, "knowledge_app/maps.html", {'maps': user_maps})
 
+    # Maps shared with user by other users
+    shared_with_me = SharedMap.objects.filter(
+        shared_with=request.user
+    ).select_related('knowledge_map', 'knowledge_map__user')
+
+    return render(request, "knowledge_app/maps.html", {
+        'maps': user_maps,
+        'shared_with_me': shared_with_me,
+    })
+    
 # Quiz view
 @login_required
 def quiz(request):
@@ -116,7 +171,71 @@ def quiz(request):
 # Progress view
 @login_required
 def progress(request):
-    return render(request, "knowledge_app/progress.html")
+    from django.db.models import Avg
+    quizzes = Quiz.objects.filter(user=request.user).prefetch_related('attempts', 'questions')
+
+    quiz_data = []
+    for quiz in quizzes:
+        latest = quiz.latest_attempt
+
+        if latest is None:
+            status = 'not_attempted'
+        elif latest.score >= 80:
+            status = 'mastered'
+        elif latest.score >= 60:
+            status = 'learning'
+        else:
+            status = 'needs_practice'
+
+        # Per-question-type breakdown from latest attempt
+        type_breakdown = {}
+        if latest:
+            for answer in latest.answers.select_related('question'):
+                qtype = answer.question.get_question_type_display()
+                if qtype not in type_breakdown:
+                    type_breakdown[qtype] = {'correct': 0, 'total': 0}
+                type_breakdown[qtype]['total'] += 1
+                if answer.is_correct:
+                    type_breakdown[qtype]['correct'] += 1
+            for t in type_breakdown:
+                d = type_breakdown[t]
+                d['pct'] = round(d['correct'] / d['total'] * 100) if d['total'] else 0
+
+        all_attempts = quiz.attempts.all()
+        highest_score = max((a.score for a in all_attempts), default=None)
+        attempts_list = list(all_attempts.order_by('-created_at'))
+        previous_score = attempts_list[1].score if len(attempts_list) > 1 else None
+        trend_diff = round(latest.score - previous_score) if previous_score is not None and latest else None
+
+        quiz_data.append({
+            'quiz': quiz,
+            'status': status,
+            'latest_score': latest.score if latest else None,
+            'attempts': quiz.total_attempts,
+            'avg_score': quiz.average_score,
+            'highest_score': highest_score,
+            'type_breakdown': type_breakdown,
+            'previous_score': previous_score,
+            'trend_diff': trend_diff,
+        })
+
+    # Summary stats
+    total = len(quiz_data)
+    mastered = sum(1 for q in quiz_data if q['status'] == 'mastered')
+    learning = sum(1 for q in quiz_data if q['status'] == 'learning')
+    needs_practice = sum(1 for q in quiz_data if q['status'] == 'needs_practice')
+    not_attempted = sum(1 for q in quiz_data if q['status'] == 'not_attempted')
+    mastery_pct = round((mastered / total) * 100) if total > 0 else 0
+    
+    return render(request, 'knowledge_app/progress.html', {
+        'quiz_data': quiz_data,
+        'total': total,
+        'mastered': mastered,
+        'learning': learning,
+        'needs_practice': needs_practice,
+        'not_attempted': not_attempted,
+        'mastery_pct': mastery_pct,
+    })
 
 # Login view
 def Login(request):
@@ -461,8 +580,6 @@ def map_status(request, map_id):
     return JsonResponse({'status': knowledge_map.status})
 
 # Delete map view
-
-
 @login_required
 def delete_map(request, map_id):
     if request.method == 'POST':
@@ -481,3 +598,126 @@ def update_theme(request):
     profile.dark_mode = dark_mode
     profile.save()
     return JsonResponse({'status': 'ok', 'dark_mode': dark_mode})
+
+#related topics
+
+def related_topics(request, map_id):
+    knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+    
+    topic_labels = list(knowledge_map.topics.values_list('label', flat=True))
+    
+    client = OpenAI()  # uses OPENAI_API_KEY env var
+    
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a research assistant. Given a list of knowledge map topics, suggest 5-8 related research areas or articles the user might want to explore. Return JSON: {\"suggestions\": [{\"title\": str, \"description\": str, \"search_query\": str}]}"
+            },
+            {
+                "role": "user", 
+                "content": f"Topics: {', '.join(topic_labels)}"
+            }
+        ],
+        response_format={"type": "json_object"}
+    )
+    
+    data = json.loads(response.choices[0].message.content)
+    return JsonResponse(data)
+
+# Share map view
+@login_required
+def share_map(request, map_id):
+    knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+
+    if request.method == 'POST':
+        share_type = request.POST.get('share_type')
+
+        if share_type == 'public':
+            # get or create public share link
+            shared_map, created = SharedMap.objects.get_or_create(
+                knowledge_map=knowledge_map,
+                is_public=True,
+                shared_with=None
+            )
+            return JsonResponse({
+                'share_url': request.build_absolute_uri(
+                    reverse('view_shared_map', args=[shared_map.share_token])
+                )
+            })
+        elif share_type == 'user':
+            username = request.POST.get('username', '').strip()
+            try:
+                user_to_share_with = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return JsonResponse({'error': f'User "{username}" not found'}, status=404)
+
+            # Don't allow sharing with yourself
+            if user_to_share_with == request.user:
+                return JsonResponse({'error': 'You cannot share a map with yourself'}, status=400)
+
+            # Get or create share for this specific user
+            shared_map, created = SharedMap.objects.get_or_create(
+                knowledge_map=knowledge_map,
+                shared_with=user_to_share_with,
+                defaults={'is_public': False}
+            )
+            return JsonResponse({
+                'message': f'Map shared with {username} successfully'
+            })
+
+    # GET - show share options
+    public_share = SharedMap.objects.filter(
+        knowledge_map=knowledge_map,
+        is_public=True
+    ).first()
+
+    shared_users = SharedMap.objects.filter(
+        knowledge_map=knowledge_map,
+        is_public=False
+    ).exclude(shared_with=None)
+
+    return render(request, 'knowledge_app/share_map.html', {
+        'knowledge_map': knowledge_map,
+        'public_share': public_share,
+        'shared_users': shared_users,
+    })
+
+# View a shared map — accessible via public token or if shared with the user
+def view_shared_map(request, share_token):
+    shared_map = get_object_or_404(SharedMap, share_token=share_token)
+
+    # Check access — public link or shared with logged in user
+    if not shared_map.is_public:
+        if not request.user.is_authenticated:
+            return redirect(f'/accounts/login/?next={request.path}')
+        if shared_map.shared_with != request.user:
+            return HttpResponse('You do not have access to this map.', status=403)
+
+    knowledge_map = shared_map.knowledge_map
+    topics = knowledge_map.topics.all()
+    relationships = knowledge_map.relationships.all()
+
+    nodes = [
+        {'data': {'id': str(topic.id), 'label': topic.label, 'summary': topic.summary}}
+        for topic in topics
+    ]
+    edges = [
+        {
+            'data': {
+                'id': f"e{rel.id}",
+                'source': str(rel.source_topic.id),
+                'target': str(rel.target_topic.id),
+                'label': rel.relationship_label
+            }
+        }
+        for rel in relationships
+    ]
+
+    return render(request, 'knowledge_app/view_shared_map.html', {
+        'knowledge_map': knowledge_map,
+        'nodes': nodes,
+        'edges': edges,
+        'shared_map': shared_map,
+    })

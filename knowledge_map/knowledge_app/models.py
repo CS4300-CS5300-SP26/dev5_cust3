@@ -1,11 +1,25 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 import json
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import uuid
 
 # Database table - stores info about PDF uploads
+# add folders model
+class Folder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folders')
+    name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+        unique_together = ['user', 'name']  # no duplicate folder names per user
 
 
 class UploadedFile(models.Model):
@@ -14,11 +28,11 @@ class UploadedFile(models.Model):
     file = models.FileField(upload_to='uploads/')
     original_filename = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
-    # Store user and extracted text
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    # extracts text for BERTopic
     extracted_text = models.TextField(blank=True, default='')
+    folder = models.ForeignKey(Folder, null=True, blank=True,   # update for folders
+                               on_delete=models.SET_NULL,
+                               related_name='files')
 
     @property
     def display_name(self):
@@ -220,8 +234,6 @@ class SubtopicNode(models.Model):
         return self.label
 
 # Relationship/edge between two topic nodes on the map
-
-
 class NodeRelationship(models.Model):
     knowledge_map = models.ForeignKey(
         KnowledgeMap, on_delete=models.CASCADE, related_name='relationships')
@@ -255,3 +267,20 @@ def save_user_profile(sender, instance, **kwargs):
     # get_or_create handles existing users who don't have a profile yet
     UserProfile.objects.get_or_create(user=instance)
     
+# store permissions for a knowledge map
+class SharedMap(models.Model):
+    knowledge_map = models.ForeignKey(KnowledgeMap, on_delete=models.CASCADE, related_name='shares')
+
+    # public link sharing - anyone with the token can view
+    share_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    is_public = models.BooleanField(default=False)
+
+    # sharing with specific user
+    shared_with = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='shared_map')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        if self.shared_with:
+            return f"{self.knowledge_map.title} shared with {self.shared_with.username}"
+        return f"{self.knowledge_map.title} (public link)"
