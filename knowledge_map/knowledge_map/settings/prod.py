@@ -51,3 +51,5 @@ DATABASES = {
 CSRF_TRUSTED_ORIGINS = [
     'https://yourknowledgemap.me',
 ]
+
+MEDIA_ROOT = '/opt/knowledge_map/media/'
