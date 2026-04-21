@@ -17,7 +17,7 @@
 
 .map-header h1 {
     font-size: 1.5rem;
-    color: #0e223e;
+    color: var(--text-color);
 }
 
 /* Status badge */
@@ -83,7 +83,7 @@
 .node-popup h3 {
     font-size: 1rem;
     font-weight: 600;
-    color: #0e223e;
+    color: var(--text-color);
     margin-bottom: 0.5rem;
     margin-top: 1.5rem;
 }
@@ -107,7 +107,7 @@
 }
 
 .popup-close:hover {
-    color: #0e223e;
+    color: var(--text-color);
 }
 
 /* Hidden state */

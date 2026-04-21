@@ -12,6 +12,10 @@
     --link-color: #185fa5;
     --input-bg: #ffffff;
     --input-color: #333;
+    /* Cytoscape map colours */
+    --cy-node-bg: #0e223e;
+    --cy-edge-color: #4a5568;
+    --cy-edge-label-bg: #feffee;
 }
 
 [data-theme="dark"] {
@@ -25,7 +29,12 @@
     --link-color: #38bdf8;
     --input-bg: #0f172a;
     --input-color: #e2e8f0;
+    /* Cytoscape map colours */
+    --cy-node-bg: #1e3a5f;
+    --cy-edge-color: #9db8dd;
+    --cy-edge-label-bg: #1a1a2e;
 }
+
 ::after,
 ::before {
     box-sizing: border-box;

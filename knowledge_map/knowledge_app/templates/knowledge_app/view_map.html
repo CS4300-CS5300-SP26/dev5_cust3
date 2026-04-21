@@ -78,15 +78,21 @@
     const addNodeUrl = "{% url 'add_node' knowledge_map.id %}";
     const csrfToken = "{{ csrf_token }}";
 
-    // Initialise Cytoscape
-    const cy = cytoscape({
-        container: document.getElementById('cy'),
-        elements: [...cyNodes, ...cyEdges],
-        style: [
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    // Read a CSS variable from :root so Cytoscape colours always match the theme
+    function getCSSVar(name) {
+        return getComputedStyle(document.documentElement)
+            .getPropertyValue(name).trim();
+    }
+
+    // Build and apply the full Cytoscape stylesheet from current CSS variables
+    function applyTheme() {
+        cy.style([
             {
                 selector: 'node',
                 style: {
-                    'background-color': '#0e223e',
+                    'background-color': getCSSVar('--cy-node-bg'),
                     'label': 'data(label)',
                     'color': '#fff',
                     'text-valign': 'center',
@@ -103,22 +109,76 @@
                 selector: 'edge',
                 style: {
                     'width': 2,
-                    'line-color': '#9db8dd',
-                    'target-arrow-color': '#9db8dd',
+                    'line-color': getCSSVar('--cy-edge-color'),
+                    'target-arrow-color': getCSSVar('--cy-edge-color'),
                     'target-arrow-shape': 'triangle',
                     'curve-style': 'bezier',
                     'label': 'data(label)',
-                    'font-size': '10px',
-                    'color': '#333',
+                    'font-size': '12px',
+                    'color': getCSSVar('--cy-edge-color'),
+                    'text-background-color': getCSSVar('--cy-edge-label-bg'),
+                    'text-background-opacity': 0.7,
+                    'text-background-padding': '3px',
                 }
             }
-        ],
+        ]).update();
+    }
+
+    // ── Related topics ────────────────────────────────────────────────────────
+
+    const relatedUrl = "{% url 'related_topics' knowledge_map.id %}";
+
+    fetch(relatedUrl)
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('related-list');
+            container.innerHTML = data.suggestions.map(s => `
+                <div class="suggestion">
+                    <strong>${s.title}</strong>
+                    <p>${s.description}</p>
+                    <a href="https://scholar.google.com/scholar?q=${encodeURIComponent(s.search_query)}" target="_blank">Search on Google Scholar →</a>
+                </div>
+        `).join('');
+        })
+        .catch(() => {
+            document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
+        });
+
+    // ── Map data from Django ──────────────────────────────────────────────────
+
+    const cyNodes = {{ nodes|safe }};
+    const cyEdges = {{ edges|safe }};
+    const mapStatus = "{{ knowledge_map.status }}";
+    const statusUrl = "{% url 'map_status' knowledge_map.id %}";
+
+    // ── Initialise Cytoscape ──────────────────────────────────────────────────
+
+    const cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: [...cyNodes, ...cyEdges],
+        // Start with empty style — applyTheme() fills it in immediately below
+        style: [],
         layout: {
-            name: 'cose',         // force-directed layout
+            name: 'cose',
             animate: true,
             padding: 50
         }
     });
+
+    // Apply theme on first load
+    applyTheme();
+
+    // ── Theme change listeners ────────────────────────────────────────────────
+
+    // Watch for the toggle on the profile page being used in another tab,
+    // or for the theme being set programmatically from localStorage on load
+    const observer = new MutationObserver(applyTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+
+    // ── Node popup ────────────────────────────────────────────────────────────
 
     // Cache DOM elements once to avoid repeated lookups
     const popup = document.getElementById('node-popup');
@@ -386,6 +446,8 @@
             alert('Network error. Failed to delete node.');
         }
     });
+
+    // ── Status polling ────────────────────────────────────────────────────────
 
     // If map is still processing, poll the status every 3 seconds
     if (mapStatus === 'pending' || mapStatus === 'processing') {
