@@ -256,6 +256,17 @@ def register(request):
 @login_required
 def user_profile(request):
     user = request.user
+
+    # POST logic
+    if request.method == 'POST' and request.FILES.get('photo'):
+        profile = user.profile
+        if profile.photo:
+            profile.photo.delete(save=False)  # remove old file from disk
+        profile.photo = request.FILES['photo']
+        profile.save()
+        return redirect('user_profile')
+
+    # GET logic
     upload_count = UploadedFile.objects.filter(user=user).count()
     quiz_attempts = QuizAttempt.objects.filter(user=user)
     total_quizzes = quiz_attempts.count()
@@ -269,6 +280,15 @@ def user_profile(request):
         'total_quizzes': total_quizzes,
         'average_score': average_score,
     })
+
+@login_required
+@require_POST
+def delete_photo(request):
+    profile = request.user.profile
+    if profile.photo:
+        profile.photo = None
+        profile.save()
+    return redirect('user_profile')
 
 # Quiz logic
 
