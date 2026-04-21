@@ -104,3 +104,121 @@
 .hidden {
     display: none;
 }
+
+/* Modal Styling */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+ 
+.modal.hidden {
+    display: none;
+}
+ 
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+ 
+.modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+ 
+.modal-close:hover {
+    color: #000;
+}
+ 
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 20px;
+    color: #333;
+}
+ 
+
+/* Toggle Button */
+.toggle-related-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background-color: #0e223e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 999;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+ 
+.toggle-related-btn:hover {
+    background-color: #1a3a5c;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+ 
+.toggle-related-btn:active {
+    transform: scale(0.98);
+}
+ 
+/* Suggestion items in modal */
+.suggestion {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+ 
+.suggestion:last-child {
+    border-bottom: none;
+}
+ 
+.suggestion strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 15px;
+}
+ 
+.suggestion p {
+    margin: 6px 0;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+}
+ 
+.suggestion a {
+    display: inline-block;
+    margin-top: 8px;
+    color: #0e223e;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+}
+ 
+.suggestion a:hover {
+    text-decoration: underline;
+}
+ 

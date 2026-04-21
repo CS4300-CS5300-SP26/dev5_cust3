@@ -16,11 +16,15 @@ from .forms import QuizGenerationForm
 import pdfplumber
 import os
 import json
+import logging
 
 from .models import KnowledgeMap, SharedMap
 from django.contrib.auth.models import User
 from django.urls import reverse
 
+
+# init logger for debugging
+logger = logging.getLogger(__name__)
 # Landing page view
 
 def index(request):
@@ -592,29 +596,83 @@ def delete_map(request, map_id):
 
 #related topics
 def related_topics(request, map_id):
-    knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+    """
+    Generate related research topics using OpenAI based on knowledge map topics.
+    """
+    try:
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+        
+        topic_labels = list(knowledge_map.topics.values_list('label', flat=True))
+        
+        # Return empty suggestions if no topics exist
+        if not topic_labels:
+            return JsonResponse({
+                'suggestions': []
+            })
+        
+        try:
+            client = OpenAI()  # uses OPENAI_API_KEY env var
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a research assistant. Given a list of knowledge map topics, suggest 5-8 related research areas or articles the user might want to explore. Return valid JSON with this exact format: {\"suggestions\": [{\"title\": \"string\", \"description\": \"string\", \"search_query\": \"string\"}]}"
+                    },
+                    {
+                        "role": "user", 
+                        "content": f"Topics: {', '.join(topic_labels)}"
+                    }
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            # Parse the response
+            response_content = response.choices[0].message.content
+            logger.info(f"OpenAI response: {response_content}")
+            
+            data = json.loads(response_content)
+            
+            # Validate the response structure
+            if 'suggestions' not in data or not isinstance(data['suggestions'], list):
+                logger.error(f"Invalid response structure: {data}")
+                return JsonResponse({
+                    'suggestions': [],
+                    'error': 'Invalid response format from AI'
+                }, status=400)
+            
+            # Ensure all suggestions have required fields
+            for suggestion in data['suggestions']:
+                if not all(key in suggestion for key in ['title', 'description', 'search_query']):
+                    logger.error(f"Missing required fields in suggestion: {suggestion}")
+                    return JsonResponse({
+                        'suggestions': [],
+                        'error': 'Invalid suggestion format'
+                    }, status=400)
+            
+            return JsonResponse(data)
+        
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error: {str(e)}\nResponse: {response.choices[0].message.content}")
+            return JsonResponse({
+                'suggestions': [],
+                'error': 'Failed to parse AI response'
+            }, status=500)
+        
+        except Exception as e:
+            logger.error(f"OpenAI API error: {str(e)}")
+            return JsonResponse({
+                'suggestions': [],
+                'error': f'API Error: {str(e)}'
+            }, status=500)
     
-    topic_labels = list(knowledge_map.topics.values_list('label', flat=True))
-    
-    client = OpenAI()  # uses OPENAI_API_KEY env var
-    
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a research assistant. Given a list of knowledge map topics, suggest 5-8 related research areas or articles the user might want to explore. Return JSON: {\"suggestions\": [{\"title\": str, \"description\": str, \"search_query\": str}]}"
-            },
-            {
-                "role": "user", 
-                "content": f"Topics: {', '.join(topic_labels)}"
-            }
-        ],
-        response_format={"type": "json_object"}
-    )
-    
-    data = json.loads(response.choices[0].message.content)
-    return JsonResponse(data)
+    except Exception as e:
+        logger.error(f"Unexpected error in related_topics: {str(e)}")
+        return JsonResponse({
+            'suggestions': [],
+            'error': 'An unexpected error occurred'
+        }, status=500)
 
 # Share map view
 @login_required

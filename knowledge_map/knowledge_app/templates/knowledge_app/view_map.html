@@ -24,29 +24,74 @@
     </div>
     
 </div>
-
+<!-- Related Topics Modal -->
+<div id="related-modal" class="modal hidden">
+    <div class="modal-content">
+        <button id="modal-close" class="modal-close">✕</button>
+        <h2>Related Research Areas</h2>
+        <div id="related-list"><em>Loading suggestions...</em></div>
+    </div>
+</div>
 <!-- Cytoscape.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 
 <script>
-    //related topics logic
+    // Related topics logic with improved error handling
     const relatedUrl = "{% url 'related_topics' knowledge_map.id %}";
-
-    fetch(relatedUrl)
-        .then(r => r.json())
-        .then(data => {
-            const container = document.getElementById('related-list');
-            container.innerHTML = data.suggestions.map(s => `
-                <div class="suggestion">
-                    <strong>${s.title}</strong>
-                    <p>${s.description}</p>
-                    <a href="https://scholar.google.com/scholar?q=${encodeURIComponent(s.search_query)}" target="_blank">Search on Google Scholar →</a>
-                </div>
-        `).join('');
-        })
-    .catch(() => {
-    document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
-    });
+    
+    function loadRelatedTopics() {
+        fetch(relatedUrl)
+            .then(r => {
+                console.log('Related topics response status:', r.status);
+                
+                if (!r.ok) {
+                    throw new Error(`Server returned ${r.status}`);
+                }
+                return r.json();
+            })
+            .then(data => {
+                console.log('Related topics data:', data);
+                
+                const container = document.getElementById('related-list');
+                
+                // Check for error response
+                if (data.error) {
+                    console.error('API error:', data.error);
+                    container.innerHTML = `<em>Could not load suggestions: ${data.error}</em>`;
+                    return;
+                }
+                
+                // Check if data has suggestions
+                if (!data.suggestions || !Array.isArray(data.suggestions)) {
+                    throw new Error('Invalid data format: missing suggestions array');
+                }
+                
+                if (data.suggestions.length === 0) {
+                    container.innerHTML = '<em>No related topics found. Try adding more topics to your map.</em>';
+                    return;
+                }
+                
+                container.innerHTML = data.suggestions.map(s => `
+                    <div class="suggestion">
+                        <strong>${s.title || 'Untitled'}</strong>
+                        <p>${s.description || 'No description available'}</p>
+                        <a href="https://scholar.google.com/scholar?q=${encodeURIComponent(s.search_query)}" target="_blank">Search on Google Scholar →</a>
+                    </div>
+                `).join('');
+            })
+            .catch(error => {
+                console.error('Error loading related topics:', error);
+                const container = document.getElementById('related-list');
+                container.innerHTML = `<em>Could not load suggestions. Check the console for details.</em>`;
+            });
+    }
+ 
+    // Load related topics when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadRelatedTopics);
+    } else {
+        loadRelatedTopics();
+    }
     
     // @ts-nocheck
     // Map data from Django
