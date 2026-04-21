@@ -526,7 +526,7 @@ def create_map(request):
         )
 
         # Trigger the background Celery task
-        generate_knowledge_map.delay(knowledge_map.id)
+        generate_knowledge_map(knowledge_map.id)
 
         # Redirect to the map view page
         return redirect('view_map', map_id=knowledge_map.id)
