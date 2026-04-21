@@ -60,12 +60,23 @@
             {% csrf_token %}
 
             {% for question in quiz.questions.all %}
-            <div class="question-card">
-                <div class="question-header">
-                    <h3 class="question-number">Q{{ forloop.counter }}</h3>
-                    <span class="question-text">{{ question.question_text }}</span>
-                    <span class="question-type">{{ question.get_question_type_display }}</span>
-                </div>
+                <div class="question-card">
+                    <div class="question-header">
+                        <h3 class="question-number">Q{{ forloop.counter }}</h3>
+                        <span class="question-text">{{ question.question_text }}</span>
+                        <span class="question-type">{{ question.get_question_type_display }}</span>
+                        <button type="button" class="btn-audio" onclick="speakQuestion(this)" 
+                            data-question="{{ question.question_text|escapejs }}"
+                            data-choices="{% if question.question_type == 'matching' %}{% for pair in question.pairs %}Term {{ forloop.counter }}: {{ pair.premise }}. {% endfor %} Now match each term to one of these options. {% for pair in question.pairs %}Option {{ forloop.counter }}: {{ pair.response }}. {% endfor %}{% else %}{% for choice in question.choices %}Choice {{ forloop.counter }}: {{ choice }}. {% endfor %}{% endif %}"
+                            aria-label="Read question aloud">
+
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                            </svg>
+                        </button>
+                    </div>
 
                 <div class="question-content">
                     {% if question.question_type == "multiple_choice" or question.question_type == "fill_in_blank" %}
@@ -283,7 +294,7 @@
     .question-header {
         display: flex;
         gap: 12px;
-        align-items: baseline;
+        align-items: center;
         margin-bottom: 15px;
     }
 
@@ -458,6 +469,67 @@
             transform: rotate(360deg);
         }
     }
+    .btn-audio {
+        background: none;
+        border: 1px solid #667eea;
+        color: #667eea;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        font-size: 0.85em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+        padding: 0;
+        position: relative;
+    }
+
+    .btn-audio:hover {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-audio.speaking {
+        background: #667eea;
+        color: white;
+        animation: pulse 1s infinite;
+    }
+
+    .btn-audio::after {
+        content: 'Read question aloud';
+        visibility: hidden;
+        background: #333;
+        color: #fff;
+        text-align: center;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.65em;
+        font-weight: 400;
+        white-space: nowrap;
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.2s;
+        animation: none;
+    }
+
+    .btn-audio:hover::after,
+    .btn-audio:focus::after {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.5); }
+        50% { box-shadow: 0 0 0 6px rgba(102, 126, 234, 0); }
+    }
+
 </style>
 
 <script>
@@ -485,6 +557,60 @@
         `;
         }, 0);
     });
+
+    function speakQuestion(btn) {
+        // Guard against browsers that don't support Web Speech API
+        if (!('speechSynthesis' in window) || !window.SpeechSynthesisUtterance) {
+            alert('Your browser does not support text-to-speech.');
+            return;
+        }
+
+        // Stop any current speech
+        btn.blur();
+        speechSynthesis.cancel();
+
+        // If already speaking this question, just stop
+        if (btn.classList.contains('speaking')) {
+            btn.classList.remove('speaking');
+            return;
+        }
+
+        // Remove speaking class from all buttons
+        document.querySelectorAll('.btn-audio').forEach(b => b.classList.remove('speaking'));
+        btn.classList.add('speaking');
+
+        const question = btn.dataset.question;
+        const choices = btn.dataset.choices;
+        const cleanQuestion = question.replace(/_+/g, 'blank');
+
+        const text = choices ? `Question: ${cleanQuestion}. ${choices}` : `Question: ${cleanQuestion}`;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.onend = () => btn.classList.remove('speaking');
+        utterance.onerror = () => btn.classList.remove('speaking');
+
+        const setVoice = () => {
+            const voices = speechSynthesis.getVoices();
+            const preferred = 
+                voices.find(v => v.name.includes('Google') && v.lang === 'en-US') ||
+                voices.find(v => v.name.includes('Samantha')) ||
+                voices.find(v => v.name.includes('Karen')) ||
+                voices.find(v => v.lang === 'en-US') ||
+                voices[0];
+            if (preferred) utterance.voice = preferred;
+            speechSynthesis.speak(utterance);
+        };
+
+        if (speechSynthesis.getVoices().length > 0) {
+            setVoice();
+        } else {
+            speechSynthesis.addEventListener('voiceschanged', function handler() {
+                speechSynthesis.removeEventListener('voiceschanged', handler);
+                setVoice();
+            });
+        }
+
+    }
 </script>
 
 
