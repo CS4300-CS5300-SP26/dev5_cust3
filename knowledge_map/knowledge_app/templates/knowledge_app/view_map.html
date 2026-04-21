@@ -50,10 +50,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 
 <script>
-    //related topics logic
-    const relatedUrl = "{% url 'related_topics' knowledge_map.id %}";
-
-    
+   
 
     // @ts-nocheck
     // Map data from Django
@@ -110,25 +107,6 @@
         ]).update();
     }
 
-    // ── Related topics ────────────────────────────────────────────────────────
-
-    const relatedUrl = "{% url 'related_topics' knowledge_map.id %}";
-
-    fetch(relatedUrl)
-        .then(r => r.json())
-        .then(data => {
-            const container = document.getElementById('related-list');
-            container.innerHTML = data.suggestions.map(s => `
-                <div class="suggestion">
-                    <strong>${s.title}</strong>
-                    <p>${s.description}</p>
-                    <a href="https://scholar.google.com/scholar?q=${encodeURIComponent(s.search_query)}" target="_blank">Search on Google Scholar →</a>
-                </div>
-        `).join('');
-        })
-        .catch(() => {
-            document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
-        });
 
     // ── Map data from Django ──────────────────────────────────────────────────
 
