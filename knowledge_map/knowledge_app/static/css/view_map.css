@@ -2,7 +2,7 @@
 .view-map-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: calc(100vh - 40px); /* subtract bottom bar height */
     padding: 1rem;
     position: relative;
 }
@@ -49,6 +49,7 @@
 /* Cytoscape map canvas */
 #cy {
     flex: 1;
+    min-height: 500px;
     border: 1px solid var(--card-border);
     border-radius: 8px;
     background-color: var(--bg-color);
