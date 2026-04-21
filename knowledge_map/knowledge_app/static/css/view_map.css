@@ -19,14 +19,7 @@
     font-size: 1.5rem;
     color: #0e223e;
 }
-/*holds the map + sidebar side by side */
-.map-body {
-    display: flex;
-    flex-direction: row;
-    flex: 1;
-    gap: 1rem;
-    min-height: 0; /* important — prevents flex overflow */
-}
+
 /* Status badge */
 .map-status {
     padding: 0.25rem 0.75rem;
@@ -120,4 +113,106 @@
 /* Hidden state */
 .hidden {
     display: none;
+}
+
+/* Add node button */
+.add-node-btn {
+    background-color: #0e223e;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    margin-left: auto;
+}
+
+.add-node-btn:hover {
+    background-color: #3b7ddd;
+}
+
+/* Add node form */
+.add-node-form {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    align-items: center;
+}
+
+.add-node-form input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    flex: 1;
+}
+
+.add-node-form input:focus {
+    border-color: #9db8dd;
+}
+
+/* Confirm and cancel buttons */
+.confirm-btn {
+    background-color: #0e223e;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+
+.confirm-btn:hover {
+    background-color: #3b7ddd;
+}
+
+.cancel-btn {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+
+.cancel-btn:hover {
+    background-color: #ccc;
+}
+
+/* Delete node button in popup */
+.delete-node-btn {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.delete-node-btn:hover {
+    background-color: #721c24;
+    color: white;
+}
+
+/* Add relationship button */
+#add-relationship-btn {
+    background-color: #3b7ddd;
+}
+
+#add-relationship-btn:hover {
+    background-color: #0e223e;
 }
