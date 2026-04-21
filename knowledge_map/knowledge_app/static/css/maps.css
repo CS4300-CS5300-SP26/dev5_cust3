@@ -13,13 +13,13 @@
 
 .maps-header h1 {
     font-size: 1.5rem;
-    color: #0e223e;
+    color: var(--text-color);
 }
 
 /* Create new map button */
 .create-map-btn {
-    background-color: #0e223e;
-    color: white;
+    background-color: var(--text-color);
+    color: var(--bg-color);
     padding: 0.625rem 1.25rem;
     border-radius: 4px;
     font-size: 0.9rem;
@@ -29,7 +29,7 @@
 
 .create-map-btn:hover {
     background-color: #3b7ddd;
-    color: white;
+    color: var(--bg-color);
 }
 
 /* Grid layout for map cards */
@@ -41,8 +41,8 @@
 
 /* Individual map card */
 .map-card {
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 8px;
     display: flex;
     flex-direction: column;
@@ -51,7 +51,7 @@
 /* Card header */
 .map-card-header {
     padding: 1rem 1.25rem;
-    background-color: #0e223e;
+    background-color: var(--text-color);
     border-radius: 8px 8px 0 0;
     display: flex;
     justify-content: space-between;
@@ -70,7 +70,7 @@
     padding: 1rem 1.25rem;
     flex: 1;
     font-size: 0.85rem;
-    color: #555;
+    color: var(--muted-text);
 }
 
 .map-card-body p {
@@ -80,7 +80,7 @@
 /* Card footer */
 .map-card-footer {
     padding: 1rem 1.25rem;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--card-border);
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -89,7 +89,7 @@
 /* View map button */
 .view-btn {
     background-color: #3b7ddd;
-    color: white;
+    color: var(--bg-color);
     padding: 0.5rem 1rem;
     border-radius: 4px;
     font-size: 0.85rem;
@@ -98,8 +98,8 @@
 }
 
 .view-btn:hover {
-    background-color: #0e223e;
-    color: white;
+    background-color: var(--text-color);
+    color: var(--bg-color);
 }
 
 /* Status badge */
@@ -137,7 +137,7 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 3rem;
-    color: #555;
+    color: var(--muted-text);
 }
 
 .no-maps a {
@@ -159,7 +159,7 @@
 
 .delete-btn:hover {
     background-color: #721c24;
-    color: white;
+    color: var(--bg-color);
 }
 
 /* Keeps delete form inline with other footer buttons */
@@ -170,7 +170,7 @@
 /* Share button */
 .share-btn {
     background-color: #9dddbc;
-    color: white;
+    color: var(--bg-color);
     padding: 0.5rem 1rem;
     border-radius: 4px;
     font-size: 0.85rem;
@@ -180,5 +180,5 @@
 
 .share-btn:hover {
     background-color: #37c039;
-    color: white;
+    color: var(--bg-color);
 }

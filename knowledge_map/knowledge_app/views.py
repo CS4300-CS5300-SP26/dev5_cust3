@@ -5,12 +5,11 @@ from .tasks import generate_knowledge_map
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.db.models import Prefetch, Count
+from django.db.models import Prefetch, Count, Q
 from .services.quiz_generator import generate_quiz, generate_quiz_from_text
-from django.db.models import Q
+from django.views.decorators.http import require_POST
+from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile, UserProfile, Folder
 from openai import OpenAI
-
-from .models import Quiz, Question, QuizAttempt, Answer, UploadedFile, Folder
 from .forms import QuizGenerationForm
 
 import pdfplumber
@@ -589,6 +588,16 @@ def delete_map(request, map_id):
         knowledge_map.delete()
     return redirect('maps')
 
+# Update theme view
+@login_required
+@require_POST
+def update_theme(request):
+    data = json.loads(request.body)
+    dark_mode = data.get('dark_mode', False)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.dark_mode = dark_mode
+    profile.save()
+    return JsonResponse({'status': 'ok', 'dark_mode': dark_mode})
 
 #related topics
 
