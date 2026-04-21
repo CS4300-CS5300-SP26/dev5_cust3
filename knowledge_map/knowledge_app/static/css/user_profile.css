@@ -65,7 +65,7 @@
 .profile-section {
     background: var(--card-bg); 
     border-color: var(--card-border);
-    border: 0.5px solid #e0e0e0;
+    border: 0.5px solid var(--card-border);
     border-radius: 12px;
     padding: 1rem 1.25rem;
     margin-bottom: 1rem;
@@ -85,7 +85,7 @@
 
 .profile-table tr td {
     padding: 6px 0;
-    border-bottom: 0.5px solid #e0e0e0;
+    border-bottom: 0.5px solid var(--card-border);
 }
 
 .profile-table tr:last-child td {
@@ -93,7 +93,7 @@
 }
 
 .profile-table td:first-child {
-    color: #888;
+    color: var(--muted-text);
 }
 
 .profile-table td:last-child {
@@ -127,9 +127,10 @@
 .profile-section button {
     font-size: 13px;
     padding: 4px 12px;
-    border: 0.5px solid #ccc;
+    border: 0.5px solid var(--card-border);
     border-radius: 8px;
     background: transparent;
+    color: var(--text-color);
     cursor: not-allowed;
     opacity: 0.4;
 }

@@ -10,6 +10,8 @@
     --muted-text: #888;
     --stat-card-bg: #f5f5f3;
     --link-color: #185fa5;
+    --input-bg: #ffffff;
+    --input-color: #333;
 }
 
 [data-theme="dark"] {
@@ -21,6 +23,8 @@
     --muted-text: #94a3b8;
     --stat-card-bg: #0f172a;
     --link-color: #38bdf8;
+    --input-bg: #0f172a;
+    --input-color: #e2e8f0;
 }
 ::after,
 ::before {
@@ -44,6 +48,7 @@ h1 {
 
 body {
     font-family: 'Poppins', sans-serif;
+    color: var(--text-color);
 }
 
 .wrapper{

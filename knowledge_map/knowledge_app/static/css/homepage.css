@@ -7,16 +7,17 @@
     flex: 1;
     padding: 2rem;
     background-image:
-    linear-gradient(#e0e0e0 1px, transparent 1px),
-    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+    linear-gradient(var(--card-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
     background-size: 40px 40px;
+    background-color: var(--bg-color);
 }
 
 .notepad-panel {
     width: 350px;
     min-width: 300px;
-    background-color: #fcffe0;
-    border-left: 2px solid #e0e0e0;
+    background-color: var(--input-bg);
+    border-left: 2px solid var(--card-border);
     display: flex;
     flex-direction: column;
 }
@@ -49,6 +50,6 @@
     font-style: normal;
     font-size: 1.5rem;
     outline: none;
-    background-color: #fcffe0;
-    color: #333;
+    background-color: var(--input-bg);
+    color: var(--input-color);
 }

@@ -136,9 +136,9 @@
 .tab-btn {
     padding: 6px 14px;
     border-radius: 20px;
-    border: 1px solid #ddd;
-    background: white;
-    color: #555;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--muted-text);
     cursor: pointer;
     font-size: 0.82em;
     font-weight: 600;
@@ -165,8 +165,8 @@
 
 /* ── Card — identical base to quiz-card ── */
 .quiz-card {
-    background: white;
-    border: 1px solid #eee;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 8px;
     padding: 20px;
     display: flex;
@@ -243,7 +243,7 @@
 .quiz-card h3 {
     margin: 0;
     font-size: 1.2em;
-    color: #222;
+    color: var(--text-color);
 }
 
 /* ── Mastery badge — same shape as difficulty-badge ── */
@@ -264,7 +264,7 @@
 /* ── Meta + stats — identical to quiz-meta / quiz-stats ── */
 .quiz-meta {
     font-size: 0.9em;
-    color: #666;
+    color: var(--muted-text);
     display: flex;
     gap: 8px;
     margin: 0;
@@ -275,7 +275,7 @@
 
 .quiz-created {
     font-size: 0.8em;
-    color: #aaa;
+    color: var(--muted-text);
     margin: 0;
 }
 
@@ -283,7 +283,7 @@
     display: flex;
     gap: 0;
     padding: 10px 0;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--card-border);
 }
 
 .stat {
@@ -293,7 +293,7 @@
     flex: 1;
     text-align: center;
     padding: 0 10px;
-    border-right: 1px solid #eee;
+    border-right: 1px solid var(--card-border);
 }
 
 .stat:last-child {
@@ -302,7 +302,7 @@
 
 .stat-label {
     font-size: 0.8em;
-    color: #999;
+    color: var(--muted-text);
     font-weight: 600;
     text-transform: uppercase;
 }
@@ -314,7 +314,7 @@
 }
 
 .quiz-status {
-    color: #999;
+    color: var(--muted-text);
     font-style: italic;
     margin: 0;
     font-size: 0.9em;
@@ -330,7 +330,7 @@
 .score-bar-track {
     flex: 1;
     height: 8px;
-    background: #f0f0f0;
+    background: var(--stat-card-bg);
     border-radius: 99px;
     overflow: hidden;
 }
@@ -359,13 +359,13 @@
 /* ── Per-type breakdown ── */
 .type-breakdown {
     padding-top: 10px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--card-border);
 }
 
 .breakdown-title {
     font-size: 0.78em;
     font-weight: 600;
-    color: #999;
+    color: var(--muted-text);
     text-transform: uppercase;
     margin-bottom: 8px;
 }
@@ -379,7 +379,7 @@
 
 .type-name {
     font-size: 0.78em;
-    color: #555;
+    color: var(--text-color);
     width: 105px;
     flex-shrink: 0;
     text-align: left;
@@ -388,7 +388,7 @@
 .type-bar-track {
     flex: 1;
     height: 6px;
-    background: #f0f0f0;
+    background: var(--stat-card-bg);
     border-radius: 99px;
     overflow: hidden;
 }
@@ -402,7 +402,7 @@
 
 .type-score {
     font-size: 0.75em;
-    color: #999;
+    color: var(--muted-text);
     width: 32px;
     text-align: right;
     flex-shrink: 0;
@@ -422,14 +422,14 @@
 }
 
 .btn-secondary {
-    background: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
+    background: var(--stat-card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--card-border);
 }
 
 .btn-secondary:hover {
-    background: #e0e0e0;
-    color: #333;
+    background: var(--card-border);
+    color: var(--text-color);
 }
 
 .btn-block { width: 100%; }
@@ -438,7 +438,7 @@
 .empty-state {
     text-align: center;
     padding: 40px 20px;
-    color: #999;
+    color: var(--muted-text);
 }
 
 .empty-state a {
