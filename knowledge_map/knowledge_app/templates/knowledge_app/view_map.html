@@ -412,7 +412,7 @@
     });
 
     // ── Status polling ────────────────────────────────────────────────────────
-/*
+
     fetch(relatedUrl)
         .then(r => r.json())
         .then(data => {
@@ -428,7 +428,7 @@
     .catch(() => {
     document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
     });
-*/
+
     // If map is still processing, poll the status every 3 seconds
     if (mapStatus === 'pending' || mapStatus === 'processing') {
         const statusEl = document.getElementById('map-status');
