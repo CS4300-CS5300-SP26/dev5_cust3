@@ -531,7 +531,7 @@ def create_map(request):
         )
 
         # Trigger the background Celery task
-        generate_knowledge_map.delay(knowledge_map.id)
+        generate_knowledge_map(knowledge_map.id)
 
         # Redirect to the map view page
         return redirect('view_map', map_id=knowledge_map.id)
@@ -614,7 +614,7 @@ def related_topics(request, map_id):
             client = OpenAI()  # uses OPENAI_API_KEY env var
             
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-5-mini",
                 messages=[
                     {
                         "role": "system",
