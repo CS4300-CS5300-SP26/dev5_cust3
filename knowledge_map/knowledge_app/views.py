@@ -16,7 +16,7 @@ import pdfplumber
 import os
 import json
 
-from .models import KnowledgeMap, SharedMap
+from .models import KnowledgeMap, SharedMap, TopicNode, NodeRelationship
 from django.contrib.auth.models import User
 from django.urls import reverse
 
@@ -721,3 +721,96 @@ def view_shared_map(request, share_token):
         'edges': edges,
         'shared_map': shared_map,
     })
+
+# Add new topic node to a map
+@login_required
+def add_node(request, map_id):
+    if request.method == 'POST':
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+
+        data = json.loads(request.body)
+        label = data.get('label', '').strip()
+        summary = data.get('summary', '').strip()
+
+        if not label:
+            return JsonResponse({'error': 'Label is required'}, status=400)
+
+        node = TopicNode.objects.create(
+            knowledge_map=knowledge_map,
+            label=label,
+            summary=summary
+        )
+
+        return JsonResponse({
+            'id': str(node.id),
+            'label': node.label,
+            'summary': node.summary
+        })
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+# delete topic node
+@login_required
+def delete_node(request, map_id, node_id):
+    if request.method == 'POST':
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+        node = get_object_or_404(TopicNode, id=node_id, knowledge_map=knowledge_map)
+        node.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    # Add a relationship between two nodes
+@login_required
+def add_relationship(request, map_id):
+    if request.method == 'POST':
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+
+        data = json.loads(request.body)
+        source_id = data.get('source_id')
+        target_id = data.get('target_id')
+        label = data.get('label', '').strip()
+
+        if not source_id or not target_id:
+            return JsonResponse({'error': 'Source and target nodes are required'}, status=400)
+
+        if not label:
+            return JsonResponse({'error': 'Relationship label is required'}, status=400)
+
+        source_node = get_object_or_404(TopicNode, id=source_id, knowledge_map=knowledge_map)
+        target_node = get_object_or_404(TopicNode, id=target_id, knowledge_map=knowledge_map)
+
+        # Prevent duplicate relationships
+        if NodeRelationship.objects.filter(
+            knowledge_map=knowledge_map,
+            source_topic=source_node,
+            target_topic=target_node
+        ).exists():
+            return JsonResponse({'error': 'Relationship already exists'}, status=400)
+
+        relationship = NodeRelationship.objects.create(
+            knowledge_map=knowledge_map,
+            source_topic=source_node,
+            target_topic=target_node,
+            relationship_label=label
+        )
+
+        return JsonResponse({
+            'id': f"e{relationship.id}",
+            'source': str(source_node.id),
+            'target': str(target_node.id),
+            'label': label
+        })
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+# Delete a relationship between two nodes
+@login_required
+def delete_relationship(request, map_id, relationship_id):
+    if request.method == 'POST':
+        knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
+        relationship = get_object_or_404(NodeRelationship, id=relationship_id, knowledge_map=knowledge_map)
+        relationship.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
