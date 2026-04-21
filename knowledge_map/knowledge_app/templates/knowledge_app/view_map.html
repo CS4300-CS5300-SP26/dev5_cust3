@@ -49,27 +49,27 @@
 <!-- Cytoscape.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 
-<script>
-   
+{{ nodes|json_script:"cy-nodes-data" }}
+{{ edges|json_script:"cy-edges-data" }}
 
+<script>
     // @ts-nocheck
-    // Map data from Django
-    const cyNodes = {{ nodes|safe }};
-    const cyEdges = {{ edges|safe }};
+
+    // ── Map data from Django ──────────────────────────────────────────────────
+    const cyNodes = JSON.parse(document.getElementById('cy-nodes-data').textContent);
+    const cyEdges = JSON.parse(document.getElementById('cy-edges-data').textContent);
     const mapStatus = "{{ knowledge_map.status }}";
     const statusUrl = "{% url 'map_status' knowledge_map.id %}";
     const addNodeUrl = "{% url 'add_node' knowledge_map.id %}";
+    const addRelationshipUrl = "{% url 'add_relationship' knowledge_map.id %}";
     const csrfToken = "{{ csrf_token }}";
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-
-    // Read a CSS variable from :root so Cytoscape colours always match the theme
     function getCSSVar(name) {
         return getComputedStyle(document.documentElement)
             .getPropertyValue(name).trim();
     }
 
-    // Build and apply the full Cytoscape stylesheet from current CSS variables
     function applyTheme() {
         cy.style([
             {
@@ -107,20 +107,10 @@
         ]).update();
     }
 
-
-    // ── Map data from Django ──────────────────────────────────────────────────
-
-    const cyNodes = {{ nodes|safe }};
-    const cyEdges = {{ edges|safe }};
-    const mapStatus = "{{ knowledge_map.status }}";
-    const statusUrl = "{% url 'map_status' knowledge_map.id %}";
-
     // ── Initialise Cytoscape ──────────────────────────────────────────────────
-
     const cy = cytoscape({
         container: document.getElementById('cy'),
         elements: [...cyNodes, ...cyEdges],
-        // Start with empty style — applyTheme() fills it in immediately below
         style: [],
         layout: {
             name: 'cose',
@@ -129,22 +119,16 @@
         }
     });
 
-    // Apply theme on first load
     applyTheme();
 
     // ── Theme change listeners ────────────────────────────────────────────────
-
-    // Watch for the toggle on the profile page being used in another tab,
-    // or for the theme being set programmatically from localStorage on load
     const observer = new MutationObserver(applyTheme);
     observer.observe(document.documentElement, {
         attributes: true,
         attributeFilter: ['data-theme']
     });
 
-    // ── Node popup ────────────────────────────────────────────────────────────
-
-    // Cache DOM elements once to avoid repeated lookups
+    // ── DOM references ────────────────────────────────────────────────────────
     const popup = document.getElementById('node-popup');
     const popupLabel = document.getElementById('popup-label');
     const popupSummary = document.getElementById('popup-summary');
@@ -154,98 +138,61 @@
     const addNodeForm = document.getElementById('add-node-form');
     const confirmAddNode = document.getElementById('confirm-add-node');
     const cancelAddNode = document.getElementById('cancel-add-node');
-    const addRelationshipUrl = "{% url 'add_relationship' knowledge_map.id %}";
     const addRelBtn = document.getElementById('add-relationship-btn');
-    let selectedEdgeId = null;
     const edgePopup = document.getElementById('edge-popup');
     const edgePopupLabel = document.getElementById('edge-popup-label');
     const edgePopupClose = document.getElementById('edge-popup-close');
     const deleteRelBtn = document.getElementById('delete-relationship-btn');
 
-    // Relationship mode state
+    let selectedNodeId = null;
+    let selectedEdgeId = null;
     let relationshipMode = false;
     let sourceNode = null;
 
-    // Toggle relationship mode
+    // ── Relationship mode ─────────────────────────────────────────────────────
     addRelBtn.addEventListener('click', function() {
-    relationshipMode = !relationshipMode;
-
-    if (relationshipMode) {
-        addRelBtn.textContent = 'Cancel Relationship';
-        addRelBtn.style.backgroundColor = '#856404';
-        cy.nodes().style('border-width', '2px');
-        cy.nodes().style('border-color', '#9db8dd');
-    } else {
-        // Reset source node highlight if one was selected
-        if (sourceNode) {
-            sourceNode.style('background-color', '#0e223e');
+        relationshipMode = !relationshipMode;
+        if (relationshipMode) {
+            addRelBtn.textContent = 'Cancel Relationship';
+            addRelBtn.style.backgroundColor = '#856404';
+            cy.nodes().style('border-width', '2px');
+            cy.nodes().style('border-color', '#9db8dd');
+        } else {
+            if (sourceNode) sourceNode.style('background-color', '#0e223e');
+            sourceNode = null;
+            addRelBtn.textContent = '+ Add Relationship';
+            addRelBtn.style.backgroundColor = '';
+            cy.nodes().style('border-width', '0px');
         }
-        sourceNode = null;
-        addRelBtn.textContent = '+ Add Relationship';
-        addRelBtn.style.backgroundColor = '';
-        cy.nodes().style('border-width', '0px');
-    }
     });
 
-
-    // Track selected node id for deletion
-    let selectedNodeId = null;
-
-    // Handle node clicks in relationship mode
+    // ── Node clicks ───────────────────────────────────────────────────────────
     cy.on('tap', 'node', function(event) {
         const node = event.target;
 
         if (relationshipMode) {
             if (!sourceNode) {
-                // First click - select source node
                 sourceNode = node;
                 node.style('background-color', '#3b7ddd');
             } else if (sourceNode.id() !== node.id()) {
-                // Second click - select target node and prompt for label
                 const label = prompt('Enter relationship label (e.g. "leads to", "relates to"):');
                 if (!label || !label.trim()) {
                     alert('Relationship label is required.');
                     return;
                 }
-
-                // Save relationship to database
                 fetch(addRelationshipUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify({
-                        source_id: sourceNode.data('id'),
-                        target_id: node.data('id'),
-                        label: label.trim()
-                    })
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ source_id: sourceNode.data('id'), target_id: node.data('id'), label: label.trim() })
                 })
                 .then(r => r.json())
                 .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
-                        // Add edge to Cytoscape canvas
-                        cy.add({
-                            group: 'edges',
-                            data: {
-                                id: data.id,
-                                source: data.source,
-                                target: data.target,
-                                label: data.label
-                            }
-                        });
-                    }
+                    if (data.error) { alert(data.error); }
+                    else { cy.add({ group: 'edges', data: { id: data.id, source: data.source, target: data.target, label: data.label } }); }
                 })
-                .catch(() => {
-                    alert('Failed to create relationship. Please try again.');
-                })
+                .catch(() => alert('Failed to create relationship. Please try again.'))
                 .finally(() => {
-                    // Always reset relationship mode whether success, error or network failure
-                    if (sourceNode) {
-                        sourceNode.style('background-color', '#0e223e');
-                    }
+                    if (sourceNode) sourceNode.style('background-color', '#0e223e');
                     sourceNode = null;
                     relationshipMode = false;
                     addRelBtn.textContent = '+ Add Relationship';
@@ -256,119 +203,55 @@
             return;
         }
 
-        // Normal mode - show popup
         selectedNodeId = node.data('id');
         popupLabel.textContent = node.data('label') || '';
         popupSummary.textContent = node.data('summary') || '';
         popup.classList.remove('hidden');
     });
 
-    // Show edge popup when an edge is clicked
+    // ── Edge clicks ───────────────────────────────────────────────────────────
     cy.on('tap', 'edge', function(event) {
         if (relationshipMode) return;
         const edge = event.target;
-        // Extract numeric id from "e123" format
         selectedEdgeId = edge.data('id').replace('e', '');
         edgePopupLabel.textContent = edge.data('label') || '';
         edgePopup.classList.remove('hidden');
     });
 
-    // Close edge popup
-    edgePopupClose.addEventListener('click', function() {
-        edgePopup.classList.add('hidden');
-        selectedEdgeId = null;
-    });
-
-    // Delete relationship
-    deleteRelBtn.addEventListener('click', async function() {
-        if (!selectedEdgeId) return;
-        if (!confirm('Are you sure you want to delete this relationship?')) return;
-
-        const deleteUrl = `/map/{{ knowledge_map.id }}/delete-relationship/${selectedEdgeId}/`;
-
-        try {
-            const response = await fetch(deleteUrl, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrfToken }
-            });
-
-            if (!response.ok) {
-                // Try to get error message from JSON, fall back to generic message
-                let errorMsg = 'Failed to delete relationship.';
-                try {
-                    const data = await response.json();
-                    errorMsg = data.error || errorMsg;
-                } catch {}
-                alert(errorMsg);
-                return;
-            }
-
-            cy.getElementById(`e${selectedEdgeId}`).remove();
-            edgePopup.classList.add('hidden');
-            selectedEdgeId = null;
-
-        } catch {
-            alert('Network error. Failed to delete relationship.');
-        }
-    });
-
-    // Close popup when close button is clicked
-    popupClose.addEventListener('click', function() {
-        popup.classList.add('hidden');
-        selectedNodeId = null;
-    });
-
-    // Close popup when clicking on the background
     cy.on('tap', function(event) {
         if (event.target === cy) {
             popup.classList.add('hidden');
+            edgePopup.classList.add('hidden');
             selectedNodeId = null;
+            selectedEdgeId = null;
         }
     });
 
-    // Show add node form when add button is clicked
-    addNodeBtn.addEventListener('click', function() {
-        addNodeForm.classList.remove('hidden');
-        document.getElementById('new-node-label').focus();
-    });
+    // ── Popups ────────────────────────────────────────────────────────────────
+    popupClose.addEventListener('click', () => { popup.classList.add('hidden'); selectedNodeId = null; });
+    edgePopupClose.addEventListener('click', () => { edgePopup.classList.add('hidden'); selectedEdgeId = null; });
 
-    // Hide add node form when cancel is clicked
-    cancelAddNode.addEventListener('click', function() {
+    // ── Add node ──────────────────────────────────────────────────────────────
+    addNodeBtn.addEventListener('click', () => { addNodeForm.classList.remove('hidden'); document.getElementById('new-node-label').focus(); });
+    cancelAddNode.addEventListener('click', () => {
         addNodeForm.classList.add('hidden');
         document.getElementById('new-node-label').value = '';
         document.getElementById('new-node-summary').value = '';
     });
 
-    // Add node when confirm is clicked
     confirmAddNode.addEventListener('click', async function() {
         const label = document.getElementById('new-node-label').value.trim();
         const summary = document.getElementById('new-node-summary').value.trim();
-
-        if (!label) {
-            alert('Please enter a label for the node.');
-            return;
-        }
+        if (!label) { alert('Please enter a label for the node.'); return; }
 
         const response = await fetch(addNodeUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
             body: JSON.stringify({ label, summary })
         });
-
         const data = await response.json();
-
         if (response.ok) {
-            // Add the new node to the Cytoscape canvas
-            cy.add({
-                group: 'nodes',
-                data: { id: data.id, label: data.label, summary: data.summary },
-                position: { x: cy.width() / 2, y: cy.height() / 2 }
-            });
-
-            // Hide and reset the form
+            cy.add({ group: 'nodes', data: { id: data.id, label: data.label, summary: data.summary }, position: { x: cy.width() / 2, y: cy.height() / 2 } });
             addNodeForm.classList.add('hidden');
             document.getElementById('new-node-label').value = '';
             document.getElementById('new-node-summary').value = '';
@@ -377,70 +260,44 @@
         }
     });
 
-    // Delete node when delete button in popup is clicked
+    // ── Delete node ───────────────────────────────────────────────────────────
     deleteNodeBtn.addEventListener('click', async function() {
         if (!selectedNodeId) return;
         if (!confirm('Are you sure you want to delete this node?')) return;
-
-        const deleteUrl = `/map/{{ knowledge_map.id }}/delete-node/${selectedNodeId}/`;
-
         try {
-            const response = await fetch(deleteUrl, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrfToken }
+            const response = await fetch(`/map/{{ knowledge_map.id }}/delete-node/${selectedNodeId}/`, {
+                method: 'POST', headers: { 'X-CSRFToken': csrfToken }
             });
-
-            if (!response.ok) {
-                // Try to get error message from JSON, fall back to generic message
-                let errorMsg = 'Failed to delete node.';
-                try {
-                    const data = await response.json();
-                    errorMsg = data.error || errorMsg;
-                } catch {}
-                alert(errorMsg);
-                return;
-            }
-
-            // Remove the node and its connected edges from the canvas
+            if (!response.ok) { alert('Failed to delete node.'); return; }
             cy.getElementById(selectedNodeId).remove();
             popup.classList.add('hidden');
             selectedNodeId = null;
+        } catch { alert('Network error. Failed to delete node.'); }
+    });
 
-        } catch {
-            alert('Network error. Failed to delete node.');
-        }
+    // ── Delete relationship ───────────────────────────────────────────────────
+    deleteRelBtn.addEventListener('click', async function() {
+        if (!selectedEdgeId) return;
+        if (!confirm('Are you sure you want to delete this relationship?')) return;
+        try {
+            const response = await fetch(`/map/{{ knowledge_map.id }}/delete-relationship/${selectedEdgeId}/`, {
+                method: 'POST', headers: { 'X-CSRFToken': csrfToken }
+            });
+            if (!response.ok) { alert('Failed to delete relationship.'); return; }
+            cy.getElementById(`e${selectedEdgeId}`).remove();
+            edgePopup.classList.add('hidden');
+            selectedEdgeId = null;
+        } catch { alert('Network error. Failed to delete relationship.'); }
     });
 
     // ── Status polling ────────────────────────────────────────────────────────
-
-    fetch(relatedUrl)
-        .then(r => r.json())
-        .then(data => {
-            const container = document.getElementById('related-list');
-            container.innerHTML = data.suggestions.map(s => `
-                <div class="suggestion">
-                    <strong>${s.title}</strong>
-                    <p>${s.description}</p>
-                    <a href="https://scholar.google.com/scholar?q=${encodeURIComponent(s.search_query)}" target="_blank">Search on Google Scholar →</a>
-                </div>
-        `).join('');
-        })
-    .catch(() => {
-    document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
-    });
-
-    // If map is still processing, poll the status every 3 seconds
     if (mapStatus === 'pending' || mapStatus === 'processing') {
         const statusEl = document.getElementById('map-status');
-
         const poll = setInterval(async () => {
             const response = await fetch(statusUrl);
             const data = await response.json();
-
             statusEl.textContent = data.status;
             statusEl.className = `map-status ${data.status}`;
-
-            // Reload page when complete to show the map
             if (data.status === 'complete' || data.status === 'failed') {
                 clearInterval(poll);
                 location.reload();
