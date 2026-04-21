@@ -20,7 +20,13 @@
         </li>
         <li class="sidebar-item">
             <a href="{% url 'user_profile' %}" class="sidebar-link">
-                <i class="bi bi-person"></i>
+                {% if user.is_authenticated and user.profile.photo %}
+                    <img src="{{ user.profile.photo.url }}" 
+                         class="nav-avatar-img"
+                         alt="{{ user.username }}">
+                {% else %}
+                    <i class="bi bi-person"></i>
+                {% endif %}
                 <span>Profile</span>
             </a>
         </li>

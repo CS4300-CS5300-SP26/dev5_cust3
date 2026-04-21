@@ -27,6 +27,7 @@ urlpatterns = [
     path('preferences/theme/', views.update_theme, name='update_theme'),
     path('map/<int:map_id>/share/', views.share_map, name='share_map'),
     path('shared/<uuid:share_token>/', views.view_shared_map, name='view_shared_map'),
+    path('profile/delete-photo/', views.delete_photo, name='delete_photo'),
     path('map/<int:map_id>/add-node/', views.add_node, name='add_node'),
     path('map/<int:map_id>/delete-node/<int:node_id>/', views.delete_node, name='delete_node'),
     path('map/<int:map_id>/add-relationship/', views.add_relationship, name='add_relationship'),
