@@ -741,8 +741,6 @@ def view_shared_map(request, share_token):
         'edges': edges,
         'shared_map': shared_map,
     })
-<<<<<<< user_profile_picture
-=======
 
 # Add new topic node to a map
 @login_required
@@ -836,4 +834,3 @@ def delete_relationship(request, map_id, relationship_id):
         return JsonResponse({'success': True})
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
->>>>>>> main
