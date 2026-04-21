@@ -1,1 +1,243 @@
 {% extends "knowledge_app/base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/progress.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="progress-hub">
+
+    <!-- Hero Section (matches quiz-hero exactly) -->
+    <section class="progress-hero">
+        <h1>Mastery Progress</h1>
+        <p>Track your quiz skills. See what's mastered, what needs work, and where to focus next!</p>
+        <p style="font-size: 1.3em; font-weight: 700; margin: 0 0 20px;">
+            You've mastered {{ mastery_pct }}% of your quizzes
+        </p>
+        
+        <!-- Donut chart + legend -->
+        <div class="donut-wrap" style="visibility: hidden;">
+            <svg class="donut-svg" viewBox="0 0 100 100">
+                <circle class="donut-bg" cx="50" cy="50" r="35"/>
+                <circle class="donut-seg seg-mastered"    cx="50" cy="50" r="35" data-val="{{ mastered }}"      data-total="{{ total }}"/>
+                <circle class="donut-seg seg-learning"    cx="50" cy="50" r="35" data-val="{{ learning }}"      data-total="{{ total }}" data-offset-after="mastered"/>
+                <circle class="donut-seg seg-needs"       cx="50" cy="50" r="35" data-val="{{ needs_practice }}" data-total="{{ total }}" data-offset-after="mastered,learning"/>
+                <circle class="donut-seg seg-not"         cx="50" cy="50" r="35" data-val="{{ not_attempted }}"  data-total="{{ total }}" data-offset-after="mastered,learning,needs_practice"/>
+                <text x="50" y="46" class="donut-center-top">{{ mastery_pct }}%</text>
+                <text x="50" y="57" class="donut-center-bot">mastered</text>
+            </svg>
+            <div class="donut-legend">
+                <div class="legend-row"><span class="legend-dot dot-mastered"></span><span class="legend-label">Mastered</span><span class="legend-count">{{ mastered }}</span></div>
+                <div class="legend-row"><span class="legend-dot dot-learning"></span><span class="legend-label">Learning</span><span class="legend-count">{{ learning }}</span></div>
+                <div class="legend-row"><span class="legend-dot dot-needs"></span><span class="legend-label">Needs Practice</span><span class="legend-count">{{ needs_practice }}</span></div>
+                <div class="legend-row"><span class="legend-dot dot-not"></span><span class="legend-label">Not Started</span><span class="legend-count">{{ not_attempted }}</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quiz Mastery List -->
+    <section class="quiz-list">
+        <div class="list-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <h2>Your Quizzes</h2>
+                <a href="{% url 'quizzes' %}" class="new-quiz-btn">+</a>
+            </div>
+            <!-- Filter tabs -->
+            <div class="filter-tabs">
+                <button class="tab-btn active" data-filter="all">All ({{ total }})</button>
+                <button class="tab-btn" data-filter="mastered">Mastered</button>
+                <button class="tab-btn" data-filter="learning">Learning</button>
+                <button class="tab-btn" data-filter="needs_practice">Needs Practice</button>
+                <button class="tab-btn" data-filter="not_attempted">Not Started</button>
+            </div>
+        </div>
+
+        {% if quiz_data %}
+            <div class="quizzes-grid">
+                {% for item in quiz_data %}
+                <div class="quiz-card" data-status="{{ item.status }}">
+
+                    <!-- Card header — matches quiz-card-header -->
+                    <div class="quiz-card-header">
+                        <h3>{{ item.quiz.title }}</h3>
+                        <span class="mastery-badge mastery-{{ item.status }}">
+                            {% if item.status == 'mastered' %}Mastered
+                            {% elif item.status == 'learning' %}Learning
+                            {% elif item.status == 'needs_practice' %}Needs Practice
+                            {% else %}Not Started
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Meta row — matches quiz-meta -->
+                    <p class="quiz-meta">
+                        <span class="meta-item">{{ item.quiz.question_count }} questions</span>
+                        <span class="meta-item"> · {{ item.quiz.get_difficulty_display }}</span>
+                        <span class="meta-item"> · {{ item.attempts }} attempt{{ item.attempts|pluralize }}</span>
+                    </p>
+                    <p class="quiz-created">Created: {{ item.quiz.created_at|date:"M d, Y" }}</p>
+
+                    <!-- Stats section — matches quiz-stats -->
+                    <div class="quiz-stats">
+                        {% if item.latest_score is not None %}
+                            <div class="stat">
+                                <span class="stat-label">Latest</span>
+                                {% if item.previous_score is not None %}
+                                    {% if item.latest_score > item.previous_score %}
+                                        <span class="stat-value">{{ item.latest_score }}% <span class="trend-wrap"><span style="color: #22c55e; font-size: 0.8em; vertical-align: middle;">▲</span><span class="trend-tip">Improved by {{ item.trend_diff }}%</span></span></span>
+                                    {% elif item.latest_score < item.previous_score %}
+                                        <span class="stat-value">{{ item.latest_score }}% <span class="trend-wrap"><span style="color: #ef4444; font-size: 0.8em; vertical-align: middle;">▼</span><span class="trend-tip">Decreased by {{ item.trend_diff|cut:"-" }}%</span></span></span>
+                                    {% else %}
+                                        <span class="stat-value">{{ item.latest_score }}% <span class="trend-wrap"><span style="color: #aaa; font-size: 0.6em; vertical-align: 0.1em;">▬</span><span class="trend-tip">Same as last attempt</span></span></span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="stat-value">{{ item.latest_score }}%</span>
+                                {% endif %}
+                            </div>
+                            {% if item.avg_score %}
+                            <div class="stat">
+                                <span class="stat-label">Average</span>
+                                <span class="stat-value">{{ item.avg_score|floatformat:0 }}%</span>
+                            </div>
+                            {% endif %}
+                            <div class="stat">
+                                <span class="stat-label">Best</span>
+                                <span class="stat-value">{{ item.highest_score }}%</span>
+                            </div>
+                        {% else %}
+                            <p class="quiz-status">Not attempted yet</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Score progress bar -->
+                    {% if item.latest_score is not None %}
+                    <div class="score-bar-wrap">
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill mastery-fill-{{ item.status }}"
+                                 style="width: 0%"
+                                 data-target="{{ item.latest_score }}">
+                            </div>
+                        </div>
+                        <span class="score-bar-label" style="display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0;">
+                            <span style="font-size: 0.6em; color: #aaa; font-weight: 400; line-height: 1;">latest</span>
+                            <span>{{ item.latest_score }}%</span>
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Per-question-type breakdown -->
+                    {% if item.type_breakdown %}
+                    <div class="type-breakdown">
+                        <div class="breakdown-title" onclick="toggleBreakdown(this)" style="cursor: pointer;">
+                            By Question Type <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="breakdown-content">
+                            {% for qtype, data in item.type_breakdown.items %}
+                            <div class="type-row">
+                                <span class="type-name">{{ qtype }}</span>
+                                <div class="type-bar-track">
+                                    <div class="type-bar-fill" style="width: 0%" data-target="{{ data.pct }}"></div>
+                                </div>
+                                <span class="type-score">{{ data.correct }}/{{ data.total }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- CTA button — matches btn-secondary btn-block -->
+                    <a href="{% url 'quiz_detail' item.quiz.pk %}" class="btn-secondary btn-block">
+                        {% if item.latest_score is not None %}Retake Quiz{% else %}Start Quiz{% endif %}
+                    </a>
+
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No quizzes yet. <a href="{% url 'quizzes' %}">Create your first quiz!</a></p>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Animate main score bars only
+        document.querySelectorAll('.score-bar-fill[data-target]').forEach(bar => {
+            const target = bar.dataset.target;
+            setTimeout(() => { bar.style.width = target + '%'; }, 100);
+        });
+
+        // Animate donut
+        const circumference = 2 * Math.PI * 35;
+        const donutTotal = {{ total }};
+
+        const vals = {
+            mastered: {{ mastered }},
+            learning: {{ learning }},
+            needs_practice: {{ needs_practice }},
+            not_attempted: {{ not_attempted }}
+        };
+
+        const order = ['mastered', 'learning', 'needs_practice', 'not_attempted'];
+        const segEls = document.querySelectorAll('.donut-seg');
+
+        let offset = 0;
+        order.forEach((key, i) => {
+            const val = vals[key];
+            const pct = donutTotal > 0 ? val / donutTotal : 0;
+            const dash = pct * circumference;
+            const gap = circumference - dash;
+            const finalOffset = circumference - offset;
+
+            setTimeout(() => {
+                segEls[i].style.opacity = 1;
+                segEls[i].style.strokeDasharray = `${dash} ${gap}`;
+                segEls[i].style.strokeDashoffset = finalOffset;
+            }, i * 700);
+
+            offset += dash;
+        });
+        document.querySelector('.donut-wrap').style.visibility = 'visible';
+    });
+
+    function toggleBreakdown(el) {
+        const content = el.nextElementSibling;
+        const icon = el.querySelector('.toggle-icon');
+        const isExpanding = !content.classList.contains('expanded');
+
+        content.classList.toggle('expanded');
+        icon.classList.toggle('expanded');
+
+        if (isExpanding) {
+            setTimeout(() => {
+                content.querySelectorAll('.type-bar-fill').forEach(bar => {
+                    bar.style.width = bar.dataset.target + '%';
+                });
+            }, 50);
+        } else {
+            content.querySelectorAll('.type-bar-fill').forEach(bar => {
+                bar.style.width = '0';
+            });
+        }
+    }
+
+    // Filter tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.dataset.filter;
+            document.querySelectorAll('.quiz-card').forEach(card => {
+                if (filter === 'all' || card.dataset.status === filter) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
