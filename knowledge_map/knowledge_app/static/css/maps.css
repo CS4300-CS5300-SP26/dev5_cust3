@@ -19,7 +19,7 @@
 /* Create new map button */
 .create-map-btn {
     background-color: var(--text-color);
-    color: white;
+    color: var(--bg-color);
     padding: 0.625rem 1.25rem;
     border-radius: 4px;
     font-size: 0.9rem;
@@ -29,7 +29,7 @@
 
 .create-map-btn:hover {
     background-color: #3b7ddd;
-    color: white;
+    color: var(--bg-color);
 }
 
 /* Grid layout for map cards */
