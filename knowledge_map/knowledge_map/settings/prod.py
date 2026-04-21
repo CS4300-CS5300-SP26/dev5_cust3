@@ -9,7 +9,7 @@ if missing:
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['yourknowledgemap.me',
+ALLOWED_HOSTS = ['yourknowledgemap.me', 'yourknowledgemap.me',
                  '157.230.89.215', '127.0.0.1', 'localhost']
 
 # Database
