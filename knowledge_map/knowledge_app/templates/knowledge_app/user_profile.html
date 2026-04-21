@@ -9,7 +9,13 @@
 <div class="profile-wrapper">
 
   <div class="profile-header">
-    <div class="profile-avatar">{{ user.username|slice:":2"|upper }}</div>
+    <div class="profile-avatar">
+      {% if user.profile.photo %}
+        <img src="{{ user.profile.photo.url }}" alt="Profile photo">
+      {% else %}
+        {{ user.username|slice:":2"|upper }}
+      {% endif %}
+    </div>
     <div>
       <h1>{{ user.username }}</h1>
       <p class="profile-joined">Joined {{ user.date_joined|date:"F j, Y" }}</p>
@@ -39,6 +45,31 @@
         <td>{{ user.username }}</td>
       </tr>
       <tr>
+        <td>Profile photo</td>
+        <td>
+          <form method="POST" enctype="multipart/form-data" id="photo-form" style="display:inline">
+            {% csrf_token %}
+            <input type="file" name="photo" accept="image/*" id="photo-input" style="display:none">
+            <label for="photo-input" class="photo-upload-btn">
+              {% if user.profile.photo %}Change photo{% else %}Upload photo{% endif %}
+            </label>
+          </form>
+        
+          {% if user.profile.photo %}
+          <form method="POST" action="{% url 'delete_photo' %}" style="display:inline; margin-left:8px">
+            {% csrf_token %}
+            <button type="submit" class="photo-delete-btn">Remove</button>
+          </form>
+          {% endif %}
+        
+          <script>
+            document.getElementById('photo-input').addEventListener('change', function() {
+              document.getElementById('photo-form').submit();
+            });
+          </script>
+        </td>
+      </tr>
+      <tr>
         <td>Email</td>
         <td>{{ user.email|default:"Not set" }} <a href="#">Change</a></td>
       </tr>
@@ -54,9 +85,11 @@
     <div class="profile-row">
       <div>
         <p>Dark mode</p>
-        <p class="coming-soon">Coming soon</p>
       </div>
-      <button disabled>Enable</button>
+      <label class="theme-toggle">
+        <input type="checkbox" id="dark-mode-toggle">
+        <span class="toggle-slider"></span>
+      </label>
     </div>
   </div>
 

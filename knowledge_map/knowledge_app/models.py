@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 import json
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 import uuid
 
 # Database table - stores info about PDF uploads
@@ -245,6 +247,23 @@ class NodeRelationship(models.Model):
     def __str__(self):
         return f"{self.source_topic} → {self.target_topic}"
 
+# User profile to persist personal settings
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    dark_mode = models.BooleanField(default=False)
+    photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+
+
+# Django signals to ensure that every user will get a profile automatically
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+    
 # store permissions for a knowledge map
 class SharedMap(models.Model):
     knowledge_map = models.ForeignKey(KnowledgeMap, on_delete=models.CASCADE, related_name='shares')
