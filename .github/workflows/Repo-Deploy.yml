@@ -29,6 +29,8 @@ jobs:
             export DB_SSLMODE="${{ secrets.DB_SSLMODE }}"
             export CELERY_BROKER_URL="${{ secrets.CELERY_BROKER_URL }}"
             export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+
+            source /opt/knowledge_map/venv/bin/activate
             opt/knowledge_map/venv/bin/python manage.py makemigrations --noinput
             /opt/knowledge_map/venv/bin/python manage.py migrate --noinput
             /opt/knowledge_map/venv/bin/python manage.py collectstatic --noinput --clear
