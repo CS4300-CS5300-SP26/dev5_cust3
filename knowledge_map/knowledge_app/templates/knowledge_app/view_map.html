@@ -68,6 +68,7 @@
     .catch(() => {
     document.getElementById('related-list').innerHTML = '<em>Could not load suggestions.</em>';
     });
+
     // @ts-nocheck
     // Map data from Django
     const cyNodes = {{ nodes|safe }};
@@ -143,19 +144,23 @@
 
     // Toggle relationship mode
     addRelBtn.addEventListener('click', function() {
-        relationshipMode = !relationshipMode;
-        sourceNode = null;
+    relationshipMode = !relationshipMode;
 
-        if (relationshipMode) {
-            addRelBtn.textContent = 'Cancel Relationship';
-            addRelBtn.style.backgroundColor = '#856404';
-            cy.nodes().style('border-width', '2px');
-            cy.nodes().style('border-color', '#9db8dd');
-        } else {
-            addRelBtn.textContent = '+ Add Relationship';
-            addRelBtn.style.backgroundColor = '';
-            cy.nodes().style('border-width', '0px');
+    if (relationshipMode) {
+        addRelBtn.textContent = 'Cancel Relationship';
+        addRelBtn.style.backgroundColor = '#856404';
+        cy.nodes().style('border-width', '2px');
+        cy.nodes().style('border-color', '#9db8dd');
+    } else {
+        // Reset source node highlight if one was selected
+        if (sourceNode) {
+            sourceNode.style('background-color', '#0e223e');
         }
+        sourceNode = null;
+        addRelBtn.textContent = '+ Add Relationship';
+        addRelBtn.style.backgroundColor = '';
+        cy.nodes().style('border-width', '0px');
+    }
     });
 
 
@@ -208,17 +213,20 @@
                             }
                         });
                     }
-
-                    // Reset relationship mode
-                    sourceNode.style('background-color', '#0e223e');
+                })
+                .catch(() => {
+                    alert('Failed to create relationship. Please try again.');
+                })
+                .finally(() => {
+                    // Always reset relationship mode whether success, error or network failure
+                    if (sourceNode) {
+                        sourceNode.style('background-color', '#0e223e');
+                    }
                     sourceNode = null;
                     relationshipMode = false;
                     addRelBtn.textContent = '+ Add Relationship';
                     addRelBtn.style.backgroundColor = '';
                     cy.nodes().style('border-width', '0px');
-                })
-                .catch(() => {
-                    alert('Failed to create relationship. Please try again.');
                 });
             }
             return;
@@ -254,19 +262,29 @@
 
         const deleteUrl = `/map/{{ knowledge_map.id }}/delete-relationship/${selectedEdgeId}/`;
 
-        const response = await fetch(deleteUrl, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': csrfToken }
-        });
+        try {
+            const response = await fetch(deleteUrl, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken }
+            });
 
-        const data = await response.json();
+            if (!response.ok) {
+                // Try to get error message from JSON, fall back to generic message
+                let errorMsg = 'Failed to delete relationship.';
+                try {
+                    const data = await response.json();
+                    errorMsg = data.error || errorMsg;
+                } catch {}
+                alert(errorMsg);
+                return;
+            }
 
-        if (response.ok) {
             cy.getElementById(`e${selectedEdgeId}`).remove();
             edgePopup.classList.add('hidden');
             selectedEdgeId = null;
-        } else {
-            alert(data.error || 'Failed to delete relationship.');
+
+        } catch {
+            alert('Network error. Failed to delete relationship.');
         }
     });
 
@@ -338,27 +356,34 @@
     // Delete node when delete button in popup is clicked
     deleteNodeBtn.addEventListener('click', async function() {
         if (!selectedNodeId) return;
-
         if (!confirm('Are you sure you want to delete this node?')) return;
 
         const deleteUrl = `/map/{{ knowledge_map.id }}/delete-node/${selectedNodeId}/`;
 
-        const response = await fetch(deleteUrl, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken
+        try {
+            const response = await fetch(deleteUrl, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken }
+            });
+
+            if (!response.ok) {
+                // Try to get error message from JSON, fall back to generic message
+                let errorMsg = 'Failed to delete node.';
+                try {
+                    const data = await response.json();
+                    errorMsg = data.error || errorMsg;
+                } catch {}
+                alert(errorMsg);
+                return;
             }
-        });
 
-        const data = await response.json();
-
-        if (response.ok) {
             // Remove the node and its connected edges from the canvas
             cy.getElementById(selectedNodeId).remove();
             popup.classList.add('hidden');
             selectedNodeId = null;
-        } else {
-            alert(data.error || 'Failed to delete node.');
+
+        } catch {
+            alert('Network error. Failed to delete node.');
         }
     });
 
