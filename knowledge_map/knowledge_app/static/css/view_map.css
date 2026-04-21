@@ -54,7 +54,7 @@
     background-color: var(--bg-color);
 }
 
-/* Related sidebar */
+/* Related sidebar
 .related-sidebar {
     width: 280px;
     flex-shrink: 0;
@@ -64,6 +64,8 @@
     border: 1px solid var(--card-border);
     border-radius: 8px;
 }
+*/
+
 /* Node popup */
 .node-popup {
     position: absolute;
