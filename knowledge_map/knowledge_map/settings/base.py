@@ -168,7 +168,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '/opt/knowledge_map/django_errors.log',
+            'filename': os.getenv('DJANGO_LOG_FILE', '/tmp/django_errors.log'),
         },
     },
     'loggers': {
