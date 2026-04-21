@@ -13,12 +13,12 @@
 
 .maps-header h1 {
     font-size: 1.5rem;
-    color: #0e223e;
+    color: var(--text-color);
 }
 
 /* Create new map button */
 .create-map-btn {
-    background-color: #0e223e;
+    background-color: var(--text-color);
     color: white;
     padding: 0.625rem 1.25rem;
     border-radius: 4px;
@@ -51,7 +51,7 @@
 /* Card header */
 .map-card-header {
     padding: 1rem 1.25rem;
-    background-color: #0e223e;
+    background-color: var(--text-color);
     border-radius: 8px 8px 0 0;
     display: flex;
     justify-content: space-between;
@@ -98,7 +98,7 @@
 }
 
 .view-btn:hover {
-    background-color: #0e223e;
+    background-color: var(--text-color);
     color: white;
 }
 

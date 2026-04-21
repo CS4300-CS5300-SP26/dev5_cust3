@@ -177,3 +177,26 @@ a.sidebar-link:hover{
     letter-spacing: 0.05em;
     z-index: 9999;
 }
+
+[data-theme="dark"] .card {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--card-border);
+}
+
+[data-theme="dark"] .btn-outline-primary,
+[data-theme="dark"] .btn-outline-secondary {
+    color: var(--text-color);
+    border-color: var(--card-border);
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--muted-text) !important;
+}

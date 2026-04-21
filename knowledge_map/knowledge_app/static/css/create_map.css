@@ -18,7 +18,7 @@
 .create-map-form h1 {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
-    color: #0e223e;
+    color: var(--text-color);
 }
 
 /* Form fields */
@@ -32,7 +32,7 @@
 .form-group label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #0e223e;
+    color: var(--text-color);
 }
 
 .form-group input,
