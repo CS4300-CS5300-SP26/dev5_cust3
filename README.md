@@ -52,4 +52,5 @@ Learning about the docker process: https://claude.ai/share/eb09d664-1308-49c8-86
 AI was used to debug error with generate quizes from upload view not working https://claude.ai/chat/78960749-62cd-4976-a296-26c7691b26ad
 AI was used to help with the light/dark toggle: https://claude.ai/share/87a34544-702e-4a36-8e05-6ca1b735971b
 AI was used to simplify the CD pipeline: https://claude.ai/share/c53d3768-19ff-45b5-af17-75772514e374
+AI was used to add file management: https://claude.ai/chat/ef5fc0b3-b7cb-4898-a21d-835e0c843df7
 
