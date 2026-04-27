@@ -15,8 +15,7 @@ def generate_knowledge_map_data(text):
     
     Extract AS MANY topics as the text contains. For a long text extract as many distinct topics as you can find.
     Each topic should represent a distinct concept or theme from the text. There MUST be at least 10
-    topics for texts that have more than 1500 words
-
+    topics for texts that are longer
     Make sure each topic and the summary makes logical sense
 
     IMPORTANT INSTRUCTIONS:
