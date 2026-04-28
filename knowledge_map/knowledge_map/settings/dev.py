@@ -1,31 +1,45 @@
 from .base import *
 import os
+
 DEBUG = True
-ALLOWED_HOSTS = ['app-aoa-21.devedu.io', 'editor-aoa-21.devedu.io', '127.0.0.1',
-                 'localhost', 'editor-nschluescontainer-21.devedu.io', 'app-nschluescontainer-21.devedu.io']
+ALLOWED_HOSTS = [
+    "app-aoa-21.devedu.io",
+    "editor-aoa-21.devedu.io",
+    "127.0.0.1",
+    "localhost",
+    "editor-nschluescontainer-21.devedu.io",
+    "app-nschluescontainer-21.devedu.io",
+]
 
 
 # uses the supabase db but will fall back on the sqlite db if something fails
-if all([os.getenv("DB_NAME"), os.getenv("DB_USER"), os.getenv("DB_PASSWORD"), os.getenv("DB_HOST")]):
+if all(
+    [
+        os.getenv("DB_NAME"),
+        os.getenv("DB_USER"),
+        os.getenv("DB_PASSWORD"),
+        os.getenv("DB_HOST"),
+    ]
+):
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv("DB_NAME"),
-            'USER': os.getenv("DB_USER"),
-            'PASSWORD': os.getenv("DB_PASSWORD"),
-            'HOST': os.getenv("DB_HOST"),
-            'PORT': os.getenv("DB_PORT"),
-            'CONN_MAX_AGE': 0,  # IMPORTANT for pooler
-            'OPTIONS': {
-                'sslmode': 'require',
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),
+            "PORT": os.getenv("DB_PORT"),
+            "CONN_MAX_AGE": 0,  # IMPORTANT for pooler
+            "OPTIONS": {
+                "sslmode": "require",
             },
         }
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
@@ -48,18 +62,18 @@ STORAGES = {
 
 # Dev-friendly settings
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.devedu.io',
-    'http://localhost:3000',
-    'https://yourknowledgemap.me',
+    "https://*.devedu.io",
+    "http://localhost:3000",
+    "https://yourknowledgemap.me",
 ]
 # Add logging cause depandabot or somthing is tryna make files
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': 'django_errors.log',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "django_errors.log",
             # Falls back to a local file if env var isn't set
         },
     },

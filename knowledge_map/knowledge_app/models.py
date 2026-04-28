@@ -7,10 +7,11 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
 
+
 # Database table - stores info about PDF uploads
 # add folders model
 class Folder(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folders')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="folders")
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -18,21 +19,30 @@ class Folder(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['name']
-        unique_together = ['user', 'name']  # no duplicate folder names per user
+        ordering = ["name"]
+        unique_together = ["user", "name"]  # no duplicate folder names per user
 
 
 class UploadedFile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             related_name='uploaded_files', null=True, blank=True)
-    file = models.FileField(upload_to='uploads/')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="uploaded_files",
+        null=True,
+        blank=True,
+    )
+    file = models.FileField(upload_to="uploads/")
     original_filename = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    extracted_text = models.TextField(blank=True, default='')
-    folder = models.ForeignKey(Folder, null=True, blank=True,   # update for folders
-                               on_delete=models.SET_NULL,
-                               related_name='files')
+    extracted_text = models.TextField(blank=True, default="")
+    folder = models.ForeignKey(
+        Folder,
+        null=True,
+        blank=True,  # update for folders
+        on_delete=models.SET_NULL,
+        related_name="files",
+    )
 
     @property
     def display_name(self):
@@ -42,31 +52,31 @@ class UploadedFile(models.Model):
         return self.display_name
 
     class Meta:
-        ordering = ['-uploaded_at']
+        ordering = ["-uploaded_at"]
 
 
 class Quiz(models.Model):
     """Main quiz model"""
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='quizzes')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="quizzes")
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
     # Reference to your existing UploadedFile model
     source_file = models.ForeignKey(
-        'UploadedFile',  # Your existing model
+        "UploadedFile",  # Your existing model
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='generated_quizzes'
+        related_name="generated_quizzes",
     )
     source_text = models.TextField(blank=True)  # If generated from text input
 
     # Quiz settings
     difficulty = models.CharField(
         max_length=20,
-        choices=[('easy', 'Easy'), ('medium', 'Medium'), ('hard', 'Hard')],
-        default='medium'
+        choices=[("easy", "Easy"), ("medium", "Medium"), ("hard", "Hard")],
+        default="medium",
     )
 
     # Timestamps
@@ -74,7 +84,7 @@ class Quiz(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.title
@@ -85,7 +95,7 @@ class Quiz(models.Model):
 
     @property
     def latest_attempt(self):
-        return self.attempts.order_by('-created_at').first()
+        return self.attempts.order_by("-created_at").first()
 
     @property
     def total_attempts(self):
@@ -102,16 +112,16 @@ class Quiz(models.Model):
 
 class Question(models.Model):
     """Quiz question model"""
+
     QUESTION_TYPES = [
-        ('multiple_choice', 'Multiple Choice'),
-        ('fill_in_blank', 'Fill in the Blank'),
-        ('true_false', 'True/False'),
-        ('matching', 'Matching'),
-        ('short_answer', 'Short Answer'),
+        ("multiple_choice", "Multiple Choice"),
+        ("fill_in_blank", "Fill in the Blank"),
+        ("true_false", "True/False"),
+        ("matching", "Matching"),
+        ("short_answer", "Short Answer"),
     ]
 
-    quiz = models.ForeignKey(
-        Quiz, on_delete=models.CASCADE, related_name='questions')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="questions")
     question_text = models.TextField()
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
 
@@ -130,7 +140,7 @@ class Question(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['quiz', 'order']
+        ordering = ["quiz", "order"]
 
     def __str__(self):
         return f"{self.quiz.title} - Q{self.order}: {self.question_text[:50]}"
@@ -138,15 +148,15 @@ class Question(models.Model):
 
 class QuizAttempt(models.Model):
     """Track each time a user takes a quiz"""
-    quiz = models.ForeignKey(
-        Quiz, on_delete=models.CASCADE, related_name='attempts')
+
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="attempts")
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='quiz_attempts')
+        User, on_delete=models.CASCADE, related_name="quiz_attempts"
+    )
 
     # Scoring
     score = models.IntegerField(
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)]
+        default=0, validators=[MinValueValidator(0), MaxValueValidator(100)]
     )  # Percentage score
     correct_count = models.PositiveIntegerField()
     total_questions = models.PositiveIntegerField()
@@ -156,7 +166,7 @@ class QuizAttempt(models.Model):
     completed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.user.username} - {self.quiz.title} ({self.score}%)"
@@ -168,10 +178,13 @@ class QuizAttempt(models.Model):
 
 class Answer(models.Model):
     """Individual answer for a question in an attempt"""
+
     attempt = models.ForeignKey(
-        QuizAttempt, on_delete=models.CASCADE, related_name='answers')
+        QuizAttempt, on_delete=models.CASCADE, related_name="answers"
+    )
     question = models.ForeignKey(
-        Question, on_delete=models.CASCADE, related_name='answers')
+        Question, on_delete=models.CASCADE, related_name="answers"
+    )
 
     user_answer = models.TextField()
     correct_answer = models.TextField()
@@ -180,7 +193,7 @@ class Answer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['attempt', 'question']
+        unique_together = ["attempt", "question"]
 
     def __str__(self):
         return f"{self.attempt} - Q{self.question.order}: {'✓' if self.is_correct else '✗'}"
@@ -189,42 +202,45 @@ class Answer(models.Model):
 # Stores a map generated from an uploaded PDF
 class KnowledgeMap(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('complete', 'Complete'),
-        ('failed', 'Failed'),
+        ("pending", "Pending"),
+        ("processing", "Processing"),
+        ("complete", "Complete"),
+        ("failed", "Failed"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     uploaded_file = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
 
     def __str__(self):
         return self.title
+
 
 # Topic cluster
 
 
 class TopicNode(models.Model):
     knowledge_map = models.ForeignKey(
-        KnowledgeMap, on_delete=models.CASCADE, related_name='topics')
+        KnowledgeMap, on_delete=models.CASCADE, related_name="topics"
+    )
     label = models.CharField(max_length=255)  # to be given from OpenAI
-    summary = models.TextField()                    # summary from OpenAI
-    x_position = models.FloatField(default=0)       # map position
+    summary = models.TextField()  # summary from OpenAI
+    x_position = models.FloatField(default=0)  # map position
     y_position = models.FloatField(default=0)
 
     def __str__(self):
         return self.label
+
 
 # Subtopic under a topic node
 
 
 class SubtopicNode(models.Model):
     topic = models.ForeignKey(
-        TopicNode, on_delete=models.CASCADE, related_name='subtopics')
+        TopicNode, on_delete=models.CASCADE, related_name="subtopics"
+    )
     label = models.CharField(max_length=255)
     summary = models.TextField()
     x_position = models.FloatField(default=0)
@@ -233,25 +249,31 @@ class SubtopicNode(models.Model):
     def __str__(self):
         return self.label
 
+
 # Relationship/edge between two topic nodes on the map
 class NodeRelationship(models.Model):
     knowledge_map = models.ForeignKey(
-        KnowledgeMap, on_delete=models.CASCADE, related_name='relationships')
+        KnowledgeMap, on_delete=models.CASCADE, related_name="relationships"
+    )
     source_topic = models.ForeignKey(
-        TopicNode, on_delete=models.CASCADE, related_name='outgoing')
+        TopicNode, on_delete=models.CASCADE, related_name="outgoing"
+    )
     target_topic = models.ForeignKey(
-        TopicNode, on_delete=models.CASCADE, related_name='incoming')
+        TopicNode, on_delete=models.CASCADE, related_name="incoming"
+    )
     relationship_label = models.CharField(
-        max_length=255)   # e.g. "relates to", "leads to"
+        max_length=255
+    )  # e.g. "relates to", "leads to"
 
     def __str__(self):
         return f"{self.source_topic} → {self.target_topic}"
 
+
 # User profile to persist personal settings
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     dark_mode = models.BooleanField(default=False)
-    photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
+    photo = models.ImageField(upload_to="profile_photos/", null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username}'s profile"
@@ -263,17 +285,25 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
-    
+
 # store permissions for a knowledge map
 class SharedMap(models.Model):
-    knowledge_map = models.ForeignKey(KnowledgeMap, on_delete=models.CASCADE, related_name='shares')
+    knowledge_map = models.ForeignKey(
+        KnowledgeMap, on_delete=models.CASCADE, related_name="shares"
+    )
 
     # public link sharing - anyone with the token can view
     share_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     is_public = models.BooleanField(default=False)
 
     # sharing with specific user
-    shared_with = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='shared_map')
+    shared_with = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="shared_map",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
