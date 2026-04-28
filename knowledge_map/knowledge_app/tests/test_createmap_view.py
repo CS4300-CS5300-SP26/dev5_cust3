@@ -10,7 +10,6 @@ import os
 
 
 class CreateMapViewTests(TestCase):
-
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(
@@ -21,8 +20,7 @@ class CreateMapViewTests(TestCase):
         # Create a fake uploaded file record in the database
         pdf = SimpleUploadedFile(
             "test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
-        self.uploaded_file = UploadedFile.objects.create(file=pdf)
-
+        self.uploaded_file = UploadedFile.objects.create(file=pdf, user=self.user)  # Add user=self.user
     # -------------------------------------------------------------------------
     # Authentication
     # -------------------------------------------------------------------------
