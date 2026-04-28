@@ -552,7 +552,7 @@ def create_map(request):
         return redirect('view_map', map_id=knowledge_map.id)
 
     # Get all uploaded files for the current user
-    files = UploadedFile.objects.all().order_by('-uploaded_at')
+    files = UploadedFile.objects.filter(user=request.user)
     return render(request, 'knowledge_app/create_map.html', {'files': files})
 
 
