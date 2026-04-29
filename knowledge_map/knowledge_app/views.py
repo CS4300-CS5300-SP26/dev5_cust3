@@ -20,6 +20,8 @@ from .models import KnowledgeMap, SharedMap, TopicNode, NodeRelationship
 from django.contrib.auth.models import User
 from django.urls import reverse
 
+from .models import CustomMap, CustomNode, CustomEdge
+
 # Landing page view
 
 def index(request):
@@ -831,6 +833,164 @@ def delete_relationship(request, map_id, relationship_id):
         knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
         relationship = get_object_or_404(NodeRelationship, id=relationship_id, knowledge_map=knowledge_map)
         relationship.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@login_required
+def homepage(request):
+    # Get user's most recent custom map or create a new one
+    custom_map = CustomMap.objects.filter(user=request.user).order_by('-updated_at').first()
+
+    if not custom_map:
+        custom_map = CustomMap.objects.create(user=request.user, title='My Map')
+
+    nodes = [
+        {
+            'data': {
+                'id': str(node.id),
+                'label': node.label,
+                'summary': node.summary
+            },
+            'position': {'x': node.x_position, 'y': node.y_position}
+        }
+        for node in custom_map.nodes.all()
+    ]
+
+    edges = [
+        {
+            'data': {
+                'id': f"e{edge.id}",
+                'source': str(edge.source.id),
+                'target': str(edge.target.id),
+                'label': edge.label
+            }
+        }
+        for edge in custom_map.edges.all()
+    ]
+
+    return render(request, 'knowledge_app/homepage.html', {
+        'custom_map': custom_map,
+        'nodes': nodes,
+        'edges': edges,
+    })
+
+
+# Save a node position after dragging
+@login_required
+def save_custom_node(request, map_id):
+    if request.method == 'POST':
+        custom_map = get_object_or_404(CustomMap, id=map_id, user=request.user)
+        data = json.loads(request.body)
+        label = data.get('label', '').strip()
+        summary = data.get('summary', '').strip()
+        x = data.get('x', 0)
+        y = data.get('y', 0)
+
+        if not label:
+            return JsonResponse({'error': 'Label is required'}, status=400)
+
+        node = CustomNode.objects.create(
+            custom_map=custom_map,
+            label=label,
+            summary=summary,
+            x_position=x,
+            y_position=y
+        )
+
+        return JsonResponse({
+            'id': str(node.id),
+            'label': node.label,
+            'summary': node.summary,
+            'x': node.x_position,
+            'y': node.y_position
+        })
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# Update node position after dragging
+@login_required
+def update_custom_node_position(request, map_id, node_id):
+    if request.method == 'POST':
+        custom_map = get_object_or_404(CustomMap, id=map_id, user=request.user)
+        node = get_object_or_404(CustomNode, id=node_id, custom_map=custom_map)
+        data = json.loads(request.body)
+        node.x_position = data.get('x', node.x_position)
+        node.y_position = data.get('y', node.y_position)
+        node.save()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# Delete a custom node
+@login_required
+def delete_custom_node(request, map_id, node_id):
+    if request.method == 'POST':
+        custom_map = get_object_or_404(CustomMap, id=map_id, user=request.user)
+        node = get_object_or_404(CustomNode, id=node_id, custom_map=custom_map)
+        node.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# Save a custom edge
+@login_required
+def save_custom_edge(request, map_id):
+    if request.method == 'POST':
+        custom_map = get_object_or_404(CustomMap, id=map_id, user=request.user)
+        data = json.loads(request.body)
+        source_id = data.get('source_id')
+        target_id = data.get('target_id')
+        label = data.get('label', '').strip()
+
+        if not source_id or not target_id:
+            return JsonResponse({'error': 'Source and target are required'}, status=400)
+
+        source = get_object_or_404(CustomNode, id=source_id, custom_map=custom_map)
+        target = get_object_or_404(CustomNode, id=target_id, custom_map=custom_map)
+
+        edge = CustomEdge.objects.create(
+            custom_map=custom_map,
+            source=source,
+            target=target,
+            label=label
+        )
+
+        return JsonResponse({
+            'id': f"e{edge.id}",
+            'source': str(source.id),
+            'target': str(target.id),
+            'label': edge.label
+        })
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# Delete a custom edge
+@login_required
+def delete_custom_edge(request, map_id, edge_id):
+    if request.method == 'POST':
+        custom_map = get_object_or_404(CustomMap, id=map_id, user=request.user)
+        edge = get_object_or_404(CustomEdge, id=edge_id, custom_map=custom_map)
+        edge.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# Update map title
+@login_required
+def update_custom_map_title(request, map_id):
+    if request.method == 'POST':
+        custom_map = get_object_or_404(CustomMap, id=map_id, user=request.user)
+        data = json.loads(request.body)
+        title = data.get('title', '').strip()
+        if title:
+            custom_map.title = title
+            custom_map.save()
         return JsonResponse({'success': True})
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
