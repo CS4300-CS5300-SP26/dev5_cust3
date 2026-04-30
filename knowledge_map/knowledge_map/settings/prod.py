@@ -1,4 +1,5 @@
-from .base import *
+import os
+from .base import *  # noqa: F403, F405, F401
 
 # make sure that the env variables are in place for each developer. If
 # not, raise an error
