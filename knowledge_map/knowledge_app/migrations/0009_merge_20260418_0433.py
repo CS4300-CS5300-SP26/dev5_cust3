@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('knowledge_app', '0007_folder_uploadedfile_folder'),
-        ('knowledge_app', '0008_rename_sharemap_sharedmap'),
+        ("knowledge_app", "0007_folder_uploadedfile_folder"),
+        ("knowledge_app", "0008_rename_sharemap_sharedmap"),
     ]
 
-    operations = [
-    ]
+    operations = []
