@@ -16,7 +16,7 @@ import pdfplumber
 import os
 import json
 
-from .models import KnowledgeMap, SharedMap, TopicNode, NodeRelationship
+from .models import KnowledgeMap, SharedMap, TopicNode, NodeRelationship, CustomMap
 from django.contrib.auth.models import User
 from django.urls import reverse
 
@@ -160,8 +160,12 @@ def maps(request):
         shared_with=request.user
     ).select_related('knowledge_map', 'knowledge_map__user')
 
+    # User's custom maps
+    custom_maps = CustomMap.objects.filter(user=request.user).order_by('-updated_at')
+
     return render(request, "knowledge_app/maps.html", {
         'maps': user_maps,
+        'custom_maps': custom_maps,
         'shared_with_me': shared_with_me,
     })
     
@@ -838,12 +842,14 @@ def delete_relationship(request, map_id, relationship_id):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 @login_required
-def homepage(request):
-    # Get user's most recent custom map or create a new one
-    custom_map = CustomMap.objects.filter(user=request.user).order_by('-updated_at').first()
-
-    if not custom_map:
-        custom_map = CustomMap.objects.create(user=request.user, title='My Map')
+def homepage(request, map_id=None):
+    if map_id:
+        custom_map = get_object_or_404(CustomMap, id=map_id, user=request.user)
+    else:
+        # Load most recent map or create one if none exists
+        custom_map = CustomMap.objects.filter(user=request.user).order_by('-updated_at').first()
+        if not custom_map:
+            custom_map = CustomMap.objects.create(user=request.user, title='My Map')
 
     nodes = [
         {
@@ -994,3 +1000,9 @@ def update_custom_map_title(request, map_id):
         return JsonResponse({'success': True})
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+# Create a new custom map and redirect to it
+@login_required
+def new_custom_map(request):
+    custom_map = CustomMap.objects.create(user=request.user, title='Untitled Map')
+    return redirect('homepage_map', map_id=custom_map.id)

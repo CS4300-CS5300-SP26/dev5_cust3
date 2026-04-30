@@ -17,7 +17,6 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', views.register, name='register'),
     path('quiz/<int:pk>/delete/', views.delete_quiz, name='delete_quiz'),
-    # path('logout/', views.logout, name='logout'),
     path('create-map/', views.create_map, name='create_map'),
     path('map/<int:map_id>/', views.view_map, name='view_map'),
     path('map/<int:map_id>/status/', views.map_status, name='map_status'),
@@ -38,4 +37,6 @@ urlpatterns = [
     path('custom-map/<int:map_id>/add-edge/', views.save_custom_edge, name='save_custom_edge'),
     path('custom-map/<int:map_id>/delete-edge/<int:edge_id>/', views.delete_custom_edge, name='delete_custom_edge'),
     path('custom-map/<int:map_id>/update-title/', views.update_custom_map_title, name='update_custom_map_title'),
+    path('homepage/<int:map_id>/', views.homepage, name='homepage_map'),
+    path('custom-map/new/', views.new_custom_map, name='new_custom_map'),
 ]
