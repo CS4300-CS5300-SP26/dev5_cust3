@@ -1,55 +1,207 @@
-.homepage-wrapper {
-    display: flex;
-    height: 100vh;
-}
-
-.homepage-main {
-    flex: 1;
-    padding: 2rem;
-    background-image:
-    linear-gradient(var(--card-border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-color: var(--bg-color);
-}
-
-.notepad-panel {
-    width: 350px;
-    min-width: 300px;
-    background-color: var(--input-bg);
-    border-left: 2px solid var(--card-border);
+/* Builder wrapper */
+.builder-wrapper {
     display: flex;
     flex-direction: column;
+    height: calc(100vh - 2.5rem);
+    padding: 1rem;
+    position: relative;
 }
 
-.notepad-header {
-    padding: 1rem 1rem;
-    border-bottom: 2px solid #e0e0e0;
-    background-color: #9db8dd;
-    color: white;
-    font-family: "Caveat", cursive;
-    font-optical-sizing: auto;
-    font-weight: 400;
-    font-style: normal;
+/* Toolbar */
+.builder-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
 }
 
-.notepad-header h2 {
-    font-size: 2rem;
+/* Editable map title */
+.map-title-input {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.2rem;
     font-weight: 600;
-    margin: 0;
+    color: #0e223e;
+    border: none;
+    border-bottom: 2px solid transparent;
+    outline: none;
+    background: transparent;
+    padding: 0.25rem 0.5rem;
+    flex: 1;
+    min-width: 150px;
 }
 
-.notepad-body {
-    flex: 1;
-    padding: 1rem 1.5rem;
+.map-title-input:focus {
+    border-bottom: 2px solid #3b7ddd;
+}
+
+/* Toolbar buttons */
+.toolbar-btn {
+    background-color: #0e223e;
+    color: white;
     border: none;
-    resize: none;
-    font-family: "Caveat", cursive;
-    font-optical-sizing: auto;
-    font-weight: 400;
-    font-style: normal;
-    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+
+.toolbar-btn:hover {
+    background-color: #3b7ddd;
+}
+
+.edge-btn {
+    background-color: #3b7ddd;
+}
+
+.edge-btn:hover {
+    background-color: #0e223e;
+}
+
+.clear-btn {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.clear-btn:hover {
+    background-color: #721c24;
+    color: white;
+}
+
+/* Add node form */
+.add-node-form {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.add-node-form input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
     outline: none;
-    background-color: var(--input-bg);
-    color: var(--input-color);
+    flex: 1;
+    min-width: 150px;
+}
+
+.add-node-form input:focus {
+    border-color: #9db8dd;
+}
+
+.confirm-btn {
+    background-color: #0e223e;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+
+.confirm-btn:hover {
+    background-color: #3b7ddd;
+}
+
+.cancel-btn {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+
+.cancel-btn:hover {
+    background-color: #ccc;
+}
+
+/* Cytoscape canvas */
+#cy {
+    flex: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #feffee;
+    background-image:
+        linear-gradient(#e0e0e0 1px, transparent 1px),
+        linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* Node popup */
+.node-popup {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 300px;
+    background-color: #fff;
+    border-left: 2px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.node-popup h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0e223e;
+    margin-bottom: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.node-popup p {
+    font-size: 0.875rem;
+    color: #555;
+    margin: 0 0 1rem 0;
+}
+
+.popup-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #555;
+}
+
+.popup-close:hover {
+    color: #0e223e;
+}
+
+.delete-btn {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    margin-top: auto;
+}
+
+.delete-btn:hover {
+    background-color: #721c24;
+    color: white;
+}
+
+.hidden {
+    display: none;
 }

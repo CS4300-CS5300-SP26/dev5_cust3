@@ -871,8 +871,8 @@ def homepage(request):
 
     return render(request, 'knowledge_app/homepage.html', {
         'custom_map': custom_map,
-        'nodes': nodes,
-        'edges': edges,
+        'nodes': json.dumps(nodes),
+        'edges': json.dumps(edges),
     })
 
 
