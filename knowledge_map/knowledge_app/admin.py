@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import UploadedFile, KnowledgeMap, TopicNode, SubtopicNode, NodeRelationship, SharedMap, CustomMap, CustomNode, CustomEdge
+from .models import UploadedFile, KnowledgeMap, TopicNode, SubtopicNode, NodeRelationship, CustomMap, CustomNode, CustomEdge
 
 admin.site.register(UploadedFile)
 admin.site.register(KnowledgeMap)
