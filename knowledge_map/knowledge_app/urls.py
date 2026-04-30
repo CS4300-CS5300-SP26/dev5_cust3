@@ -49,4 +49,12 @@ urlpatterns = [
         views.delete_relationship,
         name="delete_relationship",
     ),
+    path('custom-map/<int:map_id>/add-node/', views.save_custom_node, name='save_custom_node'),
+    path('custom-map/<int:map_id>/update-node/<int:node_id>/', views.update_custom_node_position, name='update_custom_node_position'),
+    path('custom-map/<int:map_id>/delete-node/<int:node_id>/', views.delete_custom_node, name='delete_custom_node'),
+    path('custom-map/<int:map_id>/add-edge/', views.save_custom_edge, name='save_custom_edge'),
+    path('custom-map/<int:map_id>/delete-edge/<int:edge_id>/', views.delete_custom_edge, name='delete_custom_edge'),
+    path('custom-map/<int:map_id>/update-title/', views.update_custom_map_title, name='update_custom_map_title'),
+    path('homepage/<int:map_id>/', views.homepage, name='homepage_map'),
+    path('custom-map/new/', views.new_custom_map, name='new_custom_map'),
 ]

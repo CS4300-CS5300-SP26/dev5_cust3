@@ -313,3 +313,38 @@ class SharedMap(models.Model):
         if self.shared_with:
             return f"{self.knowledge_map.title} shared with {self.shared_with.username}"
         return f"{self.knowledge_map.title} (public link)"
+
+# Stores a custom map built by the user on the homepage
+class CustomMap(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='custom_maps'
+    )
+    title = models.CharField(max_length=255, default='Untitled Map')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} by {self.user.username}"
+        
+# A node in a custom map
+class CustomNode(models.Model):
+    custom_map = models.ForeignKey(CustomMap, on_delete=models.CASCADE, related_name='nodes')
+    label = models.CharField(max_length=255)
+    summary = models.TextField(blank=True, default='')
+    x_position = models.FloatField(default=0)
+    y_position = models.FloatField(default=0)
+
+    def __str__(self):
+        return self.label
+
+# An edge in a custom map
+class CustomEdge(models.Model):
+    custom_map = models.ForeignKey(CustomMap, on_delete=models.CASCADE, related_name='edges')
+    source = models.ForeignKey(CustomNode, on_delete=models.CASCADE, related_name='outgoing')
+    target = models.ForeignKey(CustomNode, on_delete=models.CASCADE, related_name='incoming')
+    label = models.CharField(max_length=255, blank=True, default='')
+
+    def __str__(self):
+        return f"{self.source} → {self.target}"

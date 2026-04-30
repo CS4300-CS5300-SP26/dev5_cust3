@@ -73,6 +73,41 @@
     </div>
     {% endif %}
 
+    <!-- Custom maps built on homepage -->
+    {% if custom_maps %}
+    <div class="maps-header" style="margin-top: 2rem;">
+        <h1>My Custom Maps</h1>
+        <a href="{% url 'new_custom_map' %}" class="create-map-btn">+ New Custom Map</a>
+    </div>
+    <div class="maps-grid">
+        {% for cmap in custom_maps %}
+        <div class="map-card">
+            <div class="map-card-header">
+                <h2>{{ cmap.title }}</h2>
+                <span class="map-status complete">Custom</span>
+            </div>
+            <div class="map-card-body">
+                <p>Created: {{ cmap.created_at|date:"d M Y" }}</p>
+                <p>Updated: {{ cmap.updated_at|date:"d M Y" }}</p>
+                <p>Nodes: {{ cmap.nodes.count }}</p>
+            </div>
+            <div class="map-card-footer">
+                <a href="{% url 'homepage_map' cmap.id %}" class="view-btn">Edit Map</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="maps-header" style="margin-top: 2rem;">
+        <h1>My Custom Maps</h1>
+        <a href="{% url 'new_custom_map' %}" class="create-map-btn">+ New Custom Map</a>
+    </div>
+    <div class="no-maps">
+        <p>You haven't created any custom maps yet.</p>
+        <a href="{% url 'new_custom_map' %}">Create your first custom map</a>
+    </div>
+    {% endif %}
+
 </div>
 
 {% endblock %}
