@@ -12,7 +12,6 @@ from knowledge_app.models import KnowledgeMap, UploadedFile
 
 
 class CreateMapViewTests(TestCase):
-
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(
@@ -22,10 +21,8 @@ class CreateMapViewTests(TestCase):
 
         # Create a fake uploaded file record in the database
         pdf = SimpleUploadedFile(
-            "test.pdf", b"%PDF-1.4 test content", content_type="application/pdf"
-        )
-        self.uploaded_file = UploadedFile.objects.create(file=pdf)
-
+            "test.pdf", b"%PDF-1.4 test content", content_type="application/pdf")
+        self.uploaded_file = UploadedFile.objects.create(file=pdf, user=self.user)  # Add user=self.user
     # -------------------------------------------------------------------------
     # Authentication
     # -------------------------------------------------------------------------
@@ -60,6 +57,72 @@ class CreateMapViewTests(TestCase):
         response = self.client.get(reverse("create_map"))
         self.assertIn(self.uploaded_file, response.context["files"])
 
+    # -------------------------------------------------------------------------
+# GET requests - user isolation / filtering
+# -------------------------------------------------------------------------
+
+def test_get_context_excludes_other_users_files(self):
+    """Files belonging to a different user should NOT appear in context."""
+    other_user = User.objects.create_user(
+        username='otheruser', password='otherpass123'
+    )
+    other_pdf = SimpleUploadedFile(
+        "other.pdf", b"%PDF-1.4 other content", content_type="application/pdf"
+    )
+    other_file = UploadedFile.objects.create(file=other_pdf, user=other_user)
+
+    response = self.client.get(reverse('create_map'))
+    self.assertNotIn(other_file, response.context['files'])
+
+def test_get_context_contains_only_current_users_files(self):
+    """The files in context should contain ONLY the logged-in user's files."""
+    other_user = User.objects.create_user(
+        username='otheruser2', password='otherpass123'
+    )
+    other_pdf = SimpleUploadedFile(
+        "other2.pdf", b"%PDF-1.4 other content", content_type="application/pdf"
+    )
+    UploadedFile.objects.create(file=other_pdf, user=other_user)
+
+    response = self.client.get(reverse('create_map'))
+    files_in_context = response.context['files']
+
+    # Every file returned must belong to the logged-in user
+    for f in files_in_context:
+        self.assertEqual(f.user, self.user)
+
+def test_get_returns_all_of_current_users_files(self):
+    """All files belonging to the logged-in user should appear in context."""
+    second_pdf = SimpleUploadedFile(
+        "second.pdf", b"%PDF-1.4 second content", content_type="application/pdf"
+    )
+    second_file = UploadedFile.objects.create(file=second_pdf, user=self.user)
+
+    response = self.client.get(reverse('create_map'))
+    files_in_context = list(response.context['files'])
+
+    self.assertIn(self.uploaded_file, files_in_context)
+    self.assertIn(second_file, files_in_context)
+
+def test_post_rejects_file_belonging_to_other_user(self):
+    """A POST referencing another user's file_id should return 404,
+    even though the file exists in the database."""
+    other_user = User.objects.create_user(
+        username='otheruser3', password='otherpass123'
+    )
+    other_pdf = SimpleUploadedFile(
+        "other3.pdf", b"%PDF-1.4 other content", content_type="application/pdf"
+    )
+    other_file = UploadedFile.objects.create(file=other_pdf, user=other_user)
+
+    response = self.client.post(reverse('create_map'), {
+        'file_id': other_file.id,
+        'title': 'Stolen Map'
+    })
+    self.assertEqual(response.status_code, 404)
+    self.assertEqual(KnowledgeMap.objects.count(), 0)
+
+    
     # -------------------------------------------------------------------------
     # POST requests - happy path
     # -------------------------------------------------------------------------

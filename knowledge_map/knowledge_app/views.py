@@ -600,7 +600,7 @@ def create_map(request):
         title = request.POST.get("title")
 
         # Get the uploaded file
-        uploaded_file = get_object_or_404(UploadedFile, id=file_id)
+        uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
 
         # Create a knowledge map record in the database
         knowledge_map = KnowledgeMap.objects.create(
@@ -617,8 +617,8 @@ def create_map(request):
         return redirect("view_map", map_id=knowledge_map.id)
 
     # Get all uploaded files for the current user
-    files = UploadedFile.objects.all().order_by("-uploaded_at")
-    return render(request, "knowledge_app/create_map.html", {"files": files})
+    files = UploadedFile.objects.filter(user=request.user)
+    return render(request, 'knowledge_app/create_map.html', {'files': files})
 
 
 # View map - renders the knowledge map using Cytoscape.js
