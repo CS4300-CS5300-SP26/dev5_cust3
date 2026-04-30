@@ -535,7 +535,7 @@ def create_map(request):
         title = request.POST.get('title')
 
         # Get the uploaded file
-        uploaded_file = get_object_or_404(UploadedFile, id=file_id)
+        uploaded_file = get_object_or_404(UploadedFile, id=file_id, user=request.user)
 
         # Create a knowledge map record in the database
         knowledge_map = KnowledgeMap.objects.create(
