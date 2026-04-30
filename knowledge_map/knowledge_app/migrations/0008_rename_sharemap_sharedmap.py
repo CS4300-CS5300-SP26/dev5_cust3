@@ -7,13 +7,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('knowledge_app', '0007_sharemap'),
+        ("knowledge_app", "0007_sharemap"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='ShareMap',
-            new_name='SharedMap',
+            old_name="ShareMap",
+            new_name="SharedMap",
         ),
     ]
