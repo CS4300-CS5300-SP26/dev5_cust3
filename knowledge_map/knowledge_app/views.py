@@ -171,7 +171,7 @@ def maps(request):
     )
 
     # Maps shared with user by other users
-   shared_with_me = SharedMap.objects.filter(shared_with=request.user).select_related(
+    shared_with_me = SharedMap.objects.filter(shared_with=request.user).select_related(
         "knowledge_map", "knowledge_map__user"
     )
     # User's custom maps
