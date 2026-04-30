@@ -1,10 +1,12 @@
-from django.test import TestCase, Client
-from django.urls import reverse
+import json
+import os
+
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from knowledge_app.models import UploadedFile, KnowledgeMap, SharedMap
-import os
-import json
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from knowledge_app.models import KnowledgeMap, SharedMap, UploadedFile
 
 
 class ShareMapTest(TestCase):

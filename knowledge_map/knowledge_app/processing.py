@@ -1,6 +1,7 @@
-from openai import OpenAI
-from django.conf import settings
 import json
+
+from django.conf import settings
+from openai import OpenAI
 
 
 def generate_knowledge_map_data(text):

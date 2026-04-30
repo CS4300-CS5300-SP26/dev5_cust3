@@ -1,32 +1,24 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
-from .models import UploadedFile, KnowledgeMap
-from .tasks import generate_knowledge_map
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.decorators import login_required
-from django.views import View
-from django.db.models import Prefetch, Count, Q
-from .services.quiz_generator import generate_quiz, generate_quiz_from_text
-from django.views.decorators.http import require_POST
-from .models import (
-    Quiz,
-    Question,
-    QuizAttempt,
-    Answer,
-    UploadedFile,
-    UserProfile,
-    Folder,
-)
-from openai import OpenAI
-from .forms import QuizGenerationForm
+import json
+import os
 
 import pdfplumber
-import os
-import json
-
-from .models import KnowledgeMap, SharedMap, TopicNode, NodeRelationship
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.db.models import Count, Prefetch, Q
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views import View
+from django.views.decorators.http import require_POST
+from openai import OpenAI
+
+from .forms import QuizGenerationForm
+from .models import (Answer, Folder, KnowledgeMap, NodeRelationship, Question,
+                     Quiz, QuizAttempt, SharedMap, TopicNode, UploadedFile,
+                     UserProfile)
+from .services.quiz_generator import generate_quiz, generate_quiz_from_text
+from .tasks import generate_knowledge_map
 
 # Landing page view
 
@@ -373,7 +365,8 @@ def quizzes_hub(request):
             # Extract text and generate questions using OpenAI
             text = ""
 
-            # If the user selected an existing or newly uploaded PDF option then extract
+            # If the user selected an existing or newly uploaded PDF option
+            # then extract
             if source_choice == "existing" or source_choice == "upload":
                 import pdfplumber
 
@@ -480,7 +473,8 @@ def quiz_detail(request, pk):
             else:
                 user_answer = request.POST.get(f"q_{question.id}", "").strip()
 
-            # Use OpenAI grade for short answer, normal check for everything else
+            # Use OpenAI grade for short answer, normal check for everything
+            # else
             if question.question_type == "short_answer":
                 is_correct = short_answer_grades.get(question.id, False)
             else:
@@ -562,7 +556,8 @@ def check_answer(question, user_answer):
         return similar_enough(user_answer, correct)
 
     elif question.question_type == "matching":
-        # For matching, this would be handled differently (multiple answers per question)
+        # For matching, this would be handled differently (multiple answers per
+        # question)
         return user_answer == correct
 
     return False

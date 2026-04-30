@@ -1,7 +1,8 @@
-from django.test import TestCase, Client
-from django.urls import reverse
 from django.contrib.auth.models import User
-from knowledge_app.models import Quiz, Question, QuizAttempt, Answer
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from knowledge_app.models import Answer, Question, Quiz, QuizAttempt
 
 # ----------------Tests for Progress/Mastery Feature---------------------
 

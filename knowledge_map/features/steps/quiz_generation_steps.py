@@ -1,15 +1,15 @@
-from behave import given, when, then
 import json
 import re
-from unittest.mock import patch, MagicMock
-from knowledge_app.services.quiz_generator import (
-    generate_multiple_choice,
-    generate_fill_in_blank,
-    generate_true_false,
-    generate_matching,
-    generate_quiz,
-    generate_quiz_from_text,
-)
+from unittest.mock import MagicMock, patch
+
+from behave import given, then, when
+
+from knowledge_app.services.quiz_generator import (generate_fill_in_blank,
+                                                   generate_matching,
+                                                   generate_multiple_choice,
+                                                   generate_quiz,
+                                                   generate_quiz_from_text,
+                                                   generate_true_false)
 
 # ============================= FIXTURES ==============================
 
@@ -75,7 +75,8 @@ def step_verify_choice_count(context, num):
 def step_verify_correct_answer_exists(context):
     """Verify each question has exactly one correct answer."""
     for question in context.quiz:
-        assert "answer" in question, f"Question {question['id']} has no 'answer' field"
+        assert "answer" in question, f"Question {
+            question['id']} has no 'answer' field"
         assert (
             question["answer"] in question["choices"]
         ), f"Answer '{question['answer']}' not in choices for {question['id']}"
@@ -240,11 +241,12 @@ def step_verify_empty_quiz(context):
 @then("no errors should occur")
 def step_verify_no_errors(context):
     """Verify no errors occurred."""
-    # This step is just a formality; if an exception occurred, behave would fail
+    # This step is just a formality; if an exception occurred, behave would
+    # fail
     pass
 
 
-# ============================= OPENAI INTEGRATION ==============================
+# ============================= OPENAI INTEGRATION =======================
 
 
 @when('I have raw text about "{topic}"')
@@ -290,7 +292,8 @@ def step_verify_question_returned(context, count):
     # This is mocked, so we just verify the response structure
     mock_response = context.mock_response
     questions = json.loads(mock_response.choices[0].message.content)
-    assert len(questions) == count, f"Expected {count} questions, got {len(questions)}"
+    assert len(questions) == count, f"Expected {count} questions, got {
+        len(questions)}"
 
 
 @then("each question should have a question_text and correct_answer")
@@ -303,7 +306,7 @@ def step_verify_question_structure(context):
         assert "correct_answer" in question, "Question missing 'correct_answer'"
 
 
-# ============================= DIFFICULTY LEVELS ==============================
+# ============================= DIFFICULTY LEVELS ========================
 
 
 @when('I request quiz questions with difficulty "{difficulty}"')
@@ -327,7 +330,7 @@ def step_verify_wrong_answers_obvious(context):
     pass
 
 
-# ============================= QUESTION TYPE PREFERENCES ==============================
+# ============================= QUESTION TYPE PREFERENCES ================
 
 
 # ============================= INCOMPLETE DATA ==============================
@@ -394,7 +397,7 @@ def step_verify_id_convention(context):
         ), f"ID {question_id} doesn't follow convention (should start with 'q_')"
 
 
-# ============================= TOPIC DISTRIBUTION ==============================
+# ============================= TOPIC DISTRIBUTION =======================
 
 
 @when("I have {count:d} topics")

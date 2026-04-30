@@ -1,7 +1,9 @@
-import sys
 import json
+import sys
 from unittest.mock import MagicMock, patch
+
 from django.test import TestCase
+
 from knowledge_app.processing import generate_knowledge_map_data
 
 # Mock openai so it doesn't need to be installed in CI

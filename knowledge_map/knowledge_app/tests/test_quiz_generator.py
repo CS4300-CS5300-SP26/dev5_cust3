@@ -1,19 +1,18 @@
 import json
-from unittest.mock import patch, MagicMock, call
-from django.test import TestCase
-from django.core.exceptions import ValidationError
 import random
-from knowledge_app.models import Question
+from unittest.mock import MagicMock, call, patch
 
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+
+from knowledge_app.models import Question
 # Import the functions to test
-from knowledge_app.services.quiz_generator import (
-    generate_multiple_choice,
-    generate_fill_in_blank,
-    generate_true_false,
-    generate_matching,
-    generate_quiz,
-    generate_quiz_from_text,
-)
+from knowledge_app.services.quiz_generator import (generate_fill_in_blank,
+                                                   generate_matching,
+                                                   generate_multiple_choice,
+                                                   generate_quiz,
+                                                   generate_quiz_from_text,
+                                                   generate_true_false)
 
 
 class QuizGeneratorTestCase(TestCase):

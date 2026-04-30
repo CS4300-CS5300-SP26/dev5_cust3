@@ -1,7 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 from django.test import TestCase
-from unittest.mock import patch, MagicMock
+
+from knowledge_app.models import KnowledgeMap, NodeRelationship, TopicNode
 from knowledge_app.tasks import generate_knowledge_map
-from knowledge_app.models import KnowledgeMap, TopicNode, NodeRelationship
 
 # =============================================================================
 # Helpers

@@ -1,9 +1,11 @@
-from django.test import TestCase, Client
-from django.urls import reverse
+import os
+
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from knowledge_app.models import UploadedFile, KnowledgeMap
-import os
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from knowledge_app.models import KnowledgeMap, UploadedFile
 
 # ----------------Tests for Delete Map Feature---------------------
 

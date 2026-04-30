@@ -1,10 +1,13 @@
 import json
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth.models import User
-from knowledge_app.models import UploadedFile, KnowledgeMap, TopicNode, NodeRelationship
-from django.core.files.uploadedfile import SimpleUploadedFile
 import os
+
+from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from knowledge_app.models import (KnowledgeMap, NodeRelationship, TopicNode,
+                                  UploadedFile)
 
 
 class ViewMapViewTests(TestCase):
@@ -63,7 +66,8 @@ class ViewMapViewTests(TestCase):
         response = self.client.get(reverse("view_map", args=[self.knowledge_map.id]))
         self.assertRedirects(
             response,
-            f"/accounts/login/?next={reverse('view_map', args=[self.knowledge_map.id])}",
+            f"/accounts/login/?next={reverse('view_map',
+                                             args=[self.knowledge_map.id])}",
         )
 
     def test_returns_404_for_another_users_map(self):

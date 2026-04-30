@@ -1,8 +1,9 @@
 import os
+
 import django
 from django.test import Client
-from django.test.utils import setup_test_environment
 from django.test.runner import DiscoverRunner
+from django.test.utils import setup_test_environment
 
 # Tell Django which settings file to use
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "knowledge_map.settings")
@@ -37,8 +38,9 @@ def after_all(context):
 
 def after_scenario(context, scenario):
     # Clean up any uploaded test files after each scenario
-    from knowledge_app.models import UploadedFile
     import os
+
+    from knowledge_app.models import UploadedFile
 
     for f in UploadedFile.objects.all():
         if os.path.exists(f.file.path):

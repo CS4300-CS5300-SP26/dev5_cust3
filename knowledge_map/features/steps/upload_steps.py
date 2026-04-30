@@ -1,8 +1,10 @@
-from behave import given, when, then
-from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
-from knowledge_app.models import UploadedFile
 import os
+
+from behave import given, then, when
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
+
+from knowledge_app.models import UploadedFile
 
 # ---- Navigation scenario ----
 

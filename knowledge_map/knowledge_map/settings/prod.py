@@ -1,10 +1,12 @@
 from .base import *
 
-# make sure that the env variables are in place for each developer. If not, raise an error
+# make sure that the env variables are in place for each developer. If
+# not, raise an error
 required_env_vars = ["DB_NAME", "DB_USER", "DB_PASSWORD", "DB_HOST", "DB_PORT"]
 missing = [var for var in required_env_vars if not os.getenv(var)]
 if missing:
-    raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
+    raise ValueError(f"Missing required environment variables: {
+            ', '.join(missing)}")
 
 DEBUG = False
 
@@ -19,7 +21,8 @@ ALLOWED_HOSTS = [
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # for when we use a database in deployment, for now we will just use sqlite
-# if all([os.getenv("DB_NAME"), os.getenv("DB_USER"), os.getenv("DB_PASSWORD"), os.getenv("DB_HOST")]):
+# if all([os.getenv("DB_NAME"), os.getenv("DB_USER"),
+# os.getenv("DB_PASSWORD"), os.getenv("DB_HOST")]):
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",

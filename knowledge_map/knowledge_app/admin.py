@@ -1,14 +1,10 @@
 from django.contrib import admin
 
+from .models import (KnowledgeMap, NodeRelationship, SubtopicNode, TopicNode,
+                     UploadedFile)
+
 # Register your models here.
 
-from .models import (
-    UploadedFile,
-    KnowledgeMap,
-    TopicNode,
-    SubtopicNode,
-    NodeRelationship,
-)
 
 admin.site.register(UploadedFile)
 admin.site.register(KnowledgeMap)

@@ -1,4 +1,4 @@
-from behave import given, when, then
+from behave import given, then, when
 from django.contrib.auth.models import User
 from django.urls import reverse
 

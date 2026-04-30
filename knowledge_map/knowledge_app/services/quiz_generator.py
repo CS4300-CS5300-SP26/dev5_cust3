@@ -1,11 +1,13 @@
-import re
-from typing import List, Dict, Any, Optional
-import random
-import os
 import json
-from openai import OpenAI
-from dotenv import load_dotenv
+import os
+import random
+import re
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from dotenv import load_dotenv
+from openai import OpenAI
+
 from knowledge_app.models import Question
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
@@ -244,7 +246,7 @@ def generate_quiz(
 
     return questions
 
-    # ------------------------- Raw PDF to OpenAi integration -----------------------------
+    # ------------------------- Raw PDF to OpenAi integration ----------------
 
 
 def generate_quiz_from_text(
@@ -265,7 +267,8 @@ def generate_quiz_from_text(
     # Set up the OpenAI client using the API key from the environment
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-    # Define what each difficulty level means so OpenAI generates appropriate questions
+    # Define what each difficulty level means so OpenAI generates appropriate
+    # questions
     difficulty_guide = {
         "easy": (
             "Easy difficulty: Ask simple recall questions directly from the text. "
@@ -290,24 +293,25 @@ def generate_quiz_from_text(
         difficulty, difficulty_guide["medium"]
     )
 
-    # Build the prompt telling OpenAI how many questions to generate and what format to return
+    # Build the prompt telling OpenAI how many questions to generate and what
+    # format to return
     prompt = f"""
 You are an educational quiz generator designed to help students learn and retain knowledge.
 Your goal is to create questions that reinforce understanding of the material, not just test memorization.
- 
+
 Generate exactly {num_questions} quiz questions from the following text.
 Question types to use: {', '.join(question_types)}
- 
+
 {difficulty_instructions}
- 
+
 General rules:
 - All questions must be directly based on the provided text
 - Questions should help a student learn and review the material
 - Do not ask trivial or irrelevant questions
 - Wrong answer choices should be educational (they should represent common misconceptions or related concepts)
- 
+
 Return ONLY a JSON array with no extra text or markdown. Each question should follow this format:
- 
+
 For multiple_choice:
 {{
     "question_text": "...",
@@ -315,7 +319,7 @@ For multiple_choice:
     "choices": ["correct_answer", "plausible_wrong1", "plausible_wrong2", "plausible_wrong3"],
     "correct_answer": "correct_answer"
 }}
- 
+
 For fill_in_blank:
 {{
     "question_text": "RAM is volatile _____ used during execution.",
@@ -324,7 +328,7 @@ For fill_in_blank:
     "correct_answer": "memory"
 }}
 IMPORTANT: fill_in_blank questions MUST always include exactly 4 choices including the correct answer.
- 
+
 For true_false:
 {{
     "question_text": "...",
@@ -332,7 +336,7 @@ For true_false:
     "choices": ["True", "False"],
     "correct_answer": "True"
 }}
- 
+
 For short_answer:
 {{
     "question_text": "...",
@@ -340,7 +344,7 @@ For short_answer:
     "choices": [],
     "correct_answer": "expected answer"
 }}
- 
+
 For matching:
 {{
     "question_text": "Match each term with its correct description:",
@@ -353,7 +357,7 @@ For matching:
         {{"premise": "term3", "response": "description3"}}
     ]
 }}
- 
+
 Text to generate questions from:
 {text[:4000]}
 """
@@ -421,7 +425,7 @@ def grade_short_answers(questions_and_answers):
     # Build one prompt with all short answer questions
     questions_text = "\n".join(
         [
-            f"{i+1}. Correct: {ca} | Student: {ua}"
+            f"{i + 1}. Correct: {ca} | Student: {ua}"
             for i, (q, ua, ca) in enumerate(to_grade)
         ]
     )

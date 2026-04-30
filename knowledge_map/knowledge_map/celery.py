@@ -1,7 +1,8 @@
 import os
+from pathlib import Path
+
 from celery import Celery
 from dotenv import load_dotenv
-from pathlib import Path
 
 # Load .env file
 BASE_DIR = Path(__file__).resolve().parent.parent

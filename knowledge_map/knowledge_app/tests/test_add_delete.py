@@ -1,10 +1,13 @@
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth.models import User
-from django.core.files.uploadedfile import SimpleUploadedFile
-from knowledge_app.models import UploadedFile, KnowledgeMap, TopicNode, NodeRelationship
 import json
 import os
+
+from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from knowledge_app.models import (KnowledgeMap, NodeRelationship, TopicNode,
+                                  UploadedFile)
 
 
 class AddDeleteNodeTest(TestCase):

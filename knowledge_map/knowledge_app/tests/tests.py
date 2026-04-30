@@ -1,10 +1,12 @@
-from django.test import TestCase, Client
-from django.urls import reverse
+import os
+
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from knowledge_app.models import UploadedFile
-from knowledge_app.models import Quiz, Question, QuizAttempt, Answer
-import os
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from knowledge_app.models import (Answer, Question, Quiz, QuizAttempt,
+                                  UploadedFile)
 
 # ----------------Tests for Authentication---------------------
 
@@ -336,7 +338,8 @@ class QuizDetailViewTests(TestCase):
 class QuizResultsViewTests(TestCase):
 
     def setUp(self):
-        # Create two users, a quiz, a question, an attempt, and an answer before each test
+        # Create two users, a quiz, a question, an attempt, and an answer
+        # before each test
         self.owner = User.objects.create_user(username="owner", password="pass")
         self.other = User.objects.create_user(username="other", password="pass")
         self.quiz = Quiz.objects.create(user=self.owner, title="Test Quiz")

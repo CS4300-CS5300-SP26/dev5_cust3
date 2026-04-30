@@ -1,8 +1,10 @@
-from behave import given, when, then
-from django.urls import reverse
-from django.contrib.auth.models import User
-from knowledge_app.models import Quiz
 from unittest.mock import patch
+
+from behave import given, then, when
+from django.contrib.auth.models import User
+from django.urls import reverse
+
+from knowledge_app.models import Quiz
 
 
 @given("I am logged in")
