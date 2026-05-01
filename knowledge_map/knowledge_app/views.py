@@ -1,29 +1,24 @@
-import json
-import os
-
-import pdfplumber
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
-from django.db.models import Count, Prefetch, Q
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
-from django.views import View
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from openai import OpenAI
-
-from .models import KnowledgeMap, SharedMap, TopicNode, NodeRelationship, CustomMap
+from django.db.models import Prefetch, Count, Q
 from django.contrib.auth.models import User
 from django.urls import reverse
-from .forms import QuizGenerationForm
-from .models import (Answer, Folder, KnowledgeMap, NodeRelationship, Question,
-                     Quiz, QuizAttempt, SharedMap, TopicNode, UploadedFile,
-                     UserProfile)
-from .services.quiz_generator import generate_quiz, generate_quiz_from_text
-from .tasks import generate_knowledge_map
+from openai import OpenAI
+import pdfplumber
+import os
+import json
 
-from .models import CustomMap, CustomNode, CustomEdge
+from .models import (
+    UploadedFile, KnowledgeMap, TopicNode, NodeRelationship,
+    SharedMap, CustomMap, CustomNode, CustomEdge,
+    Quiz, QuizAttempt, Answer, UserProfile, Folder
+)
+from .tasks import generate_knowledge_map
+from .forms import QuizGenerationForm
+from .services.quiz_generator import generate_quiz_from_text
 
 # Landing page view
 

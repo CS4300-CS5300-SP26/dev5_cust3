@@ -4,7 +4,7 @@ Celery will run the OpenAI processing in the background
 
 from celery import shared_task
 
-from .models import KnowledgeMap, NodeRelationship, SubtopicNode, TopicNode
+from .models import KnowledgeMap, NodeRelationship, TopicNode
 from .processing import generate_knowledge_map_data
 
 
