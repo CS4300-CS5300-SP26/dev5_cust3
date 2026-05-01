@@ -17,11 +17,12 @@ class QuizGenerationForm(forms.ModelForm):
         label="Quiz Source",
     )
 
-    # Select from existing uploaded files
-    existing_pdf = forms.ModelChoiceField(
+    # Select from existing uploaded files (multiple allowed)
+    existing_pdf = forms.ModelMultipleChoiceField(
         queryset=UploadedFile.objects.none(),
         required=False,
-        label="Select a PDF from your uploads",
+        label="Select PDFs from your uploads",
+        widget=forms.CheckboxSelectMultiple,
     )
 
     # Upload new PDF
