@@ -152,13 +152,6 @@ def delete_file(request, file_id):
     return redirect("upload")
 
 
-# Home page view
-@login_required
-def homepage(request):
-    files = UploadedFile.objects.all().order_by("-uploaded_at")
-    return render(request, "knowledge_app/homepage.html", {"files": files})
-
-
 # Stored maps view
 @login_required
 def maps(request):
