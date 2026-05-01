@@ -346,7 +346,9 @@ def quizzes_hub(request):
             # Handle different source types
             source_choice = form.cleaned_data["source_choice"]
             if source_choice == "existing":
-                quiz.source_file = form.cleaned_data["existing_pdf"]
+                selected_files = form.cleaned_data["existing_pdf"]
+                # Set source_file to the first selected file for reference
+                quiz.source_file = selected_files.first()
             elif source_choice == "upload":
                 # Create new UploadedFile for the uploaded PDF
                 uploaded_file = UploadedFile.objects.create(
@@ -366,13 +368,32 @@ def quizzes_hub(request):
             if source_choice == "existing" or source_choice == "upload":
                 import pdfplumber
 
-                try:
-                    # Open the PDF and extract text from each page
-                    with pdfplumber.open(quiz.source_file.file.path) as pdf:
-                        for page in pdf.pages:
-                            text += page.extract_text() or ""
-                except Exception as e:
-                    print(f"PDF extraction error: {e}")
+                if source_choice == "existing":
+                    per_file_limit = 12000 // selected_files.count()
+                    for uploaded_file in selected_files:
+                        file_text = uploaded_file.extracted_text or ""
+
+                        # Fall back to pdfplumber if extracted_text is empty
+                        if not file_text:
+                            try:
+                                with pdfplumber.open(uploaded_file.file.path) as pdf:
+                                    for page in pdf.pages:
+                                        file_text += page.extract_text() or ""
+                                # Save it so we don't have to do this again
+                                uploaded_file.extracted_text = file_text
+                                uploaded_file.save()
+                            except Exception as e:
+                                print(f"PDF extraction error for {uploaded_file}: {e}")
+                                
+                        text += file_text[:per_file_limit]
+                else:
+                    # Single newly uploaded PDF
+                    try:
+                        with pdfplumber.open(quiz.source_file.file.path) as pdf:
+                            for page in pdf.pages:
+                                text += page.extract_text() or ""
+                    except Exception as e:
+                        print(f"PDF extraction error: {e}")
 
             # If the user pasted text directly then use that
             elif source_choice == "text":
@@ -392,14 +413,13 @@ def quizzes_hub(request):
             return redirect("quiz_detail", pk=quiz.id)
     else:
         form = QuizGenerationForm(user=request.user)
-        preselected = request.GET.get("existing_pdf")
-        if preselected:
-            # Validate the file belongs to the current user before trusting it
-            file = UploadedFile.objects.filter(
-                user=request.user, pk=preselected
-            ).first()
-            if file:
-                form.fields["existing_pdf"].initial = file.pk
+        preselected_ids = request.GET.getlist("existing_pdf")
+        if preselected_ids:
+            files = UploadedFile.objects.filter(
+                user=request.user, pk__in=preselected_ids
+            )
+            if files.exists():
+                form.fields["existing_pdf"].initial = list(files.values_list("pk", flat=True))
                 form.fields["source_choice"].initial = "existing"
 
     # Get all user's quizzes with their latest attempt
@@ -552,11 +572,32 @@ def check_answer(question, user_answer):
         return similar_enough(user_answer, correct)
 
     elif question.question_type == "matching":
-        # For matching, this would be handled differently (multiple answers per
-        # question)
-        return user_answer == correct
+        # Build a lookup dict from the correct pairs: {"premise": "correct response"}
+        correct_map = {
+            p["premise"].strip().lower(): p["response"].strip().lower()
+            for p in question.pairs
+        }
 
-    return False
+        # Split user's answer string into individual pairs
+        parts = user_answer.split("|")
+
+        # If number of answered pairs doesn't match, wrong
+        if len(parts) != len(question.pairs):
+            return False
+
+        for part in parts:
+            # Each part must have a → separator
+            if "→" not in part:
+                return False
+
+            # Split into premise and user's selected response
+            premise, response = part.split("→", 1)
+
+            # Check user's response matches the correct one
+            if correct_map.get(premise.strip()) != response.strip():
+                return False
+
+        return True
 
 
 def similar_enough(str1, str2, threshold=0.8):
