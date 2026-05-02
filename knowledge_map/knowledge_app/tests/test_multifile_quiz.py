@@ -9,7 +9,6 @@ from knowledge_app.forms import QuizGenerationForm
 from knowledge_app.models import Question, Quiz, UploadedFile
 from knowledge_app.views import check_answer
 
-
 # ----------------Tests for Multi-File Quiz Generation---------------------
 
 
@@ -112,7 +111,6 @@ class MultiFileQuizViewTest(TestCase):
         )
         self.client.login(username="testuser_view", password="testpass123")
 
-        # Create two files with extracted text already saved
         self.file1 = UploadedFile.objects.create(
             user=self.user,
             file=SimpleUploadedFile("crabs.pdf", b"fake pdf content"),
@@ -126,9 +124,25 @@ class MultiFileQuizViewTest(TestCase):
             extracted_text="A cow makes a mooing sound. A dog makes a barking sound.",
         )
 
+    def _fake_generate(self, captured_text):
+        """Returns a side_effect function that saves text and creates a question"""
+        def fake(quiz, text, **kwargs):
+            captured_text.append(text)
+            Question.objects.create(
+                quiz=quiz,
+                question_text="Test question?",
+                question_type="multiple_choice",
+                choices=["a", "b", "c", "d"],
+                correct_answer="a",
+                order=1,
+            )
+        return fake
+
     @patch("knowledge_app.views.generate_quiz_from_text")
     def test_multifile_concatenates_text(self, mock_generate):
         """Both files extracted_text should be concatenated and passed to generator"""
+        captured = []
+        mock_generate.side_effect = self._fake_generate(captured)
         self.client.post(
             reverse("quizzes"),
             {
@@ -141,15 +155,15 @@ class MultiFileQuizViewTest(TestCase):
                 "existing_pdf": [self.file1.pk, self.file2.pk],
             },
         )
-        self.assertTrue(mock_generate.called)
-        called_text = mock_generate.call_args[1]["text"]
-        # Both files' content should appear in the combined text
-        self.assertIn("Crabs are crustaceans", called_text)
-        self.assertIn("cow makes a mooing sound", called_text)
+        self.assertTrue(len(captured) > 0)
+        self.assertIn("Crabs are crustaceans", captured[0])
+        self.assertIn("cow makes a mooing sound", captured[0])
 
     @patch("knowledge_app.views.generate_quiz_from_text")
     def test_multifile_sets_source_file_to_first(self, mock_generate):
         """source_file on the quiz should be set to the first selected file"""
+        captured = []
+        mock_generate.side_effect = self._fake_generate(captured)
         self.client.post(
             reverse("quizzes"),
             {
@@ -168,6 +182,8 @@ class MultiFileQuizViewTest(TestCase):
     @patch("knowledge_app.views.generate_quiz_from_text")
     def test_single_file_still_works(self, mock_generate):
         """Single file selection should still work correctly"""
+        captured = []
+        mock_generate.side_effect = self._fake_generate(captured)
         self.client.post(
             reverse("quizzes"),
             {
@@ -180,13 +196,14 @@ class MultiFileQuizViewTest(TestCase):
                 "existing_pdf": [self.file1.pk],
             },
         )
-        self.assertTrue(mock_generate.called)
-        called_text = mock_generate.call_args[1]["text"]
-        self.assertIn("Crabs are crustaceans", called_text)
+        self.assertTrue(len(captured) > 0)
+        self.assertIn("Crabs are crustaceans", captured[0])
 
     @patch("knowledge_app.views.generate_quiz_from_text")
     def test_empty_extracted_text_still_creates_quiz(self, mock_generate):
         """Quiz should still be created even if a file has no extracted text"""
+        captured = []
+        mock_generate.side_effect = self._fake_generate(captured)
         empty_file = UploadedFile.objects.create(
             user=self.user,
             file=SimpleUploadedFile("empty.pdf", b"fake pdf content"),
@@ -205,7 +222,6 @@ class MultiFileQuizViewTest(TestCase):
                 "existing_pdf": [empty_file.pk],
             },
         )
-        # Quiz should still be created and redirect
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Quiz.objects.filter(user=self.user, title="Empty Text Quiz").exists())
 
