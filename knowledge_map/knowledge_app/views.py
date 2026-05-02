@@ -410,6 +410,15 @@ def quizzes_hub(request):
                 difficulty=form.cleaned_data.get("difficulty", "medium"),
             )
 
+            # If no questions were generated, delete the quiz and show error
+            if quiz.questions.count() == 0:
+                quiz.delete()
+                form.add_error(None, "Quiz generation failed. No questions were created. Please try again or choose another file!")
+                return render(request, "knowledge_app/quizzes.html", {
+                    "quizzes": Quiz.objects.filter(user=request.user),
+                    "form": form,
+                })
+
             return redirect("quiz_detail", pk=quiz.id)
     else:
         form = QuizGenerationForm(user=request.user)
