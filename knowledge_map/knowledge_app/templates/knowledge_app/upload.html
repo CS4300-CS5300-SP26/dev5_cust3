@@ -127,7 +127,7 @@ function updateButtonState() {
     const exactlyOne = checked.length === 1;
 
     if (createBtn) createBtn.disabled = !anyChecked;
-    if (quizBtn) quizBtn.disabled = !exactlyOne;
+    if (quizBtn) quizBtn.disabled = !anyChecked;
     if (deleteBtn) deleteBtn.disabled = !anyChecked;
 
     // Show/hide move controls
@@ -142,9 +142,10 @@ updateButtonState();
 checkboxes.forEach(cb => cb.addEventListener('change', updateButtonState));
 
 quizBtn.addEventListener('click', function() {
-    const selectedId = Array.from(checkboxes).find(cb => cb.checked)?.value;
-    if (selectedId) {
-        window.location.href = `{% url 'quizzes' %}?existing_pdf=${selectedId}`;
+    const selectedIds = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+    if (selectedIds.length) {
+        const params = selectedIds.map(id => `existing_pdf=${id}`).join('&');
+        window.location.href = `{% url 'quizzes' %}?${params}`;
     }
 });
 
