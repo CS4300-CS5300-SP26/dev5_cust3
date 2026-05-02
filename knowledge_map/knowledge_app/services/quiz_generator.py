@@ -309,6 +309,7 @@ General rules:
 - Questions should help a student learn and review the material
 - Do not ask trivial or irrelevant questions
 - Wrong answer choices should be educational (they should represent common misconceptions or related concepts)
+- If the text contains multiple distinct topics, distribute questions evenly across all topics
 
 Return ONLY a JSON array with no extra text or markdown. Each question should follow this format:
 
@@ -359,7 +360,10 @@ For matching:
 }}
 
 Text to generate questions from:
-{text[:4000]}
+
+# Limit to ~8000 chars (~2000 tokens) to stay safely within model context window
+# For multi-file uploads, text is pre-chunked per file in views.py
+{text[:8000]}
 """
 
     try:
@@ -440,6 +444,7 @@ def grade_short_answers(questions_and_answers):
                     "content": (
                         "You are a strict but fair educational grader. "
                         "For each question, determine if the student's answer covers the key points. "
+                        "Ignore differences in capitalization when grading. "
                         "Respond with ONLY a JSON array of 'correct' or 'incorrect' for each question in order. "
                         "Example: ['correct', 'incorrect', 'correct']"
                     ),

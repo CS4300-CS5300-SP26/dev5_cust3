@@ -43,8 +43,19 @@ def step_see_text_option(context):
 
 @when("I submit the quiz form with text input")
 def step_submit_text_quiz(context):
-    # Mock the OpenAI call so tests don't need a real API key
-    with patch("knowledge_app.views.generate_quiz_from_text"):
+    from knowledge_app.models import Question
+    with patch("knowledge_app.views.generate_quiz_from_text") as mock_gen:
+        # Simulate questions being created so quiz isn't deleted
+        def fake_generate(quiz, **kwargs):
+            Question.objects.create(
+                quiz=quiz,
+                question_text="Test question?",
+                question_type="multiple_choice",
+                choices=["a", "b", "c", "d"],
+                correct_answer="a",
+                order=1,
+            )
+        mock_gen.side_effect = fake_generate
         context.response = context.client.post(
             reverse("quizzes"),
             {
