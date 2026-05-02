@@ -369,7 +369,8 @@ def quizzes_hub(request):
                 import pdfplumber
 
                 if source_choice == "existing":
-                    per_file_limit = 12000 // selected_files.count()
+                    # Cap total combined text at 8000 chars to stay within token limits
+                    per_file_limit = min(8000 // selected_files.count(), 4000)
                     for uploaded_file in selected_files:
                         file_text = uploaded_file.extracted_text or ""
 
