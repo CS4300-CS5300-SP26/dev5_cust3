@@ -360,7 +360,10 @@ For matching:
 }}
 
 Text to generate questions from:
-{text[:12000]}
+
+# Limit to ~8000 chars (~2000 tokens) to stay safely within model context window
+# For multi-file uploads, text is pre-chunked per file in views.py
+{text[:8000]}
 """
 
     try:
