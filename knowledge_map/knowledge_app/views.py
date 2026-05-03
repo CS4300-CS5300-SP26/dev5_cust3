@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, FileResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -35,7 +35,7 @@ def delete_selected_files(request):
         selected_ids = request.POST.getlist("selected_files")
 
         if selected_ids:
-            files_to_delete = UploadedFile.objects.filter(id__in=selected_ids)
+            files_to_delete = UploadedFile.objects.filter(id__in=selected_ids, user=request.user)
 
             for f in files_to_delete:
                 # delete the actual file from storage first
@@ -103,6 +103,7 @@ def upload(request):
 
 
 # folder mangemnt views
+@login_required
 def create_folder(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
@@ -110,7 +111,7 @@ def create_folder(request):
             Folder.objects.get_or_create(user=request.user, name=name)
     return redirect("upload")
 
-
+@login_required
 def move_files(request):
     if request.method == "POST":
         file_ids = request.POST.getlist("selected_files")
@@ -131,10 +132,11 @@ def move_files(request):
 
 
 @login_required
+@require_POST
 def delete_file(request, file_id):
 
     # Get the file or return 404 if it doesn't exist
-    uploaded = get_object_or_404(UploadedFile, id=file_id)
+    uploaded = get_object_or_404(UploadedFile, id=file_id, user=request.user)
 
     # Delete the actual file from disk
     if os.path.exists(uploaded.file.path):
@@ -737,7 +739,7 @@ def update_theme(request):
 
 # related topics
 
-
+@login_required
 def related_topics(request, map_id):
     knowledge_map = get_object_or_404(KnowledgeMap, id=map_id, user=request.user)
 
@@ -787,7 +789,7 @@ def share_map(request, map_id):
                 user_to_share_with = User.objects.get(username=username)
             except User.DoesNotExist:
                 return JsonResponse(
-                    {"error": f'User "{username}" not found'}, status=404
+                    {"error": f'User not found'}, status=404
                 )
 
             # Don't allow sharing with yourself
@@ -1135,3 +1137,9 @@ def update_custom_map_title(request, map_id):
 def new_custom_map(request):
     custom_map = CustomMap.objects.create(user=request.user, title='Untitled Map')
     return redirect('homepage_map', map_id=custom_map.id)
+
+# File sharing
+@login_required
+def serve_file(request, file_id):
+    f = get_object_or_404(UploadedFile, id=file_id, user=request.user)
+    return FileResponse(f.file.open('rb'), content_type='application/pdf', as_attachment=False)

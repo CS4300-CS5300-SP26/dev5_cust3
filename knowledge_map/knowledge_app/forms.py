@@ -1,5 +1,4 @@
 from django import forms
-
 from .models import Quiz, UploadedFile
 
 
@@ -100,5 +99,16 @@ class QuizGenerationForm(forms.ModelForm):
             self.add_error("pdf_file", "Please upload a PDF file")
         elif source_choice == "text" and not text_input:
             self.add_error("text_input", "Please paste text content")
+
+        # Security validation
+        if source_choice == 'upload' and pdf_file:
+            if not pdf_file.name.lower().endswith('.pdf'):
+                self.add_error('pdf_file', 'Only PDF files are allowed.')
+            else:
+                pdf_file.seek(0)
+                magic = pdf_file.read(4)
+                pdf_file.seek(0)
+                if magic != b'%PDF':
+                    self.add_error('pdf_file', 'Uploaded file does not appear to be a valid PDF.')
 
         return cleaned_data

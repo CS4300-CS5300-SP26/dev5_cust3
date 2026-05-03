@@ -57,4 +57,5 @@ urlpatterns = [
     path('custom-map/<int:map_id>/update-title/', views.update_custom_map_title, name='update_custom_map_title'),
     path('homepage/<int:map_id>/', views.homepage, name='homepage_map'),
     path('custom-map/new/', views.new_custom_map, name='new_custom_map'),
+    path('files/<int:file_id>/', views.serve_file, name='serve_file'),
 ]
