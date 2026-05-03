@@ -65,7 +65,7 @@
                     <li class="border rounded p-2 mb-2 d-flex justify-content-between align-items-center">
                         <div>
                             <input type="checkbox" name="selected_files" value="{{ f.id }}" class="file-checkbox me-2">
-                            <a href="{{ f.file.url }}" target="_blank">{{ f.display_name }}</a>
+                            <a href="{% url 'serve_file' f.id %}" target="_blank">{{ f.display_name }}</a>
                             <span class="text-muted">— {{ f.uploaded_at|date:"M d, Y H:i" }}</span>
                             {% if f.folder %}
                             <span class="badge bg-secondary ms-1">📁 {{ f.folder.name }}</span>

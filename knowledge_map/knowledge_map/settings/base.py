@@ -28,6 +28,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'django-insecure-u@e
 # (vy4q082a8leb%(ln0ikwbmsa$kr12ez-xu%!0+gl(5asue'
+
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
     _is_debug = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
@@ -35,8 +38,6 @@ if not SECRET_KEY:
         SECRET_KEY = 'dev-only-insecure-key-do-not-use-in-prod'
     else:
         raise ValueError("SECRET_KEY environment variable must be set in production")
-
-DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 # ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
 
