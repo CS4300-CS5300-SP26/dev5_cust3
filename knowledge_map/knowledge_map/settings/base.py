@@ -30,11 +30,14 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # (vy4q082a8leb%(ln0ikwbmsa$kr12ez-xu%!0+gl(5asue'
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
-    if DEBUG:
+    _is_debug = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
+    if _is_debug:
         SECRET_KEY = 'dev-only-insecure-key-do-not-use-in-prod'
     else:
         raise ValueError("SECRET_KEY environment variable must be set in production")
-        DEBUG = os.environ.get("DEBUG", "False") == "True"
+
+DEBUG = os.environ.get("DEBUG", "False") == "True"
+
 # ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
 
 # Application definition
