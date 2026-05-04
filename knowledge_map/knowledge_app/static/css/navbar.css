@@ -66,7 +66,10 @@ body {
     display: flex;
 }
 
-.fw-semibold,
+.fw-semibold {
+    color: var(--link-color);
+}
+
 .fw-bold {
     color: var(--link);
 }
