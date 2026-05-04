@@ -226,7 +226,7 @@
 
     // Run on page load
     updateSourceFields();
-    const preselected = "{{ preselected_pdf }}";
+    const preselected = "{{ preselected_pdf|escapejs }}";
     if (preselected) {
         const radio = document.querySelector('input[name="source_choice"][value="existing"]');
         if (radio) {
