@@ -272,70 +272,66 @@ class QuizViewTest(TestCase):
 
 # ----------------Tests for Quiz Detail View---------------------
 
+
 class QuizDetailViewTests(TestCase):
 
     def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username="testuser", password="testpass"
-        )
-        self.other_user = User.objects.create_user(
-            username="otheruser", password="testpass"
-        )
-
-        self.client.login(username="testuser", password="testpass")
-
-        self.quiz = Quiz.objects.create(user=self.user, title="Test Quiz")
-
-        self.q1 = Question.objects.create(
-            quiz=self.quiz, question_text="2+2?", correct_answer="4"
-        )
-        self.q2 = Question.objects.create(
+        # Create two users, a quiz, and a question before each test
+        self.owner = User.objects.create_user(username="owner", password="pass")
+        self.other = User.objects.create_user(username="other", password="pass")
+        self.quiz = Quiz.objects.create(user=self.owner, title="Test Quiz")
+        self.question = Question.objects.create(
             quiz=self.quiz,
-            question_text="Capital of France?",
-            correct_answer="Paris",
+            question_text="What is 2+2?",
+            question_type="multiple_choice",
+            correct_answer="4",
+            order=1,
         )
+        self.url = reverse("quiz_detail", kwargs={"pk": self.quiz.pk})
+        self.client.login(username="owner", password="pass")
 
-    def test_redirect_if_not_logged_in(self):
-        self.client.logout()
-        response = self.client.get(reverse("quiz_detail", args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 302)
-
-    def test_quiz_not_owned_returns_404(self):
-        other_quiz = Quiz.objects.create(user=self.other_user, title="Other Quiz")
-        response = self.client.get(reverse("quiz_detail", args=[other_quiz.id]))
-        self.assertEqual(response.status_code, 404)
-
-    def test_get_quiz_detail(self):
-        response = self.client.get(reverse("quiz_detail", args=[self.quiz.id]))
+    # Test that the quiz detail page loads successfully
+    def test_page_loads(self):
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Test Quiz")
 
-    def test_submit_quiz_empty_answers(self):
-        self.client.post(reverse("quiz_detail", args=[self.quiz.id]), {})
-        attempt = QuizAttempt.objects.first()
+    # Test that the quiz detail page uses the correct template
+    def test_correct_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "knowledge_app/quiz_detail.html")
+
+    # Test that submitting answers creates a quiz attempt in the database
+    def test_submit_creates_attempt(self):
+        self.client.post(self.url, {f"q_{self.question.id}": "4"})
+        self.assertEqual(QuizAttempt.objects.filter(quiz=self.quiz).count(), 1)
+
+    # Test that a correct answer results in a score of 100
+    def test_correct_answer_scores_100(self):
+        self.client.post(self.url, {f"q_{self.question.id}": "4"})
+        attempt = QuizAttempt.objects.get(quiz=self.quiz)
+        self.assertEqual(attempt.score, 100)
+        self.assertEqual(attempt.correct_count, 1)
+
+    # Test that a wrong answer results in a score of 0
+    def test_wrong_answer_scores_0(self):
+        self.client.post(self.url, {f"q_{self.question.id}": "99"})
+        attempt = QuizAttempt.objects.get(quiz=self.quiz)
+        self.assertEqual(attempt.score, 0)
         self.assertEqual(attempt.correct_count, 0)
-        self.assertEqual(attempt.score, 0)
 
-    def test_quiz_with_no_questions(self):
-        empty_quiz = Quiz.objects.create(user=self.user, title="Empty Quiz")
-        response = self.client.post(
-            reverse("quiz_detail", args=[empty_quiz.id]), {}
+    # Test that submitting a quiz redirects to the results page
+    def test_submit_redirects_to_results(self):
+        response = self.client.post(self.url, {f"q_{self.question.id}": "4"})
+        attempt = QuizAttempt.objects.get(quiz=self.quiz)
+        self.assertRedirects(
+            response, reverse("quiz_results", kwargs={"attempt_id": attempt.id})
         )
-        attempt = QuizAttempt.objects.first()
-        self.assertEqual(attempt.score, 0)
 
-    def test_previous_attempts_in_context(self):
-        QuizAttempt.objects.create(
-            quiz=self.quiz,
-            user=self.user,
-            score=80,
-            correct_count=1,
-            total_questions=2,
-        )
-        response = self.client.get(reverse("quiz_detail", args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("attempts", response.context)
+    # Test that another user cannot access someone else's quiz
+    def test_other_user_gets_404(self):
+        self.client.login(username="other", password="pass")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)
 
 
 # ----------------Tests for Quiz Results View---------------------
@@ -393,6 +389,76 @@ class QuizResultsViewTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 404)
 
+
+class QuizDetailViewTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.other_user = User.objects.create_user(
+            username="otheruser", password="testpass"
+        )
+
+        self.client.login(username="testuser", password="testpass")
+
+        self.quiz = Quiz.objects.create(user=self.user, title="Test Quiz")
+
+        # Create questions
+        self.q1 = Question.objects.create(
+            quiz=self.quiz, question_text="2+2?", correct_answer="4"
+        )
+
+        self.q2 = Question.objects.create(
+            quiz=self.quiz, question_text="Capital of France?", correct_answer="Paris"
+        )
+
+    # Not logged in
+    def test_redirect_if_not_logged_in(self):
+        self.client.logout()
+        response = self.client.get(reverse("quiz_detail", args=[self.quiz.id]))
+        self.assertEqual(response.status_code, 302)
+
+    #  Quiz belongs to another user
+    def test_quiz_not_owned_returns_404(self):
+        чужой_quiq = Quiz.objects.create(user=self.other_user, title="Other Quiz")
+        response = self.client.get(reverse("quiz_detail", args=[чужой_quiq.id]))
+        self.assertEqual(response.status_code, 404)
+
+    # GET request renders page
+    def test_get_quiz_detail(self):
+        response = self.client.get(reverse("quiz_detail", args=[self.quiz.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Quiz")
+
+    #  Empty answers (edge case)
+
+    def test_submit_quiz_empty_answers(self):
+        self.client.post(reverse("quiz_detail", args=[self.quiz.id]), {})
+
+        attempt = QuizAttempt.objects.first()
+        self.assertEqual(attempt.correct_count, 0)
+        self.assertEqual(attempt.score, 0)
+
+    #  Quiz with no questions
+    def test_quiz_with_no_questions(self):
+        empty_quiz = Quiz.objects.create(user=self.user, title="Empty Quiz")
+
+        response = self.client.post(reverse("quiz_detail", args=[empty_quiz.id]), {})
+
+        attempt = QuizAttempt.objects.first()
+        self.assertEqual(attempt.score, 0)
+
+    # Previous attempts appear
+    def test_previous_attempts_in_context(self):
+        QuizAttempt.objects.create(
+            quiz=self.quiz, user=self.user, score=80, correct_count=1, total_questions=2
+        )
+
+        response = self.client.get(reverse("quiz_detail", args=[self.quiz.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("attempts", response.context)
 
 
 # ----------------Tests for Delete Quiz Feature---------------------

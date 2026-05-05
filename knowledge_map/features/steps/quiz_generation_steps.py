@@ -75,7 +75,8 @@ def step_verify_choice_count(context, num):
 def step_verify_correct_answer_exists(context):
     """Verify each question has exactly one correct answer."""
     for question in context.quiz:
-        assert "answer" in question, f"Question {question['id']} has no 'answer' field"
+        assert "answer" in question, f"Question {
+            question['id']} has no 'answer' field"
         assert (
             question["answer"] in question["choices"]
         ), f"Answer '{question['answer']}' not in choices for {question['id']}"

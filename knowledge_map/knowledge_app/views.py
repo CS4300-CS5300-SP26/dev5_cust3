@@ -110,7 +110,6 @@ def create_folder(request):
         name = request.POST.get("name", "").strip()
         if name:
             Folder.objects.get_or_create(user=request.user, name=name)
-            
     return redirect("upload")
 
 @login_required
