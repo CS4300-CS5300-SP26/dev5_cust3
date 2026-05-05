@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from knowledge_app.models import Question
+#from knowledge_app.models import Question
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 

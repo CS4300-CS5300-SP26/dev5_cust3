@@ -104,11 +104,13 @@ def upload(request):
 
 # folder mangemnt views
 @login_required
+
 def create_folder(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         if name:
             Folder.objects.get_or_create(user=request.user, name=name)
+            
     return redirect("upload")
 
 @login_required
@@ -187,7 +189,6 @@ def quiz(request):
 # Progress view
 @login_required
 def progress(request):
-    from django.db.models import Avg
 
     quizzes = Quiz.objects.filter(user=request.user).prefetch_related(
         "attempts", "questions"
@@ -789,7 +790,7 @@ def share_map(request, map_id):
                 user_to_share_with = User.objects.get(username=username)
             except User.DoesNotExist:
                 return JsonResponse(
-                    {"error": f'User not found'}, status=404
+                    {"error": "User not found"}, status=404
                 )
 
             # Don't allow sharing with yourself

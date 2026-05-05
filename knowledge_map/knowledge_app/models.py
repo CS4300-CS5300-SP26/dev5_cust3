@@ -1,4 +1,3 @@
-import json
 import uuid
 
 from django.conf import settings
@@ -315,6 +314,7 @@ class SharedMap(models.Model):
         return f"{self.knowledge_map.title} (public link)"
 
 # Stores a custom map built by the user on the homepage
+
 class CustomMap(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -327,8 +327,9 @@ class CustomMap(models.Model):
 
     def __str__(self):
         return f"{self.title} by {self.user.username}"
-        
+ 
 # A node in a custom map
+
 class CustomNode(models.Model):
     custom_map = models.ForeignKey(CustomMap, on_delete=models.CASCADE, related_name='nodes')
     label = models.CharField(max_length=255)
@@ -340,10 +341,17 @@ class CustomNode(models.Model):
         return self.label
 
 # An edge in a custom map
+
 class CustomEdge(models.Model):
-    custom_map = models.ForeignKey(CustomMap, on_delete=models.CASCADE, related_name='edges')
-    source = models.ForeignKey(CustomNode, on_delete=models.CASCADE, related_name='outgoing')
-    target = models.ForeignKey(CustomNode, on_delete=models.CASCADE, related_name='incoming')
+    custom_map = models.ForeignKey(
+        CustomMap, on_delete=models.CASCADE, related_name='edges'
+    )
+    source = models.ForeignKey(
+        CustomNode, on_delete=models.CASCADE, related_name='outgoing'
+    )
+    target = models.ForeignKey(
+        CustomNode, on_delete=models.CASCADE, related_name='incoming'
+    )
     label = models.CharField(max_length=255, blank=True, default='')
 
     def __str__(self):
