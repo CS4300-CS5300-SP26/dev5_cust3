@@ -392,7 +392,7 @@ Text to generate questions from:
         questions_data = json.loads(raw)
 
         # Save each generated question to the database
-        from ..models import Question
+        from knowledge_app.models import Question as QuestionModel
 
         for order, q_data in enumerate(questions_data, start=1):
             Question.objects.create(

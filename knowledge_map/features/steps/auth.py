@@ -21,7 +21,7 @@ def step_user_exists_with_password(context, username, password):
 @given('I am logged in as "{username}" with password "{password}"')
 def step_logged_in(context, username, password):
     User.objects.filter(username=username).delete()
-    _user = User.objects.create_user(username=username, password=password)
+    User.objects.create_user(username=username, password=password)
     context.client.login(username=username, password=password)
 
 

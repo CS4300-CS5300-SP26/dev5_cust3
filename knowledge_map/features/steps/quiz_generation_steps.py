@@ -1,14 +1,11 @@
 import json
-import re
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from behave import given, then, when
 
 from knowledge_app.services.quiz_generator import (generate_fill_in_blank,
-                                                   generate_matching,
                                                    generate_multiple_choice,
                                                    generate_quiz,
-                                                   generate_quiz_from_text,
                                                    generate_true_false)
 
 # ============================= FIXTURES ==============================
