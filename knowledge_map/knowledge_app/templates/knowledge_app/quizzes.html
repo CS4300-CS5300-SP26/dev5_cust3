@@ -19,6 +19,10 @@
         <form method="post" enctype="multipart/form-data" class="generation-form">
             {% csrf_token %}
 
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" style="color:red; margin-bottom: 1rem;">{{ form.non_field_errors }}</div>
+            {% endif %}
+
             <div class="form-group">
                 <label>{{ form.title.label }}</label>
                 {{ form.title }}
@@ -222,7 +226,7 @@
 
     // Run on page load
     updateSourceFields();
-    const preselected = "{{ preselected_pdf }}";
+    const preselected = "{{ preselected_pdf|escapejs }}";
     if (preselected) {
         const radio = document.querySelector('input[name="source_choice"][value="existing"]');
         if (radio) {

@@ -6,9 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('knowledge_app', '0002_alter_uploadedfile_options_uploadedfile_user_quiz_and_more'),
-        ('knowledge_app', '0003_knowledgemap_topicnode_subtopicnode_noderelationship'),
+        (
+            "knowledge_app",
+            "0002_alter_uploadedfile_options_uploadedfile_user_quiz_and_more",
+        ),
+        ("knowledge_app", "0003_knowledgemap_topicnode_subtopicnode_noderelationship"),
     ]
 
-    operations = [
-    ]
+    operations = []

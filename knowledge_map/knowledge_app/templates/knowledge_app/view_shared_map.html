@@ -26,10 +26,14 @@
 <!-- Cytoscape.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 
-<script>
-    const cyNodes = {{ nodes|safe }};
-    const cyEdges = {{ edges|safe }};
+{{ nodes|json_script:"cy-nodes-data" }}
+{{ edges|json_script:"cy-edges-data" }}
 
+<script>
+
+    // ── Map data from Django ──────────────────────────────────────────────────
+    const cyNodes = JSON.parse(document.getElementById('cy-nodes-data').textContent);
+    const cyEdges = JSON.parse(document.getElementById('cy-edges-data').textContent);
     const cy = cytoscape({
         container: document.getElementById('cy'),
         elements: [...cyNodes, ...cyEdges],

@@ -3,7 +3,8 @@ Celery will run the OpenAI processing in the background
 """
 
 from celery import shared_task
-from .models import KnowledgeMap, TopicNode, SubtopicNode, NodeRelationship
+
+from .models import KnowledgeMap, NodeRelationship, TopicNode
 from .processing import generate_knowledge_map_data
 
 
@@ -12,7 +13,7 @@ def generate_knowledge_map(knowledge_map_id):
     knowledge_map = None
     try:
         knowledge_map = KnowledgeMap.objects.get(id=knowledge_map_id)
-        knowledge_map.status = 'processing'
+        knowledge_map.status = "processing"
         knowledge_map.save()
 
         text = knowledge_map.uploaded_file.extracted_text
@@ -21,8 +22,8 @@ def generate_knowledge_map(knowledge_map_id):
         topic_nodes = {}
         for topic in topics:
 
-            label = topic.get('label', '').strip()
-            summary = topic.get('summary', '').strip()
+            label = topic.get("label", "").strip()
+            summary = topic.get("summary", "").strip()
 
             # Skip if label is empty
             if not label:
@@ -30,17 +31,15 @@ def generate_knowledge_map(knowledge_map_id):
                 continue
 
             node = TopicNode.objects.create(
-                knowledge_map=knowledge_map,
-                label=label,
-                summary=summary
+                knowledge_map=knowledge_map, label=label, summary=summary
             )
             topic_nodes[label] = node
 
         # Save relationships to database
         for rel in relationships:
-            source = rel.get('source', '').strip()
-            target = rel.get('target', '').strip()
-            label = rel.get('label', '').strip()
+            source = rel.get("source", "").strip()
+            target = rel.get("target", "").strip()
+            label = rel.get("label", "").strip()
 
             source_node = topic_nodes.get(source)
             target_node = topic_nodes.get(target)
@@ -54,16 +53,16 @@ def generate_knowledge_map(knowledge_map_id):
                 knowledge_map=knowledge_map,
                 source_topic=source_node,
                 target_topic=target_node,
-                relationship_label=label
+                relationship_label=label,
             )
 
-        knowledge_map.status = 'complete'
+        knowledge_map.status = "complete"
         knowledge_map.save()
 
         return f"Knowledge map {knowledge_map_id} generated successfully"
 
     except Exception as e:
         if knowledge_map is not None:
-            knowledge_map.status = 'failed'
+            knowledge_map.status = "failed"
             knowledge_map.save()
         return str(e)

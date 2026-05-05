@@ -65,7 +65,7 @@
                     <li class="border rounded p-2 mb-2 d-flex justify-content-between align-items-center">
                         <div>
                             <input type="checkbox" name="selected_files" value="{{ f.id }}" class="file-checkbox me-2">
-                            <a href="{{ f.file.url }}" target="_blank">{{ f.display_name }}</a>
+                            <a href="{% url 'serve_file' f.id %}" target="_blank">{{ f.display_name }}</a>
                             <span class="text-muted">— {{ f.uploaded_at|date:"M d, Y H:i" }}</span>
                             {% if f.folder %}
                             <span class="badge bg-secondary ms-1">📁 {{ f.folder.name }}</span>
@@ -76,9 +76,6 @@
                 </ul>
 
                 <div class="d-flex gap-2 mt-3 flex-wrap align-items-center">
-                    <button id="create-map-btn" type="button" class="btn btn-primary" disabled>
-                        Create Knowledge Map
-                    </button>
                     <button id="create-quiz-btn" type="button" class="btn btn-primary" disabled>
                         Generate Quiz
                     </button>
@@ -130,7 +127,7 @@ function updateButtonState() {
     const exactlyOne = checked.length === 1;
 
     if (createBtn) createBtn.disabled = !anyChecked;
-    if (quizBtn) quizBtn.disabled = !exactlyOne;
+    if (quizBtn) quizBtn.disabled = !anyChecked;
     if (deleteBtn) deleteBtn.disabled = !anyChecked;
 
     // Show/hide move controls
@@ -145,9 +142,10 @@ updateButtonState();
 checkboxes.forEach(cb => cb.addEventListener('change', updateButtonState));
 
 quizBtn.addEventListener('click', function() {
-    const selectedId = Array.from(checkboxes).find(cb => cb.checked)?.value;
-    if (selectedId) {
-        window.location.href = `{% url 'quizzes' %}?existing_pdf=${selectedId}`;
+    const selectedIds = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+    if (selectedIds.length) {
+        const params = selectedIds.map(id => `existing_pdf=${id}`).join('&');
+        window.location.href = `{% url 'quizzes' %}?${params}`;
     }
 });
 

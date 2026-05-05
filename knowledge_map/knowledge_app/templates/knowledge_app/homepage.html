@@ -2,50 +2,61 @@
 {% load static %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+<link rel="stylesheet" href="{% static 'css/homepage.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" rel="stylesheet">
-<div class="homepage-wrapper">
-    <div class="homepage-main">
-        <h1 style="text-align: center;">Welcome to the Homepage</h1>
+<div class="builder-wrapper">
 
-        <!-- Create map form -->
-        <div class="create-map-form">
-            <h2>Create Knowledge Map</h2>
-            <form method="POST" action="{% url 'create_map' %}">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="title">Map Title</label>
-                    <input type="text" id="title" name="title" placeholder="Enter a title for your map" required>
-                </div>
-                <div class="form-group">
-                    <label for="file_id">Select a PDF</label>
-                    <select id="file_id" name="file_id" required>
-                        <option value="">-- Select a PDF --</option>
-                        {% for file in files %}
-                        <option value="{{ file.id }}">{{ file.file.name }} ({{ file.uploaded_at|date:"d M Y" }})</option>
-                        {% empty %}
-                        <option disabled>No PDFs uploaded yet</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="submit">Generate Map</button>
-            </form>
-        </div>
+    <!-- Toolbar -->
+    <div class="builder-toolbar">
+        <!-- Editable map title -->
+        <input type="text" id="map-title" class="map-title-input" value="{{ custom_map.title }}">
 
+        <!-- Action buttons -->
+        <button id="add-node-btn" class="toolbar-btn">+ Add Node</button>
+        <button id="add-edge-btn" class="toolbar-btn edge-btn">+ Add Connection</button>
+        <button id="clear-btn" class="toolbar-btn clear-btn">Clear All</button>
     </div>
 
-    <!--Notepad Panel-->
-    <div class="notepad-panel">
-        <div class="notepad-header">
-            <h2>Notes</h2>
-        </div>
-        <textarea class="notepad-body" placeholder="Write your notes here..."></textarea>
+    <!-- Add node form (hidden by default) -->
+    <div id="add-node-form" class="add-node-form hidden">
+        <input type="text" id="new-node-label" placeholder="Node label (required)">
+        <input type="text" id="new-node-summary" placeholder="Node summary (optional)">
+        <button id="confirm-add-node" class="confirm-btn">Add</button>
+        <button id="cancel-add-node" class="cancel-btn">Cancel</button>
     </div>
+
+    <!-- Cytoscape canvas -->
+    <div id="cy"></div>
+
+    <!-- Node popup -->
+    <div id="node-popup" class="node-popup hidden">
+        <button id="popup-close" class="popup-close">✕</button>
+        <h3 id="popup-label"></h3>
+        <p id="popup-summary"></p>
+        <button id="delete-node-btn" class="delete-btn">Delete Node</button>
+    </div>
+
+    <!-- Edge popup -->
+    <div id="edge-popup" class="node-popup hidden">
+        <button id="edge-popup-close" class="popup-close">✕</button>
+        <h3>Connection</h3>
+        <p id="edge-popup-label"></p>
+        <button id="delete-edge-btn" class="delete-btn">Delete Connection</button>
+    </div>
+
 </div>
+
+<!-- Pass Django variables to JS via data attributes -->
+<div id="map-data"
+    data-csrf="{{ csrf_token }}"
+    data-map-id="{{ custom_map.id }}"
+    data-nodes='{{ nodes|safe }}'
+    data-edges='{{ edges|safe }}'>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<script src="{% static 'js/homepage.js' %}?v=2"></script>
 
 {% endblock %}

@@ -61,7 +61,7 @@
 .map-card-header h2 {
     font-size: 1rem;
     font-weight: 600;
-    color: white;
+    color: var(--card-bg);
     margin: 0;
 }
 

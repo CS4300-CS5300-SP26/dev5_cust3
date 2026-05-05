@@ -8,20 +8,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('knowledge_app', '0001_initial'),
+        ("knowledge_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='uploadedfile',
-            name='extracted_text',
-            field=models.TextField(blank=True, default=''),
+            model_name="uploadedfile",
+            name="extracted_text",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name='uploadedfile',
-            name='uploaded_by',
+            model_name="uploadedfile",
+            name="uploaded_by",
             field=models.ForeignKey(
-                null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]
