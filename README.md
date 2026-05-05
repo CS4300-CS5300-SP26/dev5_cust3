@@ -60,3 +60,4 @@ AI was used to debug deplyoment issues: https://claude.ai/share/e947385e-a67e-41
 
 ### Sprint 4
 AI was used for the voiceover in our video https://elevenlabs.io/ 
+AI was used to address the security vulnerabilities in our webapp: https://claude.ai/share/ba47c03b-370c-4c6e-9443-ea2722107802
