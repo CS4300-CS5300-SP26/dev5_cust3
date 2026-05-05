@@ -54,3 +54,7 @@ AI was used to help with the light/dark toggle: https://claude.ai/share/87a34544
 AI was used to simplify the CD pipeline: https://claude.ai/share/c53d3768-19ff-45b5-af17-75772514e374
 AI was used to add file management: https://claude.ai/chat/ef5fc0b3-b7cb-4898-a21d-835e0c843df7
 AI was used to debug deplyoment issues: https://claude.ai/share/e947385e-a67e-41ef-8d1b-566f7b3cdd14
+
+
+### Sprint 4
+AI was used for the voiceover in our video https://youtu.be/Y6C9oKm1pGE
