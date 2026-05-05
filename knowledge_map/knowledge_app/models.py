@@ -315,6 +315,7 @@ class SharedMap(models.Model):
 
 # Stores a custom map built by the user on the homepage
 
+
 class CustomMap(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -327,8 +328,9 @@ class CustomMap(models.Model):
 
     def __str__(self):
         return f"{self.title} by {self.user.username}"
- 
+
 # A node in a custom map
+
 
 class CustomNode(models.Model):
     custom_map = models.ForeignKey(CustomMap, on_delete=models.CASCADE, related_name='nodes')
@@ -341,6 +343,7 @@ class CustomNode(models.Model):
         return self.label
 
 # An edge in a custom map
+
 
 class CustomEdge(models.Model):
     custom_map = models.ForeignKey(

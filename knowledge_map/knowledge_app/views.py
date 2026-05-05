@@ -104,13 +104,13 @@ def upload(request):
 
 # folder mangemnt views
 @login_required
-
 def create_folder(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         if name:
             Folder.objects.get_or_create(user=request.user, name=name)
     return redirect("upload")
+
 
 @login_required
 def move_files(request):
@@ -387,7 +387,7 @@ def quizzes_hub(request):
                                 uploaded_file.save()
                             except Exception as e:
                                 print(f"PDF extraction error for {uploaded_file}: {e}")
-                                
+
                         text += file_text[:per_file_limit]
                 else:
                     # Single newly uploaded PDF
@@ -972,6 +972,7 @@ def delete_relationship(request, map_id, relationship_id):
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
 @login_required
 def homepage(request, map_id=None):
     if map_id:
@@ -1133,12 +1134,16 @@ def update_custom_map_title(request, map_id):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 # Create a new custom map and redirect to it
+
+
 @login_required
 def new_custom_map(request):
     custom_map = CustomMap.objects.create(user=request.user, title='Untitled Map')
     return redirect('homepage_map', map_id=custom_map.id)
 
 # File sharing
+
+
 @login_required
 def serve_file(request, file_id):
     f = get_object_or_404(UploadedFile, id=file_id, user=request.user)

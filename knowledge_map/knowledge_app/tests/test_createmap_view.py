@@ -61,6 +61,7 @@ class CreateMapViewTests(TestCase):
 # GET requests - user isolation / filtering
 # -------------------------------------------------------------------------
 
+
 def test_get_context_excludes_other_users_files(self):
     """Files belonging to a different user should NOT appear in context."""
     other_user = User.objects.create_user(
@@ -73,6 +74,7 @@ def test_get_context_excludes_other_users_files(self):
 
     response = self.client.get(reverse('create_map'))
     self.assertNotIn(other_file, response.context['files'])
+
 
 def test_get_context_contains_only_current_users_files(self):
     """The files in context should contain ONLY the logged-in user's files."""
@@ -91,6 +93,7 @@ def test_get_context_contains_only_current_users_files(self):
     for f in files_in_context:
         self.assertEqual(f.user, self.user)
 
+
 def test_get_returns_all_of_current_users_files(self):
     """All files belonging to the logged-in user should appear in context."""
     second_pdf = SimpleUploadedFile(
@@ -103,6 +106,7 @@ def test_get_returns_all_of_current_users_files(self):
 
     self.assertIn(self.uploaded_file, files_in_context)
     self.assertIn(second_file, files_in_context)
+
 
 def test_post_rejects_file_belonging_to_other_user(self):
     """A POST referencing another user's file_id should return 404,
@@ -122,7 +126,6 @@ def test_post_rejects_file_belonging_to_other_user(self):
     self.assertEqual(response.status_code, 404)
     self.assertEqual(KnowledgeMap.objects.count(), 0)
 
-    
     # -------------------------------------------------------------------------
     # POST requests - happy path
     # -------------------------------------------------------------------------

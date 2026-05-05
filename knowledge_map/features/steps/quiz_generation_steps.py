@@ -173,12 +173,12 @@ def step_verify_mixed_types(context):
 def step_verify_all_valid(context):
     """Verify all questions are valid."""
     for question in context.quiz:
-        assert "id" in question, f"Question missing 'id'"
-        assert "type" in question, f"Question missing 'type'"
+        assert "id" in question, "Question missing 'id'"
+        assert "type" in question, "Question missing 'type'"
         assert (
             "question" in question or "question_text" in question
-        ), f"Question missing 'question' or 'question_text'"
-        assert "answer" in question, f"Question missing 'answer'"
+        ), "Question missing 'question' or 'question_text'"
+        assert "answer" in question, "Question missing 'answer'"
 
 
 # ============================= MATCHING ==============================
