@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from knowledge_app.models import Question
+# from knowledge_app.models import Question
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
@@ -392,7 +392,7 @@ Text to generate questions from:
         questions_data = json.loads(raw)
 
         # Save each generated question to the database
-        from ..models import Question
+        #from ..models import Question
 
         for order, q_data in enumerate(questions_data, start=1):
             Question.objects.create(
