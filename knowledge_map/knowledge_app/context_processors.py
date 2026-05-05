@@ -1,4 +1,4 @@
-# from .models import UserProfile
+from .models import UserProfile
 
 
 def user_theme(request):
