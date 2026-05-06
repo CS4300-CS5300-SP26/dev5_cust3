@@ -24,11 +24,8 @@
         </div>
         
         {% else %}
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="share_type" value="public">
-            <button type="submit" class="generate-btn">Generate Public Link</button>
-        </form>
+        <button onclick="generatePublicLink()" class="generate-btn">Generate Public Link</button>
+        <p id="generate-message" class="share-message"></p>
         {% endif %}
     </div>
 
@@ -58,6 +55,42 @@
 </div>
 
 <script>
+    // Generate public link via AJAX
+    async function generatePublicLink() {
+        const message = document.getElementById('generate-message');
+
+        try {
+            const response = await fetch("{% url 'share_map' knowledge_map.id %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: 'share_type=public'
+            });
+
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                message.textContent = 'Something went wrong. Please try again.';
+                message.className = 'share-message error';
+                return;
+            }
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                message.textContent = data.error || 'Something went wrong. Please try again.';
+                message.className = 'share-message error';
+            }
+
+        } catch {
+            message.textContent = 'Network error. Please check your connection and try again.';
+            message.className = 'share-message error';
+        }
+    }
+
     // Copy public link to clipboard
     async function copyLink() {
         const input = document.getElementById('public-link');

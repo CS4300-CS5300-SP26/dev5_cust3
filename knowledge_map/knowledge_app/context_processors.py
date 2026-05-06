@@ -1,6 +1,3 @@
-from .models import UserProfile
-
-
 def user_theme(request):
     if request.user.is_authenticated:
         profile = getattr(request.user, "profile", None)

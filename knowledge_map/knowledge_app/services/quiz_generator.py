@@ -391,9 +391,6 @@ Text to generate questions from:
         # Parse the JSON response into a list of question dictionaries
         questions_data = json.loads(raw)
 
-        # Save each generated question to the database
-        from ..models import Question
-
         for order, q_data in enumerate(questions_data, start=1):
             Question.objects.create(
                 quiz=quiz,

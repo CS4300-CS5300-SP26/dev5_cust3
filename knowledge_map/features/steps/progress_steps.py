@@ -1,8 +1,7 @@
 from behave import given, then, when
-from django.contrib.auth.models import User
 from django.urls import reverse
 
-from knowledge_app.models import Question, Quiz, QuizAttempt
+from knowledge_app.models import Quiz, QuizAttempt
 
 
 @when("I visit the progress page")
