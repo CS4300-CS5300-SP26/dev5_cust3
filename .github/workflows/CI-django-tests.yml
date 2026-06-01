@@ -43,7 +43,7 @@ jobs:
          pip-audit -r requirements.txt || true
       
       - name: Upload dependency scan report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           # name artifact with Python version so each matrix has own report
           name: dependency-scan-report${{ matrix.python-version }}
